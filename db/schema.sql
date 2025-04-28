@@ -1,12 +1,15 @@
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
 CREATE TYPE owner_type AS ENUM ('individual', 'corporate');
 CREATE TYPE unit_type AS ENUM ('residence', 'tenant', 'parking', 'vending', 'solar');
 CREATE TYPE unit_status AS ENUM ('occupied', 'vacant');
 CREATE TYPE payment_status AS ENUM ('normal', 'delayed', 'delinquent', 'adjusted');
 CREATE TYPE repayment_method AS ENUM ('principal_equal', 'annuity');
 CREATE TYPE expense_category AS ENUM ('management_fee', 'repair_cost', 'utility', 'insurance', 'tax', 'other');
+CREATE TYPE payment_frequency AS ENUM ('monthly', 'bi-weekly', 'weekly');
 
 CREATE TABLE users (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     first_name VARCHAR(100) NOT NULL,
@@ -17,7 +20,7 @@ CREATE TABLE users (
 );
 
 CREATE TABLE owners (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL,
     type owner_type NOT NULL,
     name VARCHAR(255) NOT NULL,
@@ -31,7 +34,7 @@ CREATE TABLE owners (
 );
 
 CREATE TABLE properties (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     owner_id UUID NOT NULL,
     name VARCHAR(255) NOT NULL,
     address VARCHAR(500) NOT NULL,
@@ -51,7 +54,7 @@ CREATE TABLE properties (
 );
 
 CREATE TABLE units (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     property_id UUID NOT NULL,
     unit_number VARCHAR(50) NOT NULL,
     unit_type unit_type NOT NULL,
@@ -66,11 +69,12 @@ CREATE TABLE units (
     lease_end_date DATE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE RESTRICT
+    FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE RESTRICT,
+    UNIQUE (property_id, unit_number)
 );
 
 CREATE TABLE unit_status_histories (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     unit_id UUID NOT NULL,
     status unit_status NOT NULL,
     start_date DATE NOT NULL,
@@ -82,7 +86,7 @@ CREATE TABLE unit_status_histories (
 );
 
 CREATE TABLE unit_payment_records (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     unit_id UUID NOT NULL,
     payment_date DATE NOT NULL,
     amount DECIMAL(15, 2) NOT NULL,
@@ -96,16 +100,16 @@ CREATE TABLE unit_payment_records (
 );
 
 CREATE TABLE loans (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     property_id UUID NOT NULL,
     lender_name VARCHAR(255) NOT NULL,
     loan_amount DECIMAL(15, 2) NOT NULL,
-    interest_rate DECIMAL(5, 2) NOT NULL,
+    interest_rate DECIMAL(6, 5) NOT NULL,
     term_years INTEGER NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
     repayment_method repayment_method NOT NULL,
-    payment_frequency VARCHAR(20) NOT NULL,
+    payment_frequency payment_frequency NOT NULL,
     payment_amount DECIMAL(15, 2) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -113,7 +117,7 @@ CREATE TABLE loans (
 );
 
 CREATE TABLE loan_repayments (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     loan_id UUID NOT NULL,
     payment_date DATE NOT NULL,
     amount DECIMAL(15, 2) NOT NULL,
@@ -128,11 +132,11 @@ CREATE TABLE loan_repayments (
 );
 
 CREATE TABLE loan_interest_changes (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     loan_id UUID NOT NULL,
     change_date DATE NOT NULL,
-    previous_rate DECIMAL(5, 2) NOT NULL,
-    new_rate DECIMAL(5, 2) NOT NULL,
+    previous_rate DECIMAL(6, 5) NOT NULL,
+    new_rate DECIMAL(6, 5) NOT NULL,
     reason TEXT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -140,7 +144,7 @@ CREATE TABLE loan_interest_changes (
 );
 
 CREATE TABLE expenses (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     property_id UUID NOT NULL,
     expense_date DATE NOT NULL,
     category expense_category NOT NULL,
@@ -154,3 +158,14 @@ CREATE TABLE expenses (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE RESTRICT
 );
+-- インデックス定義
+CREATE INDEX idx_owners_user_id ON owners(user_id);
+CREATE INDEX idx_properties_owner_id ON properties(owner_id);
+CREATE INDEX idx_units_property_id ON units(property_id);
+CREATE INDEX idx_units_status ON units(status);
+CREATE INDEX idx_unit_status_histories_unit_id ON unit_status_histories(unit_id);
+CREATE INDEX idx_unit_payment_records_unit_id ON unit_payment_records(unit_id);
+CREATE INDEX idx_loans_property_id ON loans(property_id);
+CREATE INDEX idx_loan_repayments_loan_id ON loan_repayments(loan_id);
+CREATE INDEX idx_loan_interest_changes_loan_id ON loan_interest_changes(loan_id);
+CREATE INDEX idx_expenses_property_id ON expenses(property_id);
