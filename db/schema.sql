@@ -3,6 +3,7 @@ CREATE TYPE unit_type AS ENUM ('residence', 'tenant', 'parking', 'vending', 'sol
 CREATE TYPE unit_status AS ENUM ('occupied', 'vacant');
 CREATE TYPE payment_status AS ENUM ('normal', 'delayed', 'delinquent', 'adjusted');
 CREATE TYPE repayment_method AS ENUM ('principal_equal', 'annuity');
+CREATE TYPE expense_category AS ENUM ('management_fee', 'repair_cost', 'utility', 'insurance', 'tax', 'other');
 
 CREATE TABLE users (
     id UUID PRIMARY KEY,
@@ -26,7 +27,7 @@ CREATE TABLE owners (
     tax_id VARCHAR(50),
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT
 );
 
 CREATE TABLE properties (
@@ -46,7 +47,7 @@ CREATE TABLE properties (
     current_value DECIMAL(15, 2),
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (owner_id) REFERENCES owners(id)
+    FOREIGN KEY (owner_id) REFERENCES owners(id) ON DELETE RESTRICT
 );
 
 CREATE TABLE units (
@@ -65,7 +66,7 @@ CREATE TABLE units (
     lease_end_date DATE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (property_id) REFERENCES properties(id)
+    FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE RESTRICT
 );
 
 CREATE TABLE unit_status_histories (
@@ -77,7 +78,7 @@ CREATE TABLE unit_status_histories (
     notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (unit_id) REFERENCES units(id)
+    FOREIGN KEY (unit_id) REFERENCES units(id) ON DELETE RESTRICT
 );
 
 CREATE TABLE unit_payment_records (
@@ -91,7 +92,7 @@ CREATE TABLE unit_payment_records (
     notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (unit_id) REFERENCES units(id)
+    FOREIGN KEY (unit_id) REFERENCES units(id) ON DELETE RESTRICT
 );
 
 CREATE TABLE loans (
@@ -106,10 +107,9 @@ CREATE TABLE loans (
     repayment_method repayment_method NOT NULL,
     payment_frequency VARCHAR(20) NOT NULL,
     payment_amount DECIMAL(15, 2) NOT NULL,
-    remaining_balance DECIMAL(15, 2) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (property_id) REFERENCES properties(id)
+    FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE RESTRICT
 );
 
 CREATE TABLE loan_repayments (
@@ -124,7 +124,7 @@ CREATE TABLE loan_repayments (
     notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (loan_id) REFERENCES loans(id)
+    FOREIGN KEY (loan_id) REFERENCES loans(id) ON DELETE RESTRICT
 );
 
 CREATE TABLE loan_interest_changes (
@@ -136,14 +136,14 @@ CREATE TABLE loan_interest_changes (
     reason TEXT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (loan_id) REFERENCES loans(id)
+    FOREIGN KEY (loan_id) REFERENCES loans(id) ON DELETE RESTRICT
 );
 
 CREATE TABLE expenses (
     id UUID PRIMARY KEY,
     property_id UUID NOT NULL,
     expense_date DATE NOT NULL,
-    category VARCHAR(100) NOT NULL,
+    category expense_category NOT NULL,
     amount DECIMAL(15, 2) NOT NULL,
     vendor VARCHAR(255),
     description TEXT,
@@ -152,5 +152,5 @@ CREATE TABLE expenses (
     recurring_frequency VARCHAR(50),
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (property_id) REFERENCES properties(id)
+    FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE RESTRICT
 );
