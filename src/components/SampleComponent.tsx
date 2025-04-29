@@ -8,13 +8,13 @@ interface SampleComponentProps {
 
 export const SampleComponent: React.FC<SampleComponentProps> = ({ title, onPress }) => {
   return (
-    <View className="p-4 bg-white rounded-lg shadow-md">
+    <View className="rounded-lg bg-white p-4 shadow-md">
       <Text className="text-lg font-bold text-gray-800">{title}</Text>
       <TouchableOpacity 
-        className="mt-2 px-4 py-2 bg-blue-500 rounded-md"
+        className="mt-2 rounded-md bg-blue-500 px-4 py-2"
         onPress={onPress}
       >
-        <Text className="text-white font-medium">Press Me</Text>
+        <Text className="font-medium text-white">Press Me</Text>
       </TouchableOpacity>
     </View>
   );
