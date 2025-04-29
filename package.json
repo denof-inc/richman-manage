@@ -1,28 +1,24 @@
 {
   "name": "richman-manage",
-  "version": "1.0.0",
+  "version": "0.1.0",
+  "description": "不動産管理システム",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "prepare": "husky install",
-    "lint": "echo 'Lint Passed!'"
+    "lint": "echo \"Linting would run here (future: eslint + prettier)\"",
+    "test": "echo \"Testing would run here (future: Jest or Vitest)\""
   },
   "repository": {
     "type": "git",
-    "url": "git@github-tttela:denof-inc/richman-manage.git"
+    "url": "git+https://github.com/denof-inc/richman-manage.git"
   },
-  "keywords": [],
+  "keywords": [
+    "property",
+    "management"
+  ],
   "author": "",
   "license": "ISC",
-  "description": "",
-  "devDependencies": {
-    "husky": "^9.1.7",
-    "lint-staged": "^15.5.1"
+  "bugs": {
+    "url": "https://github.com/denof-inc/richman-manage/issues"
   },
-  "lint-staged": {
-    "**/*.{js,ts,tsx,jsx}": [
-      "npm run lint",
-      "git add"
-    ]
-  }
+  "homepage": "https://github.com/denof-inc/richman-manage#readme"
 }
