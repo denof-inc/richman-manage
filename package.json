@@ -2,7 +2,7 @@
   "name": "richman-manage",
   "version": "0.1.0",
   "description": "不動産管理システム",
-  "main": "index.js",
+  "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "test": "echo \"Testing would run here (future: Jest or Vitest)\"",
@@ -31,7 +31,7 @@
   "homepage": "https://github.com/denof-inc/richman-manage#readme",
   "devDependencies": {
     "@eslint/js": "^9.25.1",
-    "@types/react": "^19.1.2",
+    "@types/react": "~18.3.12",
     "@types/react-native": "^0.72.8",
     "@typescript-eslint/eslint-plugin": "^8.31.1",
     "@typescript-eslint/parser": "^8.31.1",
@@ -47,8 +47,17 @@
     "typescript-eslint": "^8.31.1"
   },
   "dependencies": {
+    "@react-navigation/bottom-tabs": "^7.3.10",
+    "@react-navigation/native": "^7.1.6",
+    "@react-navigation/native-stack": "^7.3.10",
+    "expo": "~52.0.46",
     "prop-types": "^15.8.1",
-    "react": "^19.1.0",
-    "react-native": "^0.79.1"
+    "react": "18.3.1",
+    "react-native": "0.76.9",
+    "react-native-gesture-handler": "~2.20.2",
+    "react-native-reanimated": "~3.16.1",
+    "react-native-safe-area-context": "4.12.0",
+    "react-native-screens": "~4.4.0",
+    "react-native-vector-icons": "^10.2.0"
   }
 }
