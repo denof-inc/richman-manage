@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "lint": "echo \"Linting would run here (future: eslint + prettier)\"",
-    "test": "echo \"Testing would run here (future: Jest or Vitest)\""
+    "test": "echo \"Testing would run here (future: Jest or Vitest)\"",
+    "prepare": "husky install"
   },
   "repository": {
     "type": "git",
@@ -19,6 +20,13 @@
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/denof-inc/richman-manage/issues"
+  },
+  "lint-staged": {
+    "**/*.{js,ts,tsx,jsx}": [
+      "npm run lint",
+      "npm run test -- --findRelatedTests",
+      "git add"
+    ]
   },
   "homepage": "https://github.com/denof-inc/richman-manage#readme"
 }
