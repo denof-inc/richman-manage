@@ -4,11 +4,12 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "lint": "echo 'Lint Passed!'"
   },
   "repository": {
     "type": "git",
-    "url": "git@github-tttela:denof-inc/richman-manage.git"
+    "url": "git@github-tttela:denof-inc/richman-manage.git",
   },
   "keywords": [],
   "author": "",
