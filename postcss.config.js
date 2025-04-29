@@ -1,7 +1,7 @@
 module.exports = {
   plugins: {
     'nativewind/postcss': {
-      tailwindConfig: './tailwind.config.js',
+      tailwindConfig: './tailwind.config.mjs',
     },
   },
 };
