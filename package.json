@@ -47,6 +47,7 @@
     "typescript-eslint": "^8.31.1"
   },
   "dependencies": {
+    "prop-types": "^15.8.1",
     "react": "^19.1.0",
     "react-native": "^0.79.1"
   }
