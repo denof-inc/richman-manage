@@ -1,0 +1,24 @@
+{
+  "name": "richman-manage",
+  "version": "0.1.0",
+  "description": "不動産管理システム",
+  "main": "index.js",
+  "scripts": {
+    "lint": "echo \"Linting would run here (future: eslint + prettier)\"",
+    "test": "echo \"Testing would run here (future: Jest or Vitest)\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/denof-inc/richman-manage.git"
+  },
+  "keywords": [
+    "property",
+    "management"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/denof-inc/richman-manage/issues"
+  },
+  "homepage": "https://github.com/denof-inc/richman-manage#readme"
+}
