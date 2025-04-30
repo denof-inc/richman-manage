@@ -34,6 +34,7 @@
   "homepage": "https://github.com/denof-inc/richman-manage#readme",
   "devDependencies": {
     "@eslint/js": "^9.25.1",
+    "@react-native-community/cli": "latest",
     "@types/react": "^19.1.2",
     "@types/react-native": "^0.72.8",
     "@typescript-eslint/eslint-plugin": "^8.31.1",

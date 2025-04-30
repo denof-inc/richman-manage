@@ -1,9 +1,13 @@
-// NativeWind + tailwindcss 対応のためのMetro設定
-import { getDefaultConfig } from 'expo/metro-config';
+// Expo依存なしのMetro設定（NativeWind対応/ESM形式）
+import { getDefaultConfig } from 'metro-config';
 
-const config = getDefaultConfig(__dirname);
-config.transformer = {
-  ...config.transformer,
-  babelTransformerPath: require.resolve('nativewind/babel'),
-};
-export default config;
+const configPromise = getDefaultConfig();
+
+export default (async () => {
+  const config = await configPromise;
+  config.transformer = {
+    ...config.transformer,
+    babelTransformerPath: require.resolve('nativewind/babel'),
+  };
+  return config;
+})();
