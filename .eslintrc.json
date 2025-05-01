@@ -1,11 +1,6 @@
 {
   "root": true,
-  "extends": [
-    "next/core-web-vitals",
-    "turbo",
-    "plugin:tailwindcss/recommended",
-    "prettier"
-  ],
+  "extends": ["next/core-web-vitals", "turbo", "plugin:tailwindcss/recommended", "prettier"],
   "plugins": ["tailwindcss", "@typescript-eslint"],
   "parser": "@typescript-eslint/parser",
   "ignorePatterns": ["node_modules", "dist", ".next", "build"],

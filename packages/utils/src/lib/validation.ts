@@ -93,7 +93,10 @@ export type PaymentRecord = z.infer<typeof paymentRecordSchema>;
 export type Loan = z.infer<typeof loanSchema>;
 export type Expense = z.infer<typeof expenseSchema>;
 
-export const validateForm = <T>(schema: z.ZodType<T>, data: unknown): { success: boolean; data?: T; errors?: z.ZodError } => {
+export const validateForm = <T>(
+  schema: z.ZodType<T>,
+  data: unknown
+): { success: boolean; data?: T; errors?: z.ZodError } => {
   try {
     const validData = schema.parse(data);
     return { success: true, data: validData };
