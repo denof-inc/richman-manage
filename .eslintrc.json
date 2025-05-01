@@ -6,8 +6,9 @@
     "plugin:tailwindcss/recommended",
     "prettier"
   ],
-  "plugins": ["tailwindcss"],
-  "ignorePatterns": ["node_modules", "dist", ".next"],
+  "plugins": ["tailwindcss", "@typescript-eslint"],
+  "parser": "@typescript-eslint/parser",
+  "ignorePatterns": ["node_modules", "dist", ".next", "build"],
   "settings": {
     "tailwindcss": {
       "callees": ["cn", "cva"],

@@ -34,8 +34,14 @@
     "**/*.{js,ts,tsx,jsx}": [
       "prettier --write"
     ],
-    "**/{src,app,pages,components}/**/*.{js,ts,tsx,jsx}": [
-      "eslint --fix"
+    "apps/web/src/**/*.{ts,tsx,jsx}": [
+      "cd apps/web && eslint --fix"
+    ],
+    "packages/ui/src/**/*.{ts,tsx,jsx}": [
+      "cd packages/ui && eslint --fix"
+    ],
+    "packages/utils/src/**/*.{ts,tsx,jsx}": [
+      "cd packages/utils && eslint --fix"
     ]
   },
   "homepage": "https://github.com/denof-inc/richman-manage#readme",

@@ -17,7 +17,6 @@ import {
   TableHead,
   TableCell,
   Modal,
-  ModalTrigger,
   ModalContent,
   ModalHeader,
   ModalTitle,
@@ -26,7 +25,7 @@ import {
   Tabs,
   TabsList,
   TabsTrigger,
-  TabsContent
+  TabsContent,
 } from '@richman/ui';
 
 export default function UIComponentsDemo() {
@@ -40,20 +39,35 @@ export default function UIComponentsDemo() {
   ];
 
   return (
-    <div className="container mx-auto py-10 px-4">
-      <h1 className="text-3xl font-bold mb-8">UI Components Demo</h1>
+    <div className="container mx-auto px-4 py-10">
+      <h1 className="mb-8 text-3xl font-bold">UI Components Demo</h1>
 
-      <Tabs defaultValue="button" className="w-full mb-10" value={activeTab} onValueChange={setActiveTab}>
+      <Tabs
+        defaultValue="button"
+        className="mb-10 w-full"
+        value={activeTab}
+        onValueChange={setActiveTab}
+      >
         <TabsList>
-          <TabsTrigger value="button" active={activeTab === 'button'}>Button</TabsTrigger>
-          <TabsTrigger value="input" active={activeTab === 'input'}>Input</TabsTrigger>
-          <TabsTrigger value="card" active={activeTab === 'card'}>Card</TabsTrigger>
-          <TabsTrigger value="table" active={activeTab === 'table'}>Table</TabsTrigger>
-          <TabsTrigger value="modal" active={activeTab === 'modal'}>Modal</TabsTrigger>
+          <TabsTrigger value="button" active={activeTab === 'button'}>
+            Button
+          </TabsTrigger>
+          <TabsTrigger value="input" active={activeTab === 'input'}>
+            Input
+          </TabsTrigger>
+          <TabsTrigger value="card" active={activeTab === 'card'}>
+            Card
+          </TabsTrigger>
+          <TabsTrigger value="table" active={activeTab === 'table'}>
+            Table
+          </TabsTrigger>
+          <TabsTrigger value="modal" active={activeTab === 'modal'}>
+            Modal
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="button" className="mt-6">
-          <h2 className="text-2xl font-semibold mb-4">Button Component</h2>
+          <h2 className="mb-4 text-2xl font-semibold">Button Component</h2>
           <div className="flex flex-wrap gap-4">
             <Button>Default Button</Button>
             <Button variant="outline">Outline Button</Button>
@@ -66,8 +80,8 @@ export default function UIComponentsDemo() {
         </TabsContent>
 
         <TabsContent value="input" className="mt-6">
-          <h2 className="text-2xl font-semibold mb-4">Input Component</h2>
-          <div className="flex flex-col gap-4 max-w-md">
+          <h2 className="mb-4 text-2xl font-semibold">Input Component</h2>
+          <div className="flex max-w-md flex-col gap-4">
             <Input placeholder="Default input" />
             <Input placeholder="Disabled input" disabled />
             <Input placeholder="Email input" type="email" />
@@ -77,8 +91,8 @@ export default function UIComponentsDemo() {
         </TabsContent>
 
         <TabsContent value="card" className="mt-6">
-          <h2 className="text-2xl font-semibold mb-4">Card Component</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <h2 className="mb-4 text-2xl font-semibold">Card Component</h2>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <Card>
               <CardHeader>
                 <CardTitle>青山マンション</CardTitle>
@@ -88,7 +102,7 @@ export default function UIComponentsDemo() {
                 <p>12ユニット | 築10年</p>
                 <p className="mt-2">月間収入: ¥1,200,000</p>
                 <p>月間支出: ¥300,000</p>
-                <p className="font-bold mt-2">キャッシュフロー: ¥900,000</p>
+                <p className="mt-2 font-bold">キャッシュフロー: ¥900,000</p>
               </CardContent>
               <CardFooter>
                 <Button>詳細を見る</Button>
@@ -104,7 +118,7 @@ export default function UIComponentsDemo() {
                 <p>8ユニット | 築5年</p>
                 <p className="mt-2">月間収入: ¥800,000</p>
                 <p>月間支出: ¥200,000</p>
-                <p className="font-bold mt-2">キャッシュフロー: ¥600,000</p>
+                <p className="mt-2 font-bold">キャッシュフロー: ¥600,000</p>
               </CardContent>
               <CardFooter>
                 <Button>詳細を見る</Button>
@@ -114,7 +128,7 @@ export default function UIComponentsDemo() {
         </TabsContent>
 
         <TabsContent value="table" className="mt-6">
-          <h2 className="text-2xl font-semibold mb-4">Table Component</h2>
+          <h2 className="mb-4 text-2xl font-semibold">Table Component</h2>
           <Table>
             <TableHeader>
               <TableRow>
@@ -142,7 +156,7 @@ export default function UIComponentsDemo() {
         </TabsContent>
 
         <TabsContent value="modal" className="mt-6">
-          <h2 className="text-2xl font-semibold mb-4">Modal Component</h2>
+          <h2 className="mb-4 text-2xl font-semibold">Modal Component</h2>
           <div>
             {!isModalOpen ? (
               <Button onClick={() => setIsModalOpen(true)}>モーダルを開く</Button>
@@ -151,17 +165,17 @@ export default function UIComponentsDemo() {
                 <ModalContent>
                   <ModalHeader>
                     <ModalTitle>物件の追加</ModalTitle>
-                    <ModalDescription>
-                      新しい物件の情報を入力してください。
-                    </ModalDescription>
+                    <ModalDescription>新しい物件の情報を入力してください。</ModalDescription>
                   </ModalHeader>
-                  <div className="p-4 space-y-4">
+                  <div className="space-y-4 p-4">
                     <Input placeholder="物件名" />
                     <Input placeholder="住所" />
                     <Input placeholder="購入価格" type="number" />
                   </div>
                   <ModalFooter>
-                    <Button variant="outline" onClick={() => setIsModalOpen(false)}>キャンセル</Button>
+                    <Button variant="outline" onClick={() => setIsModalOpen(false)}>
+                      キャンセル
+                    </Button>
                     <Button onClick={() => setIsModalOpen(false)}>保存</Button>
                   </ModalFooter>
                 </ModalContent>

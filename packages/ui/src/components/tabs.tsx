@@ -8,30 +8,23 @@ interface TabsProps extends React.HTMLAttributes<HTMLDivElement> {
   onValueChange?: (value: string) => void;
 }
 
-const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
+const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn('w-full', className)} {...props} />
+));
+Tabs.displayName = 'Tabs';
+
+const TabsList = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn('w-full', className)}
+      className={cn(
+        'inline-flex h-10 items-center justify-center rounded-md bg-primary-50 p-1 text-gray-500',
+        className
+      )}
       {...props}
     />
   )
 );
-Tabs.displayName = 'Tabs';
-
-const TabsList = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      'inline-flex h-10 items-center justify-center rounded-md bg-primary-50 p-1 text-gray-500',
-      className
-    )}
-    {...props}
-  />
-));
 TabsList.displayName = 'TabsList';
 
 interface TabsTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
