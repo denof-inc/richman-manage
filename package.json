@@ -12,8 +12,9 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint -- --fix",
+    "lint:check": "turbo run lint",
     "format": "prettier --write .",
-    "fix": "npm run format && npm run lint:fix",
+    "fix": "npm run format && npm run lint:fix && npm run lint:check",
     "test": "echo 'Test temporarily disabled'",
     "prepare": "husky install"
   },
