@@ -10,10 +10,10 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
-    "lint": "echo 'Lint check temporarily disabled'",
+    "lint": "turbo run lint",
     "test": "echo 'Test temporarily disabled'",
     "prepare": "husky install",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write ."
   },
   "repository": {
     "type": "git",
@@ -32,22 +32,29 @@
   "packageManager": "npm@10.2.4",
   "lint-staged": {
     "**/*.{js,ts,tsx,jsx}": [
-      "npm run lint",
-      "npm run test -- --findRelatedTests"
+      "prettier --write"
+    ],
+    "**/{src,app,pages,components}/**/*.{js,ts,tsx,jsx}": [
+      "eslint --fix"
     ]
   },
   "homepage": "https://github.com/denof-inc/richman-manage#readme",
   "devDependencies": {
     "@eslint/js": "^9.25.1",
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/typography": "^0.5.16",
     "@typescript-eslint/eslint-plugin": "^8.31.1",
     "@typescript-eslint/parser": "^8.31.1",
     "eslint": "^8.57.0",
+    "eslint-config-next": "^15.3.1",
     "eslint-config-prettier": "^10.1.2",
+    "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-tailwindcss": "^3.18.0",
     "husky": "^9.1.7",
     "prettier": "^3.5.3",
+    "prettier-plugin-tailwindcss": "^0.6.11",
     "turbo": "^2.0.0",
     "typescript": "^5.8.3"
   }
