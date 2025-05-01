@@ -1,117 +1,147 @@
 import * as React from 'react';
-import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
-
 import { cn } from '../lib/utils';
 
-const Modal = DialogPrimitive.Root;
+interface ModalProps {
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  children: React.ReactNode;
+}
 
-const ModalTrigger = DialogPrimitive.Trigger;
+const Modal: React.FC<ModalProps> = ({ 
+  isOpen, 
+  onOpenChange,
+  children 
+}) => {
+  return <div>{children}</div>;
+};
 
-const ModalPortal = DialogPrimitive.Portal;
+interface ModalTriggerProps {
+  asChild?: boolean;
+  children: React.ReactNode;
+}
 
-const ModalClose = DialogPrimitive.Close;
+const ModalTrigger: React.FC<ModalTriggerProps> = ({ 
+  asChild,
+  children 
+}) => {
+  return <>{children}</>;
+};
 
-const ModalOverlay = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Overlay>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
->(({ className, ...props }, ref) => (
-  <DialogPrimitive.Overlay
-    ref={ref}
-    className={cn(
-      'fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
-      className
-    )}
-    {...props}
-  />
-));
-ModalOverlay.displayName = DialogPrimitive.Overlay.displayName;
+interface ModalContentProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
+}
 
-const ModalContent = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
-  <ModalPortal>
-    <ModalOverlay />
-    <DialogPrimitive.Content
-      ref={ref}
+const ModalContent: React.FC<ModalContentProps> = ({ 
+  className,
+  children,
+  ...props
+}) => {
+  return (
+    <div
       className={cn(
-        'fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border border-primary-200 bg-white p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg',
+        'fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border border-gray-200 bg-white p-6 shadow-lg sm:rounded-lg',
         className
       )}
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-primary-100 data-[state=open]:text-gray-500">
+      <button className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:pointer-events-none">
         <X className="h-4 w-4" />
         <span className="sr-only">Close</span>
-      </DialogPrimitive.Close>
-    </DialogPrimitive.Content>
-  </ModalPortal>
-));
-ModalContent.displayName = DialogPrimitive.Content.displayName;
+      </button>
+    </div>
+  );
+};
 
-const ModalHeader = ({
+interface ModalHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
+}
+
+const ModalHeader: React.FC<ModalHeaderProps> = ({ 
   className,
+  children,
   ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={cn(
-      'flex flex-col space-y-1.5 text-center sm:text-left',
-      className
-    )}
-    {...props}
-  />
-);
-ModalHeader.displayName = 'ModalHeader';
+}) => {
+  return (
+    <div
+      className={cn(
+        'flex flex-col space-y-1.5 text-center sm:text-left',
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+};
 
-const ModalFooter = ({
+interface ModalFooterProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
+}
+
+const ModalFooter: React.FC<ModalFooterProps> = ({ 
   className,
+  children,
   ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={cn(
-      'flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2',
-      className
-    )}
-    {...props}
-  />
-);
-ModalFooter.displayName = 'ModalFooter';
+}) => {
+  return (
+    <div
+      className={cn(
+        'flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2',
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+};
 
-const ModalTitle = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Title>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
->(({ className, ...props }, ref) => (
-  <DialogPrimitive.Title
-    ref={ref}
-    className={cn(
-      'text-lg font-semibold leading-none tracking-tight',
-      className
-    )}
-    {...props}
-  />
-));
-ModalTitle.displayName = DialogPrimitive.Title.displayName;
+interface ModalTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
+  children: React.ReactNode;
+}
 
-const ModalDescription = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Description>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
->(({ className, ...props }, ref) => (
-  <DialogPrimitive.Description
-    ref={ref}
-    className={cn('text-sm text-gray-500', className)}
-    {...props}
-  />
-));
-ModalDescription.displayName = DialogPrimitive.Description.displayName;
+const ModalTitle: React.FC<ModalTitleProps> = ({ 
+  className,
+  children,
+  ...props
+}) => {
+  return (
+    <h3
+      className={cn(
+        'text-lg font-semibold leading-none tracking-tight',
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </h3>
+  );
+};
+
+interface ModalDescriptionProps extends React.HTMLAttributes<HTMLParagraphElement> {
+  children: React.ReactNode;
+}
+
+const ModalDescription: React.FC<ModalDescriptionProps> = ({ 
+  className,
+  children,
+  ...props
+}) => {
+  return (
+    <p
+      className={cn('text-sm text-gray-500', className)}
+      {...props}
+    >
+      {children}
+    </p>
+  );
+};
 
 export {
   Modal,
-  ModalPortal,
-  ModalOverlay,
   ModalTrigger,
-  ModalClose,
   ModalContent,
   ModalHeader,
   ModalFooter,
