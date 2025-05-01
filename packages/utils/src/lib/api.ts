@@ -10,10 +10,7 @@ export type ApiResponse<T> = {
 /**
  * Wrapper for fetch API with error handling
  */
-export async function fetchWrapper<T>(
-  url: string,
-  options?: RequestInit
-): Promise<ApiResponse<T>> {
+export async function fetchWrapper<T>(url: string, options?: RequestInit): Promise<ApiResponse<T>> {
   try {
     const response = await fetch(url, {
       ...options,

@@ -1,0 +1,21 @@
+{
+  "root": true,
+  "extends": ["next/core-web-vitals", "turbo", "plugin:tailwindcss/recommended", "prettier"],
+  "plugins": ["tailwindcss", "@typescript-eslint"],
+  "parser": "@typescript-eslint/parser",
+  "ignorePatterns": ["node_modules", "dist", ".next", "build"],
+  "settings": {
+    "tailwindcss": {
+      "callees": ["cn", "cva"],
+      "config": "tailwind.config.js"
+    },
+    "next": {
+      "rootDir": ["apps/*/"]
+    }
+  },
+  "rules": {
+    "@next/next/no-html-link-for-pages": "off",
+    "tailwindcss/no-custom-classname": "off",
+    "tailwindcss/classnames-order": "error"
+  }
+}
