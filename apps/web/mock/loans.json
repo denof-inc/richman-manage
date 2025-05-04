@@ -1,0 +1,18 @@
+[
+  {
+    "id": "1",
+    "name": "ローンA",
+    "property": "青山マンション",
+    "balance": 1200000,
+    "interestRate": 2.5,
+    "nextDue": "2024-07-15"
+  },
+  {
+    "id": "2",
+    "name": "ローンB",
+    "property": "渋谷アパート",
+    "balance": 800000,
+    "interestRate": 3.0,
+    "nextDue": "2024-08-01"
+  }
+]
