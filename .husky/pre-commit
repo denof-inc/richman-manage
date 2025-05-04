@@ -1,6 +1,5 @@
 #!/bin/sh
 
-# Temporarily disable lint-staged for our feature branches
-# npx lint-staged
-# npm run lint:check
-echo "Pre-commit hooks temporarily disabled for feature branch development"
+npx lint-staged
+npm run lint:check
+
