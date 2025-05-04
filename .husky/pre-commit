@@ -1,4 +1,4 @@
 #!/bin/sh
 
-# Temporarily disabled for UI component fixes
-echo "Pre-commit hooks temporarily disabled for UI component fixes"
+npx lint-staged
+npm run lint:check
