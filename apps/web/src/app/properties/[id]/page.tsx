@@ -90,7 +90,7 @@ export default function PropertyDetailPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6 flex flex-col items-start justify-between md:flex-row md:items-center">
-        <h1 className="text-primary mb-4 text-2xl font-bold md:mb-0">{property.name}</h1>
+        <h1 className="mb-4 text-2xl font-bold text-primary md:mb-0">{property.name}</h1>
         <div className="flex items-center space-x-2">
           <select
             value={selectedOwnerId}
@@ -112,7 +112,7 @@ export default function PropertyDetailPage() {
       <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-1">
           <CardHeader className="bg-primary/10">
-            <CardTitle className="text-primary flex items-center">
+            <CardTitle className="flex items-center text-primary">
               <Building className="mr-2" size={20} />
               物件概要
             </CardTitle>
@@ -157,7 +157,7 @@ export default function PropertyDetailPage() {
 
         <Card className="lg:col-span-2">
           <CardHeader className="bg-primary/10">
-            <CardTitle className="text-primary flex items-center">
+            <CardTitle className="flex items-center text-primary">
               <CreditCard className="mr-2" size={20} />
               収支サマリー
             </CardTitle>

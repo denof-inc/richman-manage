@@ -97,7 +97,7 @@ export default function PropertyListPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6 flex flex-col items-start justify-between md:flex-row md:items-center">
-        <h1 className="text-primary mb-4 text-2xl font-bold md:mb-0">物件一覧</h1>
+        <h1 className="mb-4 text-2xl font-bold text-primary md:mb-0">物件一覧</h1>
         <Button onClick={handleAddProperty} className="bg-primary hover:bg-primary/90">
           + 物件を追加
         </Button>
