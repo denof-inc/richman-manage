@@ -18,7 +18,7 @@ import { Building, Home, CreditCard, Receipt } from 'lucide-react';
 import RentRollTable from '../../../components/rentroll/RentRollTable';
 import LoanMiniTable from '../../../components/loans/LoanMiniTable';
 
-import propertySummaryData from '../../../src/mock/propertySummary.json';
+import propertySummary from '../../../mock/propertySummary.json';
 
 type PropertyDetail = {
   id: string;
@@ -48,7 +48,7 @@ export default function PropertyDetailPage() {
   const [selectedOwnerId, setSelectedOwnerId] = useState('1');
 
   useEffect(() => {
-    const foundProperty = propertySummaryData.find((p) => p.id === propertyId);
+    const foundProperty = propertySummary.find((p) => p.id === propertyId);
     if (foundProperty) {
       setProperty({
         ...foundProperty,

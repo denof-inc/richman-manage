@@ -2,10 +2,56 @@
   {
     "id": "550e8400-e29b-41d4-a716-446655440000",
     "name": "青山マンション",
-    "address": "東京都港区南青山3-1-1",
-    "monthly_rent": 1200000,
-    "monthly_repayment": 300000,
-    "net_cf": 900000
+    "address": "東京都港区南青山1-2-3",
+    "type": "マンション",
+    "size": 85.5,
+    "rooms": 3,
+    "yearBuilt": 2015,
+    "acquisitionDate": "2020-04-15",
+    "acquisitionPrice": 95000000,
+    "currentValue": 105000000,
+    "monthlyRent": 320000,
+    "occupancy": true,
+    "tenants": [
+      {
+        "id": "t-001",
+        "name": "山田太郎",
+        "contactInfo": "090-1234-5678",
+        "leaseStart": "2022-03-01",
+        "leaseEnd": "2024-02-29"
+      }
+    ],
+    "expenses": {
+      "maintenance": 25000,
+      "tax": 8500,
+      "insurance": 5000,
+      "utilities": 0
+    },
+    "loans": [
+      {
+        "id": "1",
+        "name": "ローンA",
+        "balance": 75000000,
+        "interestRate": 1.5,
+        "monthlyPayment": 210000,
+        "nextDue": "2023-12-15"
+      }
+    ],
+    "documents": [
+      {
+        "id": "doc-001",
+        "name": "売買契約書",
+        "type": "pdf",
+        "uploadDate": "2020-04-01"
+      },
+      {
+        "id": "doc-002",
+        "name": "重要事項説明書",
+        "type": "pdf",
+        "uploadDate": "2020-04-01"
+      }
+    ],
+    "notes": "最寄り駅から徒歩7分。2022年に内装リフォーム実施済み。"
   },
   {
     "id": "550e8400-e29b-41d4-a716-446655440001",
