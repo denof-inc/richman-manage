@@ -1,8 +1,6 @@
-import type { Config } from 'tailwindcss';
-import forms from '@tailwindcss/forms';
-import typography from '@tailwindcss/typography';
-
-const config: Config = {
+/* eslint-disable */
+/** @type {import('tailwindcss').Config} */
+module.exports = {
   content: [
     './app/**/*.{ts,tsx,js,jsx}',
     './pages/**/*.{ts,tsx,js,jsx}',
@@ -26,10 +24,9 @@ const config: Config = {
         'text-base': '#1F2937',
         'text-muted': '#6B7280',
         'border-default': '#E5E7EB',
+        border: '#E5E7EB',
       },
     },
   },
-  plugins: [forms, typography],
+  plugins: [require('@tailwindcss/forms'), require('@tailwindcss/typography')],
 };
-
-export default config;
