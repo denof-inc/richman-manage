@@ -1,18 +1,18 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-# Temporarily disable lint-staged for our feature branches
-# npx lint-staged
+# 変更があるファイルをlint-stagedでチェック
+npx lint-staged
 
 # TypeScriptエラーをチェック
 echo "TypeScriptエラーをチェックしています..."
-# npm run lint:check
+npm run lint:check
 
 # エラーがあればコミットを中止
-# if [ $? -ne 0 ]; then
-#   echo "❌ TypeScriptエラーがあります。コミットを中止します。"
-#   echo "エラーを修正してから再度コミットしてください。"
-#   exit 1
-# fi
+if [ $? -ne 0 ]; then
+  echo "❌ TypeScriptエラーがあります。コミットを中止します。"
+  echo "エラーを修正してから再度コミットしてください。"
+  exit 1
+fi
 
-echo "✅ Pre-commit hooks temporarily disabled for feature branch development"
+echo "✅ TypeScriptエラーはありません。コミットを続行します。"
