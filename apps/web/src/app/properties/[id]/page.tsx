@@ -24,16 +24,16 @@ type PropertyDetail = {
   id: string;
   name: string;
   address: string;
-  monthly_rent: number;
-  monthly_repayment: number;
-  net_cf: number;
-  owner_id?: string;
-  property_type?: string;
-  year_built?: number;
-  total_area?: number;
-  purchase_date?: string;
-  purchase_price?: number;
-  current_value?: number;
+  owner_id: string;
+  property_type: string;
+  year_built: number;
+  total_area: number;
+  purchase_date: string;
+  purchase_price: number;
+  current_value: number;
+  monthly_rent?: number;
+  monthly_repayment?: number;
+  net_cf?: number;
 };
 
 export default function PropertyDetailPage() {
@@ -51,14 +51,21 @@ export default function PropertyDetailPage() {
     const foundProperty = propertySummary.find((p) => p.id === propertyId);
     if (foundProperty) {
       setProperty({
-        ...foundProperty,
+        id: foundProperty.id,
+        name: foundProperty.name,
+        address: foundProperty.address,
         owner_id: '1',
-        property_type: 'マンション',
-        year_built: 2015,
-        total_area: 500,
-        purchase_date: '2020-05-15',
-        purchase_price: 80000000,
-        current_value: 85000000,
+        property_type: foundProperty.type || 'マンション',
+        year_built: foundProperty.yearBuilt || 2015,
+        total_area: foundProperty.size || 500,
+        purchase_date: foundProperty.acquisitionDate || '2020-05-15',
+        purchase_price: foundProperty.acquisitionPrice || 80000000,
+        current_value: foundProperty.currentValue || 85000000,
+        monthly_rent: foundProperty.monthlyRent,
+        monthly_repayment: foundProperty.loans?.[0]?.monthlyPayment,
+        net_cf: foundProperty.monthlyRent
+          ? foundProperty.monthlyRent - (foundProperty.loans?.[0]?.monthlyPayment || 0)
+          : undefined,
       });
     }
   }, [propertyId]);
