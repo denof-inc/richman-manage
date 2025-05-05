@@ -46,11 +46,13 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
     try {
       let result;
       if (mode === 'login') {
+        if (!supabase) throw new Error('Supabaseクライアントが初期化されていません');
         result = await supabase.auth.signInWithPassword({
           email: data.email,
           password: data.password,
         });
       } else {
+        if (!supabase) throw new Error('Supabaseクライアントが初期化されていません');
         result = await supabase.auth.signUp({
           email: data.email,
           password: data.password,
@@ -70,7 +72,11 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="space-y-4"
+      aria-label={mode === 'login' ? 'ログインフォーム' : '新規登録フォーム'}
+    >
       <div className="mb-4">
         <label htmlFor="email" className="block text-sm font-medium text-text-base">
           メールアドレス
