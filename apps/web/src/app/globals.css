@@ -4,15 +4,15 @@
 
 /* 明示的に変数を定義して使用する */
 :root {
-  --primary: #295E4F;
-  --primary-light: #3F7B69;
-  --primary-dark: #1F4A3F;
-  --accent: #D4AF37;
-  --accent-light: #F4D06F;
-  --background: #F9F9F9;
-  --text-base: #1F2937;
-  --text-muted: #6B7280;
-  --border-default: #E5E7EB;
+  --primary: #295e4f;
+  --primary-light: #3f7b69;
+  --primary-dark: #1f4a3f;
+  --accent: #d4af37;
+  --accent-light: #f4d06f;
+  --background: #f9f9f9;
+  --text-base: #1f2937;
+  --text-muted: #6b7280;
+  --border-default: #e5e7eb;
 }
 
 @layer base {
