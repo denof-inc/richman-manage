@@ -15,11 +15,11 @@ import {
 } from '@richman/ui';
 import { Building, Home, CreditCard, Receipt, MoreHorizontal } from 'lucide-react';
 
-import MainLayout from '../../components/layout/MainLayout';
-import RentRollTable from '../../components/rentroll/RentRollTable';
-import LoanMiniTable from '../../components/loans/LoanMiniTable';
+import MainLayout from '../../../components/layout/MainLayout';
+import RentRollTable from '../../../components/rentroll/RentRollTable';
+import LoanMiniTable from '../../../components/loans/LoanMiniTable';
 
-import propertySummaryData from '../../mock/propertySummary.json';
+import propertySummary from '../../../mock/propertySummary.json';
 
 type PropertyDetail = {
   id: string;
@@ -46,7 +46,7 @@ export default function PropertyDetailPage() {
   const [showMoreOptions, setShowMoreOptions] = useState(false);
 
   useEffect(() => {
-    const foundProperty = propertySummaryData.find((p) => p.id === propertyId);
+    const foundProperty = propertySummary.find((p) => p.id === propertyId);
     if (foundProperty) {
       setProperty({
         id: foundProperty.id,
@@ -230,7 +230,7 @@ export default function PropertyDetailPage() {
                 <CardTitle className="text-primary">賃貸表</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <RentRollTable />
+                <RentRollTable propertyId={propertyId} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -241,7 +241,7 @@ export default function PropertyDetailPage() {
                 <CardTitle className="text-primary">ローン情報</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <LoanMiniTable />
+                <LoanMiniTable propertyId={propertyId} />
               </CardContent>
             </Card>
           </TabsContent>
