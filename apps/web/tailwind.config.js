@@ -17,8 +17,8 @@ module.exports = {
           dark: '#1F4A3F',
         },
         accent: {
-          DEFAULT: '#D4AF37',
-          light: '#F4D06F',
+          DEFAULT: '#3A7BFF',
+          light: '#AECBFF',
         },
         background: '#F9F9F9',
         'text-base': '#1F2937',
