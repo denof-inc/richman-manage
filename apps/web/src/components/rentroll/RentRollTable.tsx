@@ -15,13 +15,14 @@ type RentRollItem = {
 };
 
 interface RentRollTableProps {
-  propertyId: string;
+  propertyId?: string;
 }
 
 export default function RentRollTable({ propertyId }: RentRollTableProps): React.ReactElement {
-  // propertyIdをコメントで使用して警告を抑制
-  // この変数は将来的に特定物件のデータ取得に使用予定
-  console.log('Loading rent roll data for property:', propertyId);
+  // propertyIdが提供された場合、将来的に特定物件のデータ取得に使用予定
+  if (propertyId) {
+    console.log('Loading rent roll data for property:', propertyId);
+  }
 
   const rentRollData: RentRollItem[] = [
     {

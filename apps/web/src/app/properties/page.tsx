@@ -2,34 +2,25 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-  Button,
-  Input,
-} from '@richman/ui';
+import { Card, CardContent, Button, Input } from '@richman/ui';
 import { Search } from 'lucide-react';
 
-import propertySummaryData from '../../../src/mock/propertySummary.json';
+import MainLayout from '../../components/layout/MainLayout';
+import PropertyTable from '../../components/properties/PropertyTable';
+import propertySummaryData from '../../mock/propertySummary.json';
 
 type PropertySummary = {
   id: string;
   name: string;
   address: string;
-  monthly_rent: number;
+  potential_rent: number;
+  actual_rent: number;
   monthly_repayment: number;
   net_cf: number;
+  owner_id: string;
 };
 
-type SortField = 'name' | 'monthly_rent' | 'monthly_repayment' | 'net_cf';
+type SortField = 'name' | 'potential_rent' | 'actual_rent' | 'monthly_repayment' | 'net_cf';
 type SortDirection = 'asc' | 'desc';
 
 export default function PropertyListPage() {
@@ -38,9 +29,10 @@ export default function PropertyListPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [selectedOwnerId, setSelectedOwnerId] = useState<string | null>(null);
 
   useEffect(() => {
-    setProperties(propertySummaryData);
+    setProperties(propertySummaryData as unknown as PropertySummary[]);
   }, []);
 
   const handleSort = (field: SortField) => {
@@ -52,19 +44,12 @@ export default function PropertyListPage() {
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ja-JP', {
-      style: 'currency',
-      currency: 'JPY',
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
   const filteredAndSortedProperties = properties
     .filter(
       (property) =>
-        property.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        property.address.toLowerCase().includes(searchTerm.toLowerCase())
+        (property.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          property.address.toLowerCase().includes(searchTerm.toLowerCase())) &&
+        (selectedOwnerId ? property.owner_id === selectedOwnerId : true)
     )
     .sort((a, b) => {
       const aValue = a[sortField];
@@ -81,105 +66,55 @@ export default function PropertyListPage() {
       }
     });
 
-  const handlePropertyClick = (id: string) => {
-    router.push(`/properties/${id}`);
-  };
-
   const handleAddProperty = () => {
     router.push('/properties/new');
   };
 
-  const renderSortIndicator = (field: SortField) => {
-    if (sortField !== field) return null;
-    return sortDirection === 'asc' ? ' ↑' : ' ↓';
-  };
-
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-6 flex flex-col items-start justify-between md:flex-row md:items-center">
-        <h1 className="mb-4 text-2xl font-bold text-primary md:mb-0">物件一覧</h1>
-        <Button onClick={handleAddProperty} className="bg-primary hover:bg-primary/90">
-          + 物件を追加
-        </Button>
-      </div>
-
-      <div className="relative mb-6">
-        <Search
-          className="absolute left-3 top-1/2 -translate-y-1/2 transform text-gray-400"
-          size={18}
-        />
-        <Input
-          placeholder="物件名や住所で検索..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
-      </div>
-
-      <Card>
-        <CardHeader className="bg-primary/10">
-          <CardTitle className="text-primary">物件一覧</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort('name')}>
-                    物件名{renderSortIndicator('name')}
-                  </TableHead>
-                  <TableHead
-                    className="cursor-pointer text-right"
-                    onClick={() => handleSort('monthly_rent')}
-                  >
-                    月間賃料{renderSortIndicator('monthly_rent')}
-                  </TableHead>
-                  <TableHead
-                    className="cursor-pointer text-right"
-                    onClick={() => handleSort('monthly_repayment')}
-                  >
-                    月間返済{renderSortIndicator('monthly_repayment')}
-                  </TableHead>
-                  <TableHead
-                    className="cursor-pointer text-right"
-                    onClick={() => handleSort('net_cf')}
-                  >
-                    純CF{renderSortIndicator('net_cf')}
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredAndSortedProperties.length > 0 ? (
-                  filteredAndSortedProperties.map((property) => (
-                    <TableRow
-                      key={property.id}
-                      className="cursor-pointer hover:bg-gray-50"
-                      onClick={() => handlePropertyClick(property.id)}
-                    >
-                      <TableCell className="font-medium">{property.name}</TableCell>
-                      <TableCell className="text-right">
-                        {formatCurrency(property.monthly_rent)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {formatCurrency(property.monthly_repayment)}
-                      </TableCell>
-                      <TableCell className="text-right font-semibold">
-                        {formatCurrency(property.net_cf)}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={4} className="py-8 text-center">
-                      {searchTerm ? '検索結果がありません' : '物件データがありません'}
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+    <MainLayout>
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-6 flex flex-col items-start justify-between md:flex-row md:items-center">
+          <h1 className="mb-4 text-2xl font-bold text-primary md:mb-0">物件一覧</h1>
+          <div className="flex items-center space-x-4">
+            <select
+              value={selectedOwnerId || ''}
+              onChange={(e) => setSelectedOwnerId(e.target.value || null)}
+              className="rounded border px-3 py-1 text-sm"
+            >
+              <option value="">すべての所有者</option>
+              <option value="1">個人所有</option>
+              <option value="2">法人所有</option>
+            </select>
+            <Button onClick={handleAddProperty} className="bg-primary hover:bg-primary/90">
+              + 物件を追加
+            </Button>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+
+        <div className="relative mb-6">
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 transform text-gray-400"
+            size={18}
+          />
+          <Input
+            placeholder="物件名や住所で検索..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
+        <Card>
+          <CardContent className="p-0">
+            <PropertyTable
+              properties={filteredAndSortedProperties}
+              sortField={sortField}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+            />
+          </CardContent>
+        </Card>
+      </div>
+    </MainLayout>
   );
 }
