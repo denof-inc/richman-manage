@@ -1,27 +1,22 @@
-@import 'tailwindcss/preflight';
+@tailwind base;
+@tailwind components;
 @tailwind utilities;
 
+/* 明示的に変数を定義して使用する */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --primary: #295E4F;
+  --primary-light: #3F7B69;
+  --primary-dark: #1F4A3F;
+  --accent: #D4AF37;
+  --accent-light: #F4D06F;
+  --background: #F9F9F9;
+  --text-base: #1F2937;
+  --text-muted: #6B7280;
+  --border-default: #E5E7EB;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  body {
+    @apply bg-background text-text-base;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }
