@@ -1,10 +1,15 @@
 import React from 'react';
 import Header from './Header';
 
-export default function MainLayout({ children }: { children: React.ReactNode }) {
+interface MainLayoutProps {
+  children: React.ReactNode;
+  isLoggedIn?: boolean;
+}
+
+export default function MainLayout({ children, isLoggedIn = true }: MainLayoutProps) {
   return (
     <div className="flex min-h-screen flex-col">
-      <Header />
+      <Header isLoggedIn={isLoggedIn} />
       <main className="flex-grow">{children}</main>
     </div>
   );

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, User } from 'lucide-react';
+import { Menu, X, User, LogOut } from 'lucide-react';
 import { Button } from '@richman/ui';
 
 type Owner = {
@@ -11,7 +11,7 @@ type Owner = {
   name: string;
 };
 
-export default function Header() {
+export default function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [owners] = useState<Owner[]>([
@@ -33,65 +33,102 @@ export default function Header() {
   return (
     <header className="flex h-14 items-center justify-between bg-white px-6 shadow">
       <div className="flex items-center">
-        <Link href="/dashboard" className="mr-8 text-xl font-bold text-primary">
+        <Link
+          href={isLoggedIn ? '/dashboard' : '/'}
+          className="mr-8 text-xl font-bold text-primary"
+        >
           リッチマンManage
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden space-x-6 md:flex">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`text-sm font-medium transition-colors ${
-                isActive(item.href)
-                  ? 'border-b-2 border-primary text-primary'
-                  : 'text-gray-600 hover:text-primary'
-              }`}
-            >
-              {item.name}
-            </Link>
-          ))}
-        </nav>
+        {/* Desktop Navigation - ログイン済み時のみ表示 */}
+        {isLoggedIn && (
+          <nav className="hidden space-x-6 md:flex">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`text-sm font-medium transition-colors ${
+                  isActive(item.href)
+                    ? 'border-b-2 border-primary text-primary'
+                    : 'text-gray-600 hover:text-primary'
+                }`}
+              >
+                {item.name}
+              </Link>
+            ))}
+          </nav>
+        )}
       </div>
 
       <div className="flex items-center space-x-4">
-        {/* Owner Selector */}
-        <div className="hidden items-center md:flex">
-          <select
-            value={selectedOwnerId}
-            onChange={(e) => setSelectedOwnerId(e.target.value)}
-            className="rounded border px-2 py-1 text-sm"
+        {/* Owner Selector - ログイン済み時のみ表示 */}
+        {isLoggedIn && (
+          <div className="hidden items-center md:flex">
+            <select
+              value={selectedOwnerId}
+              onChange={(e) => setSelectedOwnerId(e.target.value)}
+              className="rounded border px-2 py-1 text-sm"
+            >
+              {owners.map((owner) => (
+                <option key={owner.id} value={owner.id}>
+                  {owner.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* 未ログイン時はログインボタンを表示 */}
+        {!isLoggedIn ? (
+          <div className="flex items-center space-x-2">
+            <Link href="/login">
+              <Button variant="outline" size="sm">
+                ログイン
+              </Button>
+            </Link>
+            <Link href="/signup">
+              <Button size="sm">新規登録</Button>
+            </Link>
+          </div>
+        ) : (
+          <>
+            {/* User Avatar */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="rounded-full p-1"
+              aria-label="ユーザー設定"
+            >
+              <User size={20} className="text-gray-600" />
+            </Button>
+
+            {/* Logout button */}
+            <Link href="/login">
+              <Button variant="ghost" size="sm" aria-label="ログアウト">
+                <LogOut size={20} className="text-gray-600" />
+              </Button>
+            </Link>
+          </>
+        )}
+
+        {/* Mobile Menu Button - ログイン済み時のみ表示 */}
+        {isLoggedIn && (
+          <button
+            className="md:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="メニュー"
           >
-            {owners.map((owner) => (
-              <option key={owner.id} value={owner.id}>
-                {owner.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* User Avatar */}
-        <Button variant="ghost" size="sm" className="rounded-full p-1" aria-label="ユーザー設定">
-          <User size={20} className="text-gray-600" />
-        </Button>
-
-        {/* Mobile Menu Button */}
-        <button
-          className="md:hidden"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="メニュー"
-        >
-          {mobileMenuOpen ? (
-            <X size={24} className="text-gray-600" />
-          ) : (
-            <Menu size={24} className="text-gray-600" />
-          )}
-        </button>
+            {mobileMenuOpen ? (
+              <X size={24} className="text-gray-600" />
+            ) : (
+              <Menu size={24} className="text-gray-600" />
+            )}
+          </button>
+        )}
       </div>
 
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
+      {/* Mobile Menu - ログイン済み時のみ表示 */}
+      {isLoggedIn && mobileMenuOpen && (
         <div className="absolute left-0 right-0 top-14 z-50 bg-white shadow-md md:hidden">
           <nav className="flex flex-col p-4">
             {navItems.map((item) => (
