@@ -1,189 +1,90 @@
-'use client';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import MainLayout from '../../components/layout/MainLayout';
 
-import React, { useState } from 'react';
-import {
-  Button,
-  Input,
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalTitle,
-  ModalDescription,
-  ModalFooter,
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from '@richman/ui';
-
-export default function UIComponentsDemo() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('button');
-
-  const tableData = [
-    { id: 1, property: '青山マンション', units: 12, income: '¥1,200,000', expenses: '¥300,000' },
-    { id: 2, property: '渋谷アパート', units: 8, income: '¥800,000', expenses: '¥200,000' },
-    { id: 3, property: '新宿ビル', units: 24, income: '¥2,400,000', expenses: '¥600,000' },
-  ];
-
+export default function UIComponentsPage() {
   return (
-    <div className="container mx-auto px-4 py-10">
-      <h1 className="mb-8 text-3xl font-bold">UI Components Demo</h1>
-
-      <Tabs
-        defaultValue="button"
-        className="mb-10 w-full"
-        value={activeTab}
-        onValueChange={setActiveTab}
-      >
-        <TabsList>
-          <TabsTrigger value="button" active={activeTab === 'button'}>
-            Button
-          </TabsTrigger>
-          <TabsTrigger value="input" active={activeTab === 'input'}>
-            Input
-          </TabsTrigger>
-          <TabsTrigger value="card" active={activeTab === 'card'}>
-            Card
-          </TabsTrigger>
-          <TabsTrigger value="table" active={activeTab === 'table'}>
-            Table
-          </TabsTrigger>
-          <TabsTrigger value="modal" active={activeTab === 'modal'}>
-            Modal
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="button" className="mt-6">
-          <h2 className="mb-4 text-2xl font-semibold">Button Component</h2>
-          <div className="flex flex-wrap gap-4">
-            <Button>Default Button</Button>
-            <Button variant="outline">Outline Button</Button>
-            <Button variant="ghost">Ghost Button</Button>
-            <Button variant="link">Link Button</Button>
-            <Button disabled>Disabled Button</Button>
-            <Button size="sm">Small Button</Button>
-            <Button size="lg">Large Button</Button>
+    <MainLayout isLoggedIn={false}>
+      <div className="min-h-screen bg-background p-8">
+        <div className="mx-auto max-w-4xl space-y-8">
+          <div className="mb-12 text-center">
+            <h1 className="text-4xl font-bold text-primary">リッチマンManage</h1>
+            <p className="mt-2 text-text-muted">不動産管理システム - スタイルガイド適用版</p>
           </div>
-        </TabsContent>
 
-        <TabsContent value="input" className="mt-6">
-          <h2 className="mb-4 text-2xl font-semibold">Input Component</h2>
-          <div className="flex max-w-md flex-col gap-4">
-            <Input placeholder="Default input" />
-            <Input placeholder="Disabled input" disabled />
-            <Input placeholder="Email input" type="email" />
-            <Input placeholder="Password input" type="password" />
-            <Input placeholder="Number input" type="number" />
-          </div>
-        </TabsContent>
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="rounded-lg border border-border-default bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-xl font-semibold text-primary">ボタンコンポーネント</h2>
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  <Button>プライマリ</Button>
+                  <Button variant="accent">アクセント</Button>
+                  <Button variant="outline">アウトライン</Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm">小さいサイズ</Button>
+                  <Button>標準サイズ</Button>
+                  <Button size="lg">大きいサイズ</Button>
+                </div>
+              </div>
+            </div>
 
-        <TabsContent value="card" className="mt-6">
-          <h2 className="mb-4 text-2xl font-semibold">Card Component</h2>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>青山マンション</CardTitle>
-                <CardDescription>東京都港区南青山</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p>12ユニット | 築10年</p>
-                <p className="mt-2">月間収入: ¥1,200,000</p>
-                <p>月間支出: ¥300,000</p>
-                <p className="mt-2 font-bold">キャッシュフロー: ¥900,000</p>
-              </CardContent>
-              <CardFooter>
-                <Button>詳細を見る</Button>
-              </CardFooter>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>渋谷アパート</CardTitle>
-                <CardDescription>東京都渋谷区神南</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p>8ユニット | 築5年</p>
-                <p className="mt-2">月間収入: ¥800,000</p>
-                <p>月間支出: ¥200,000</p>
-                <p className="mt-2 font-bold">キャッシュフロー: ¥600,000</p>
-              </CardContent>
-              <CardFooter>
-                <Button>詳細を見る</Button>
-              </CardFooter>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="table" className="mt-6">
-          <h2 className="mb-4 text-2xl font-semibold">Table Component</h2>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>物件名</TableHead>
-                <TableHead>ユニット数</TableHead>
-                <TableHead>月間収入</TableHead>
-                <TableHead>月間支出</TableHead>
-                <TableHead>アクション</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tableData.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell>{row.property}</TableCell>
-                  <TableCell>{row.units}</TableCell>
-                  <TableCell>{row.income}</TableCell>
-                  <TableCell>{row.expenses}</TableCell>
-                  <TableCell>
-                    <Button size="sm">詳細</Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TabsContent>
-
-        <TabsContent value="modal" className="mt-6">
-          <h2 className="mb-4 text-2xl font-semibold">Modal Component</h2>
-          <div>
-            {!isModalOpen ? (
-              <Button onClick={() => setIsModalOpen(true)}>モーダルを開く</Button>
-            ) : (
-              <Modal isOpen={isModalOpen} onOpenChange={setIsModalOpen}>
-                <ModalContent>
-                  <ModalHeader>
-                    <ModalTitle>物件の追加</ModalTitle>
-                    <ModalDescription>新しい物件の情報を入力してください。</ModalDescription>
-                  </ModalHeader>
-                  <div className="space-y-4 p-4">
-                    <Input placeholder="物件名" />
-                    <Input placeholder="住所" />
-                    <Input placeholder="購入価格" type="number" />
-                  </div>
-                  <ModalFooter>
-                    <Button variant="outline" onClick={() => setIsModalOpen(false)}>
-                      キャンセル
+            <div className="rounded-lg border border-border-default bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-xl font-semibold text-primary">サービス一覧</h2>
+              <ul className="space-y-2">
+                <li className="flex items-center justify-between rounded p-2 transition-colors hover:bg-primary-light/10">
+                  <span>借入管理</span>
+                  <Link href="/loans">
+                    <Button variant="outline" size="sm">
+                      一覧を見る
                     </Button>
-                    <Button onClick={() => setIsModalOpen(false)}>保存</Button>
-                  </ModalFooter>
-                </ModalContent>
-              </Modal>
-            )}
+                  </Link>
+                </li>
+                <li className="flex items-center justify-between rounded p-2 transition-colors hover:bg-primary-light/10">
+                  <span>物件管理</span>
+                  <Link href="/properties">
+                    <Button variant="outline" size="sm">
+                      一覧を見る
+                    </Button>
+                  </Link>
+                </li>
+                <li className="flex items-center justify-between rounded p-2 transition-colors hover:bg-primary-light/10">
+                  <span>テナント管理</span>
+                  <Button variant="outline" size="sm" disabled>
+                    準備中
+                  </Button>
+                </li>
+              </ul>
+            </div>
           </div>
-        </TabsContent>
-      </Tabs>
-    </div>
+
+          <div className="rounded-lg border border-primary/20 bg-primary/5 p-6">
+            <h2 className="mb-4 text-xl font-semibold text-primary">カラーパレット</h2>
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              <div className="flex flex-col items-center">
+                <div className="h-16 w-16 rounded bg-primary"></div>
+                <span className="mt-2 text-sm">Primary</span>
+                <code className="text-xs">#295E4F</code>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="h-16 w-16 rounded bg-primary-light"></div>
+                <span className="mt-2 text-sm">Primary Light</span>
+                <code className="text-xs">#3F7B69</code>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="h-16 w-16 rounded bg-accent"></div>
+                <span className="mt-2 text-sm">Accent</span>
+                <code className="text-xs">#3A7BFF</code>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="h-16 w-16 rounded bg-accent-light"></div>
+                <span className="mt-2 text-sm">Accent Light</span>
+                <code className="text-xs">#AECBFF</code>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </MainLayout>
   );
 }

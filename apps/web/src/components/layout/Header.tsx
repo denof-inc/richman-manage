@@ -33,10 +33,7 @@ export default function Header({ isLoggedIn = false }: { isLoggedIn?: boolean })
   return (
     <header className="flex h-14 items-center justify-between bg-white px-6 shadow">
       <div className="flex items-center">
-        <Link
-          href={isLoggedIn ? '/dashboard' : '/'}
-          className="mr-8 text-xl font-bold text-primary"
-        >
+        <Link href="/" className="mr-8 text-xl font-bold text-primary">
           リッチマンManage
         </Link>
 
