@@ -8,7 +8,6 @@ import { ArrowUpIcon, ArrowDownIcon, DollarSign, TrendingUp, TrendingDown } from
 
 import MainLayout from '../../components/layout/MainLayout';
 import propertySummaryData from '../../mock/propertySummary.json';
-import loansData from '../../../mock/loans.json';
 
 type PropertySummary = {
   id: string;
@@ -19,15 +18,6 @@ type PropertySummary = {
   monthly_repayment: number;
   net_cf: number;
   owner_id: string;
-};
-
-type Loan = {
-  id: string;
-  name: string;
-  property: string;
-  balance: number;
-  interestRate: number;
-  nextDue: string;
 };
 
 type RecentTransaction = {
@@ -41,12 +31,10 @@ type RecentTransaction = {
 
 export default function DashboardPage() {
   const [properties, setProperties] = useState<PropertySummary[]>([]);
-  const [loans, setLoans] = useState<Loan[]>([]);
   const [recentTransactions, setRecentTransactions] = useState<RecentTransaction[]>([]);
 
   useEffect(() => {
     setProperties(propertySummaryData as unknown as PropertySummary[]);
-    setLoans(loansData as unknown as Loan[]);
 
     // モック取引データを生成
     const mockTransactions: RecentTransaction[] = [
