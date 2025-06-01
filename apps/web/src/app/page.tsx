@@ -229,12 +229,14 @@ export default function HomePage() {
                   </Button>
                 </Link>
 
-                <Button variant="outline" className="h-14 w-full justify-start" disabled>
-                  <div className="text-left">
-                    <div className="font-medium">レントロール</div>
-                    <div className="text-sm text-text-muted">入居状況を確認（準備中）</div>
-                  </div>
-                </Button>
+                <Link href="/rent-roll">
+                  <Button variant="outline" className="h-14 w-full justify-start">
+                    <div className="text-left">
+                      <div className="font-medium">レントロール</div>
+                      <div className="text-sm text-text-muted">入居状況を確認・管理</div>
+                    </div>
+                  </Button>
+                </Link>
 
                 <Button variant="outline" className="h-14 w-full justify-start" disabled>
                   <div className="text-left">
