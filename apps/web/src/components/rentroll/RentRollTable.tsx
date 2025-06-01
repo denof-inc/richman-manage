@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Building, Users, Home, Car, Zap } from 'lucide-react';
+import { Building, Users, Home, Car, Zap, ChevronDown, ChevronRight } from 'lucide-react';
 
 type UnitType = 'residence' | 'tenant' | 'parking' | 'vending' | 'solar';
 type UnitStatus = 'occupied' | 'vacant';
@@ -86,6 +86,17 @@ export default function RentRollTable({ units }: RentRollTableProps) {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'detailed' | 'grouped'>('grouped');
+  const [expandedProperties, setExpandedProperties] = useState<Set<string>>(new Set());
+
+  const toggleProperty = (propertyId: string) => {
+    const newExpanded = new Set(expandedProperties);
+    if (newExpanded.has(propertyId)) {
+      newExpanded.delete(propertyId);
+    } else {
+      newExpanded.add(propertyId);
+    }
+    setExpandedProperties(newExpanded);
+  };
 
   // フィルタリング
   const filteredUnits = units.filter((unit) => {
@@ -136,6 +147,13 @@ export default function RentRollTable({ units }: RentRollTableProps) {
       currentRent,
     };
   });
+
+  // 初回ロード時に最初の物件を展開
+  React.useEffect(() => {
+    if (groupedProperties.length > 0 && expandedProperties.size === 0) {
+      setExpandedProperties(new Set([groupedProperties[0].id]));
+    }
+  }, [groupedProperties.length]);
 
   return (
     <div className="space-y-6">
@@ -478,163 +496,71 @@ export default function RentRollTable({ units }: RentRollTableProps) {
             <div className="space-y-6">
               {groupedProperties.map((property) => (
                 <div key={property.id} className="rounded-lg border border-border-default">
-                  {/* 物件ヘッダー */}
-                  <div className="bg-gray-50 px-4 py-3">
-                    <div className="flex flex-col space-y-2 md:flex-row md:items-center md:justify-between md:space-y-0">
-                      <h3 className="text-lg font-semibold text-primary">{property.name}</h3>
-                      <div className="flex items-center space-x-4 text-sm">
-                        <span className="text-text-muted">
-                          入居率:{' '}
-                          <span className="font-medium text-accent">
-                            {property.occupancyRate.toFixed(1)}%
-                          </span>
-                        </span>
-                        <span className="text-text-muted">
-                          ({property.occupiedUnits}/{property.totalUnits}室)
-                        </span>
-                      </div>
-                    </div>
-                    <div className="mt-2 flex flex-col space-y-1 text-sm md:flex-row md:items-center md:space-x-6 md:space-y-0">
-                      <div className="text-text-muted">
-                        想定満室家賃:{' '}
-                        <span className="font-medium text-primary">
-                          {formatCurrency(property.potentialRent)}
-                        </span>
-                      </div>
-                      <div className="text-text-muted">
-                        現況満室家賃:{' '}
-                        <span className="font-medium text-accent">
-                          {formatCurrency(property.currentRent)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 部屋一覧 */}
-                  <div className="block md:hidden">
-                    {/* モバイル表示: カード形式 */}
-                    <div className="space-y-3 p-4">
-                      {property.units.map((unit) => (
-                        <div
-                          key={unit.id}
-                          className="rounded-lg border border-border-default bg-white p-3"
-                        >
-                          <div className="mb-2 flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                              <div className="font-medium text-primary">{unit.unit_number}</div>
-                              {getUnitTypeIcon(unit.unit_type)}
-                              <span className="text-sm text-text-muted">
-                                {getUnitTypeLabel(unit.unit_type)}
+                  {/* 物件ヘッダー - クリッカブル */}
+                  <button
+                    onClick={() => toggleProperty(property.id)}
+                    className="w-full bg-gray-50 px-4 py-3 text-left transition-colors hover:bg-gray-100"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex flex-col space-y-2 md:flex-row md:items-center md:justify-between md:space-y-0">
+                          <h3 className="text-lg font-semibold text-primary">{property.name}</h3>
+                          <div className="flex items-center space-x-4 text-sm">
+                            <span className="text-text-muted">
+                              入居率:{' '}
+                              <span className="font-medium text-accent">
+                                {property.occupancyRate.toFixed(1)}%
                               </span>
-                            </div>
-                            <span
-                              className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                                unit.status === 'occupied'
-                                  ? 'bg-accent text-white'
-                                  : 'bg-red-100 text-red-800'
-                              }`}
-                            >
-                              {unit.status === 'occupied' ? '入居中' : '空室'}
+                            </span>
+                            <span className="text-text-muted">
+                              ({property.occupiedUnits}/{property.totalUnits}室)
                             </span>
                           </div>
-
-                          <div className="grid grid-cols-2 gap-2 text-sm">
-                            <div>
-                              <span className="text-text-muted">面積: </span>
-                              <span>{unit.area ? `${unit.area}㎡` : '-'}</span>
-                              {unit.bedrooms && (
-                                <span className="ml-1 text-xs text-text-muted">
-                                  ({unit.bedrooms}LDK)
-                                </span>
-                              )}
-                            </div>
-                            <div>
-                              <span className="text-text-muted">家賃: </span>
-                              <span
-                                className={`font-medium ${
-                                  unit.status === 'occupied' ? 'text-accent' : 'text-red-500'
-                                }`}
-                              >
-                                {formatCurrency(unit.rent_amount)}
-                              </span>
-                            </div>
-                            <div className="col-span-2">
-                              <span className="text-text-muted">入居者: </span>
-                              <span>{unit.current_tenant_name || '-'}</span>
-                            </div>
-                            {unit.lease_start_date && unit.lease_end_date && (
-                              <div className="col-span-2">
-                                <span className="text-text-muted">契約期間: </span>
-                                <span className="text-xs">
-                                  {formatDate(unit.lease_start_date)} 〜{' '}
-                                  {formatDate(unit.lease_end_date)}
-                                </span>
-                              </div>
-                            )}
+                        </div>
+                        <div className="mt-2 flex flex-col space-y-1 text-sm md:flex-row md:items-center md:space-x-6 md:space-y-0">
+                          <div className="text-text-muted">
+                            想定満室家賃:{' '}
+                            <span className="font-medium text-primary">
+                              {formatCurrency(property.potentialRent)}
+                            </span>
                           </div>
-
-                          <div className="mt-2 text-right">
-                            <Link href={`/rent-roll/${unit.id}`}>
-                              <Button variant="outline" size="sm">
-                                詳細
-                              </Button>
-                            </Link>
+                          <div className="text-text-muted">
+                            現況満室家賃:{' '}
+                            <span className="font-medium text-accent">
+                              {formatCurrency(property.currentRent)}
+                            </span>
                           </div>
                         </div>
-                      ))}
+                      </div>
+                      <div className="ml-4 flex-shrink-0">
+                        {expandedProperties.has(property.id) ? (
+                          <ChevronDown className="h-5 w-5 text-text-muted" />
+                        ) : (
+                          <ChevronRight className="h-5 w-5 text-text-muted" />
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  </button>
 
-                  <div className="hidden md:block">
-                    {/* デスクトップ表示: テーブル形式 */}
-                    <div className="overflow-x-auto">
-                      <table className="w-full border-collapse">
-                        <thead>
-                          <tr className="bg-gray-25 border-b border-border-default">
-                            <th className="p-3 text-left text-sm font-medium text-text-muted">
-                              部屋
-                            </th>
-                            <th className="p-3 text-left text-sm font-medium text-text-muted">
-                              タイプ
-                            </th>
-                            <th className="p-3 text-left text-sm font-medium text-text-muted">
-                              状況
-                            </th>
-                            <th className="p-3 text-left text-sm font-medium text-text-muted">
-                              面積
-                            </th>
-                            <th className="p-3 text-left text-sm font-medium text-text-muted">
-                              家賃
-                            </th>
-                            <th className="p-3 text-left text-sm font-medium text-text-muted">
-                              入居者
-                            </th>
-                            <th className="p-3 text-left text-sm font-medium text-text-muted">
-                              契約期間
-                            </th>
-                            <th className="p-3 text-left text-sm font-medium text-text-muted">
-                              操作
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
+                  {/* 部屋一覧 - 展開時のみ表示 */}
+                  {expandedProperties.has(property.id) && (
+                    <>
+                      <div className="block md:hidden">
+                        {/* モバイル表示: カード形式 */}
+                        <div className="space-y-3 p-4">
                           {property.units.map((unit) => (
-                            <tr
+                            <div
                               key={unit.id}
-                              className="border-b border-border-default transition-colors hover:bg-gray-50"
+                              className="rounded-lg border border-border-default bg-white p-3"
                             >
-                              <td className="p-3">
-                                <div className="font-medium text-primary">{unit.unit_number}</div>
-                              </td>
-                              <td className="p-3">
+                              <div className="mb-2 flex items-center justify-between">
                                 <div className="flex items-center space-x-2">
+                                  <div className="font-medium text-primary">{unit.unit_number}</div>
                                   {getUnitTypeIcon(unit.unit_type)}
-                                  <span className="text-sm">
+                                  <span className="text-sm text-text-muted">
                                     {getUnitTypeLabel(unit.unit_type)}
                                   </span>
                                 </div>
-                              </td>
-                              <td className="p-3">
                                 <span
                                   className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
                                     unit.status === 'occupied'
@@ -644,56 +570,168 @@ export default function RentRollTable({ units }: RentRollTableProps) {
                                 >
                                   {unit.status === 'occupied' ? '入居中' : '空室'}
                                 </span>
-                              </td>
-                              <td className="p-3">
-                                <div className="text-sm">
-                                  {unit.area ? `${unit.area}㎡` : '-'}
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-2 text-sm">
+                                <div>
+                                  <span className="text-text-muted">面積: </span>
+                                  <span>{unit.area ? `${unit.area}㎡` : '-'}</span>
                                   {unit.bedrooms && (
-                                    <div className="text-xs text-text-muted">
-                                      {unit.bedrooms}LDK
-                                    </div>
+                                    <span className="ml-1 text-xs text-text-muted">
+                                      ({unit.bedrooms}LDK)
+                                    </span>
                                   )}
                                 </div>
-                              </td>
-                              <td className="p-3">
-                                <div
-                                  className={`font-medium ${
-                                    unit.status === 'occupied' ? 'text-accent' : 'text-red-500'
-                                  }`}
-                                >
-                                  {formatCurrency(unit.rent_amount)}
+                                <div>
+                                  <span className="text-text-muted">家賃: </span>
+                                  <span
+                                    className={`font-medium ${
+                                      unit.status === 'occupied' ? 'text-accent' : 'text-red-500'
+                                    }`}
+                                  >
+                                    {formatCurrency(unit.rent_amount)}
+                                  </span>
                                 </div>
-                              </td>
-                              <td className="p-3">
-                                <div className="text-sm">{unit.current_tenant_name || '-'}</div>
-                              </td>
-                              <td className="p-3">
-                                <div className="text-sm">
-                                  {unit.lease_start_date && unit.lease_end_date ? (
-                                    <>
-                                      <div>{formatDate(unit.lease_start_date)}</div>
-                                      <div className="text-xs text-text-muted">
-                                        〜 {formatDate(unit.lease_end_date)}
-                                      </div>
-                                    </>
-                                  ) : (
-                                    '-'
-                                  )}
+                                <div className="col-span-2">
+                                  <span className="text-text-muted">入居者: </span>
+                                  <span>{unit.current_tenant_name || '-'}</span>
                                 </div>
-                              </td>
-                              <td className="p-3">
+                                {unit.lease_start_date && unit.lease_end_date && (
+                                  <div className="col-span-2">
+                                    <span className="text-text-muted">契約期間: </span>
+                                    <span className="text-xs">
+                                      {formatDate(unit.lease_start_date)} 〜{' '}
+                                      {formatDate(unit.lease_end_date)}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="mt-2 text-right">
                                 <Link href={`/rent-roll/${unit.id}`}>
                                   <Button variant="outline" size="sm">
                                     詳細
                                   </Button>
                                 </Link>
-                              </td>
-                            </tr>
+                              </div>
+                            </div>
                           ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
+                        </div>
+                      </div>
+
+                      <div className="hidden md:block">
+                        {/* デスクトップ表示: テーブル形式 */}
+                        <div className="overflow-x-auto">
+                          <table className="w-full border-collapse">
+                            <thead>
+                              <tr className="bg-gray-25 border-b border-border-default">
+                                <th className="p-3 text-left text-sm font-medium text-text-muted">
+                                  部屋
+                                </th>
+                                <th className="p-3 text-left text-sm font-medium text-text-muted">
+                                  タイプ
+                                </th>
+                                <th className="p-3 text-left text-sm font-medium text-text-muted">
+                                  状況
+                                </th>
+                                <th className="p-3 text-left text-sm font-medium text-text-muted">
+                                  面積
+                                </th>
+                                <th className="p-3 text-left text-sm font-medium text-text-muted">
+                                  家賃
+                                </th>
+                                <th className="p-3 text-left text-sm font-medium text-text-muted">
+                                  入居者
+                                </th>
+                                <th className="p-3 text-left text-sm font-medium text-text-muted">
+                                  契約期間
+                                </th>
+                                <th className="p-3 text-left text-sm font-medium text-text-muted">
+                                  操作
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {property.units.map((unit) => (
+                                <tr
+                                  key={unit.id}
+                                  className="border-b border-border-default transition-colors hover:bg-gray-50"
+                                >
+                                  <td className="p-3">
+                                    <div className="font-medium text-primary">
+                                      {unit.unit_number}
+                                    </div>
+                                  </td>
+                                  <td className="p-3">
+                                    <div className="flex items-center space-x-2">
+                                      {getUnitTypeIcon(unit.unit_type)}
+                                      <span className="text-sm">
+                                        {getUnitTypeLabel(unit.unit_type)}
+                                      </span>
+                                    </div>
+                                  </td>
+                                  <td className="p-3">
+                                    <span
+                                      className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                                        unit.status === 'occupied'
+                                          ? 'bg-accent text-white'
+                                          : 'bg-red-100 text-red-800'
+                                      }`}
+                                    >
+                                      {unit.status === 'occupied' ? '入居中' : '空室'}
+                                    </span>
+                                  </td>
+                                  <td className="p-3">
+                                    <div className="text-sm">
+                                      {unit.area ? `${unit.area}㎡` : '-'}
+                                      {unit.bedrooms && (
+                                        <div className="text-xs text-text-muted">
+                                          {unit.bedrooms}LDK
+                                        </div>
+                                      )}
+                                    </div>
+                                  </td>
+                                  <td className="p-3">
+                                    <div
+                                      className={`font-medium ${
+                                        unit.status === 'occupied' ? 'text-accent' : 'text-red-500'
+                                      }`}
+                                    >
+                                      {formatCurrency(unit.rent_amount)}
+                                    </div>
+                                  </td>
+                                  <td className="p-3">
+                                    <div className="text-sm">{unit.current_tenant_name || '-'}</div>
+                                  </td>
+                                  <td className="p-3">
+                                    <div className="text-sm">
+                                      {unit.lease_start_date && unit.lease_end_date ? (
+                                        <>
+                                          <div>{formatDate(unit.lease_start_date)}</div>
+                                          <div className="text-xs text-text-muted">
+                                            〜 {formatDate(unit.lease_end_date)}
+                                          </div>
+                                        </>
+                                      ) : (
+                                        '-'
+                                      )}
+                                    </div>
+                                  </td>
+                                  <td className="p-3">
+                                    <Link href={`/rent-roll/${unit.id}`}>
+                                      <Button variant="outline" size="sm">
+                                        詳細
+                                      </Button>
+                                    </Link>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               ))}
 
