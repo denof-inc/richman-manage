@@ -246,6 +246,14 @@ export default function RentRollTable({ units }: RentRollTableProps) {
       <div className="flex items-center justify-center">
         <div className="flex rounded-lg border border-border-default p-1">
           <button
+            onClick={() => setViewMode('grouped')}
+            className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
+              viewMode === 'grouped' ? 'bg-accent text-white' : 'text-text-muted hover:text-primary'
+            }`}
+          >
+            物件別表示
+          </button>
+          <button
             onClick={() => setViewMode('detailed')}
             className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
               viewMode === 'detailed'
@@ -254,14 +262,6 @@ export default function RentRollTable({ units }: RentRollTableProps) {
             }`}
           >
             詳細表示
-          </button>
-          <button
-            onClick={() => setViewMode('grouped')}
-            className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
-              viewMode === 'grouped' ? 'bg-accent text-white' : 'text-text-muted hover:text-primary'
-            }`}
-          >
-            物件別表示
           </button>
         </div>
       </div>
@@ -287,15 +287,28 @@ export default function RentRollTable({ units }: RentRollTableProps) {
                 {filteredUnits.map((unit) => (
                   <div
                     key={unit.id}
-                    className="rounded-lg border border-border-default bg-white p-3"
+                    className="rounded-lg border border-border-default bg-white p-4"
                   >
-                    <div className="mb-2 flex items-center justify-between">
-                      <div>
-                        <div className="font-medium text-primary">{unit.property_name}</div>
-                        <div className="text-sm text-text-muted">{unit.unit_number}</div>
+                    {/* ヘッダー部分 */}
+                    <div className="mb-3 flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="mb-1 flex items-center space-x-2">
+                          <span className="text-lg font-medium text-primary">
+                            {unit.property_name}
+                          </span>
+                          <span className="rounded bg-gray-100 px-2 py-1 text-sm text-gray-600">
+                            {unit.unit_number}
+                          </span>
+                        </div>
+                        <div className="mb-2 flex items-center space-x-2">
+                          {getUnitTypeIcon(unit.unit_type)}
+                          <span className="text-sm text-text-muted">
+                            {getUnitTypeLabel(unit.unit_type)}
+                          </span>
+                        </div>
                       </div>
                       <span
-                        className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
                           unit.status === 'occupied'
                             ? 'bg-accent text-white'
                             : 'bg-red-100 text-red-800'
@@ -305,20 +318,19 @@ export default function RentRollTable({ units }: RentRollTableProps) {
                       </span>
                     </div>
 
-                    <div className="mb-2 grid grid-cols-2 gap-2 text-sm">
-                      <div className="flex items-center space-x-1">
-                        {getUnitTypeIcon(unit.unit_type)}
-                        <span>{getUnitTypeLabel(unit.unit_type)}</span>
+                    {/* 詳細情報 */}
+                    <div className="space-y-2 border-t pt-3 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-text-muted">面積</span>
+                        <span>
+                          {unit.area ? `${unit.area}㎡` : '-'}
+                          {unit.bedrooms && (
+                            <span className="ml-1 text-text-muted">({unit.bedrooms}LDK)</span>
+                          )}
+                        </span>
                       </div>
-                      <div>
-                        <span className="text-text-muted">面積: </span>
-                        <span>{unit.area ? `${unit.area}㎡` : '-'}</span>
-                        {unit.bedrooms && (
-                          <span className="ml-1 text-xs text-text-muted">({unit.bedrooms}LDK)</span>
-                        )}
-                      </div>
-                      <div>
-                        <span className="text-text-muted">家賃: </span>
+                      <div className="flex justify-between">
+                        <span className="text-text-muted">家賃</span>
                         <span
                           className={`font-medium ${
                             unit.status === 'occupied' ? 'text-accent' : 'text-red-500'
@@ -327,21 +339,23 @@ export default function RentRollTable({ units }: RentRollTableProps) {
                           {formatCurrency(unit.rent_amount)}
                         </span>
                       </div>
-                      <div>
-                        <span className="text-text-muted">入居者: </span>
+                      <div className="flex justify-between">
+                        <span className="text-text-muted">入居者</span>
                         <span>{unit.current_tenant_name || '-'}</span>
                       </div>
                       {unit.lease_start_date && unit.lease_end_date && (
-                        <div className="col-span-2">
-                          <span className="text-text-muted">契約期間: </span>
-                          <span className="text-xs">
-                            {formatDate(unit.lease_start_date)} 〜 {formatDate(unit.lease_end_date)}
+                        <div className="flex justify-between">
+                          <span className="text-text-muted">契約期間</span>
+                          <span className="text-right text-xs">
+                            {formatDate(unit.lease_start_date)}
+                            <br />〜 {formatDate(unit.lease_end_date)}
                           </span>
                         </div>
                       )}
                     </div>
 
-                    <div className="text-right">
+                    {/* アクションボタン */}
+                    <div className="mt-3 border-t pt-3 text-right">
                       <Link href={`/rent-roll/${unit.id}`}>
                         <Button variant="outline" size="sm">
                           詳細
