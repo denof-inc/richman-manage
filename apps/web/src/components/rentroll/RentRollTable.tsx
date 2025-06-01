@@ -365,7 +365,7 @@ export default function RentRollTable({ units }: RentRollTableProps) {
                         </div>
                       </td>
                       <td className="p-3">
-                        <Link href={`/rent-roll/${unit.id}`}>
+                        <Link href={`/properties/${unit.property_id}/${unit.id}`}>
                           <Button variant="outline" size="sm">
                             詳細
                           </Button>
@@ -430,7 +430,7 @@ export default function RentRollTable({ units }: RentRollTableProps) {
                   <div className="block md:hidden">
                     {/* モバイル表示: カード形式 */}
                     <div className="space-y-3 p-4">
-                      {property.units.map((unit) => (
+                      {property.units.map((unit: RentRollUnit) => (
                         <div
                           key={unit.id}
                           className="rounded-lg border border-border-default bg-white p-3"
@@ -490,7 +490,7 @@ export default function RentRollTable({ units }: RentRollTableProps) {
                           </div>
 
                           <div className="mt-2 text-right">
-                            <Link href={`/rent-roll/${unit.id}`}>
+                            <Link href={`/properties/${unit.property_id}/${unit.id}`}>
                               <Button variant="outline" size="sm">
                                 詳細
                               </Button>
@@ -534,7 +534,7 @@ export default function RentRollTable({ units }: RentRollTableProps) {
                           </tr>
                         </thead>
                         <tbody>
-                          {property.units.map((unit) => (
+                          {property.units.map((unit: RentRollUnit) => (
                             <tr
                               key={unit.id}
                               className="border-b border-border-default transition-colors hover:bg-gray-50"
@@ -598,7 +598,7 @@ export default function RentRollTable({ units }: RentRollTableProps) {
                                 </div>
                               </td>
                               <td className="p-3">
-                                <Link href={`/rent-roll/${unit.id}`}>
+                                <Link href={`/properties/${unit.property_id}/${unit.id}`}>
                                   <Button variant="outline" size="sm">
                                     詳細
                                   </Button>

@@ -20,6 +20,27 @@ import RentRollTable from '../../../components/rentroll/RentRollTable';
 import LoanMiniTable from '../../../components/loans/LoanMiniTable';
 
 import propertySummary from '../../../mock/propertySummary.json';
+import rentRollData from '../../../mock/rentRoll.json';
+
+type UnitType = 'residence' | 'tenant' | 'parking' | 'vending' | 'solar';
+type UnitStatus = 'occupied' | 'vacant';
+
+type RentRollUnit = {
+  id: string;
+  property_id: string;
+  property_name: string;
+  unit_number: string;
+  unit_type: UnitType;
+  status: UnitStatus;
+  area: number | null;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  rent_amount: number;
+  deposit_amount: number;
+  current_tenant_name: string | null;
+  lease_start_date: string | null;
+  lease_end_date: string | null;
+};
 
 type PropertyDetail = {
   id: string;
@@ -40,7 +61,7 @@ type PropertyDetail = {
 
 export default function PropertyDetailPage() {
   const params = useParams();
-  const propertyId = params.id as string;
+  const propertyId = params.propertyId as string;
   const [property, setProperty] = useState<PropertyDetail | null>(null);
   const [activeTab, setActiveTab] = useState('rentroll');
   const [showMoreOptions, setShowMoreOptions] = useState(false);
@@ -92,6 +113,11 @@ export default function PropertyDetailPage() {
       </MainLayout>
     );
   }
+
+  // Filter units for this property
+  const filteredUnits = (rentRollData as unknown as RentRollUnit[]).filter(
+    (unit) => unit.property_id === propertyId
+  );
 
   return (
     <MainLayout>
@@ -230,7 +256,7 @@ export default function PropertyDetailPage() {
                 <CardTitle className="text-primary">賃貸表</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <RentRollTable propertyId={propertyId} />
+                <RentRollTable units={filteredUnits} />
               </CardContent>
             </Card>
           </TabsContent>
