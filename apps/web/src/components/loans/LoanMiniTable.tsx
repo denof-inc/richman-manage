@@ -70,7 +70,7 @@ export default function LoanMiniTable({ propertyId }: LoanMiniTableProps): React
             <TableHead className="text-right">期間</TableHead>
             <TableHead>開始日</TableHead>
             <TableHead className="text-right">月額返済</TableHead>
-            <TableHead className="text-right">残高</TableHead>
+            <TableHead className="text-right">残債</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
