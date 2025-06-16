@@ -20,12 +20,14 @@ test.describe('Loans', () => {
     await expect(addButton).toBeVisible();
 
     // テーブルヘッダーの確認
-    await expect(page.getByRole('columnheader', { name: 'ローン名' })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: '金融機関' })).toBeVisible();
     await expect(page.getByRole('columnheader', { name: '物件' })).toBeVisible();
-    await expect(page.getByRole('columnheader', { name: '残高' })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: '借入額' })).toBeVisible();
     await expect(page.getByRole('columnheader', { name: '金利' })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: '期間' })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: '開始日' })).toBeVisible();
     await expect(page.getByRole('columnheader', { name: '月額返済' })).toBeVisible();
-    await expect(page.getByRole('columnheader', { name: '次回支払日' })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: '残債' })).toBeVisible();
   });
 
   test('can filter loans by property', async ({ page }) => {
@@ -107,15 +109,15 @@ test.describe('Loans', () => {
   test('can sort loans', async ({ page }) => {
     await page.goto('/loans');
 
-    // 残高でソート
-    await page.getByRole('columnheader', { name: '残高' }).click();
+    // 残債でソート
+    await page.getByRole('columnheader', { name: '残債' }).click();
 
     // ソート結果の確認（降順）
     const firstRow = page.locator('tbody tr').first();
     await expect(firstRow).toContainText('池袋マンション'); // 最高額
 
     // もう一度クリックして昇順にする
-    await page.getByRole('columnheader', { name: '残高' }).click();
+    await page.getByRole('columnheader', { name: '残債' }).click();
 
     // ソート結果の確認（昇順）
     const firstRowAsc = page.locator('tbody tr').first();

@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import loans from '../../../../../mock/loans.json';
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
-  const loan = loans.find((l) => l.id === params.id);
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const loan = loans.find((l) => l.id === id);
 
   if (!loan) {
     return NextResponse.json({ error: 'Loan not found' }, { status: 404 });
