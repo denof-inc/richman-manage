@@ -1,7 +1,7 @@
 [
   {
     "id": "unit-001",
-    "property_id": "prop-001",
+    "property_id": "550e8400-e29b-41d4-a716-446655440000",
     "property_name": "青山マンション",
     "unit_number": "101",
     "unit_type": "residence",
@@ -17,7 +17,7 @@
   },
   {
     "id": "unit-002",
-    "property_id": "prop-001",
+    "property_id": "550e8400-e29b-41d4-a716-446655440000",
     "property_name": "青山マンション",
     "unit_number": "102",
     "unit_type": "residence",
@@ -33,7 +33,7 @@
   },
   {
     "id": "unit-003",
-    "property_id": "prop-001",
+    "property_id": "550e8400-e29b-41d4-a716-446655440000",
     "property_name": "青山マンション",
     "unit_number": "201",
     "unit_type": "residence",
@@ -49,7 +49,7 @@
   },
   {
     "id": "unit-004",
-    "property_id": "prop-001",
+    "property_id": "550e8400-e29b-41d4-a716-446655440000",
     "property_name": "青山マンション",
     "unit_number": "202",
     "unit_type": "residence",
@@ -65,7 +65,7 @@
   },
   {
     "id": "unit-005",
-    "property_id": "prop-002",
+    "property_id": "550e8400-e29b-41d4-a716-446655440001",
     "property_name": "渋谷アパート",
     "unit_number": "A101",
     "unit_type": "residence",
@@ -81,7 +81,7 @@
   },
   {
     "id": "unit-006",
-    "property_id": "prop-002",
+    "property_id": "550e8400-e29b-41d4-a716-446655440001",
     "property_name": "渋谷アパート",
     "unit_number": "A102",
     "unit_type": "residence",
@@ -97,7 +97,7 @@
   },
   {
     "id": "unit-007",
-    "property_id": "prop-002",
+    "property_id": "550e8400-e29b-41d4-a716-446655440001",
     "property_name": "渋谷アパート",
     "unit_number": "B101",
     "unit_type": "residence",
@@ -113,7 +113,7 @@
   },
   {
     "id": "unit-008",
-    "property_id": "prop-002",
+    "property_id": "550e8400-e29b-41d4-a716-446655440001",
     "property_name": "渋谷アパート",
     "unit_number": "B102",
     "unit_type": "residence",
@@ -129,8 +129,8 @@
   },
   {
     "id": "unit-009",
-    "property_id": "prop-003",
-    "property_name": "新宿オフィス",
+    "property_id": "550e8400-e29b-41d4-a716-446655440002",
+    "property_name": "新宿ビル",
     "unit_number": "301",
     "unit_type": "tenant",
     "status": "occupied",
@@ -145,8 +145,8 @@
   },
   {
     "id": "unit-010",
-    "property_id": "prop-003",
-    "property_name": "新宿オフィス",
+    "property_id": "550e8400-e29b-41d4-a716-446655440002",
+    "property_name": "新宿ビル",
     "unit_number": "302",
     "unit_type": "tenant",
     "status": "vacant",
@@ -161,7 +161,7 @@
   },
   {
     "id": "unit-011",
-    "property_id": "prop-001",
+    "property_id": "550e8400-e29b-41d4-a716-446655440000",
     "property_name": "青山マンション",
     "unit_number": "P1",
     "unit_type": "parking",
@@ -177,7 +177,7 @@
   },
   {
     "id": "unit-012",
-    "property_id": "prop-001",
+    "property_id": "550e8400-e29b-41d4-a716-446655440000",
     "property_name": "青山マンション",
     "unit_number": "P2",
     "unit_type": "parking",

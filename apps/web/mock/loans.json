@@ -1,18 +1,52 @@
 [
   {
-    "id": "1",
-    "name": "ローンA",
-    "property": "青山マンション",
-    "balance": 1200000,
-    "interestRate": 2.5,
-    "nextDue": "2024-07-15"
+    "id": "loan-001",
+    "name": "青山マンションローン",
+    "property_id": "550e8400-e29b-41d4-a716-446655440000",
+    "property_name": "青山マンション",
+    "balance": 75000000,
+    "interestRate": 1.5,
+    "monthlyPayment": 210000,
+    "nextDue": "2023-12-15"
   },
   {
-    "id": "2",
-    "name": "ローンB",
-    "property": "渋谷アパート",
-    "balance": 800000,
-    "interestRate": 3.0,
-    "nextDue": "2024-08-01"
+    "id": "loan-002",
+    "name": "渋谷アパートローン",
+    "property_id": "550e8400-e29b-41d4-a716-446655440001",
+    "property_name": "渋谷アパート",
+    "balance": 90000000,
+    "interestRate": 2.0,
+    "monthlyPayment": 200000,
+    "nextDue": "2023-12-20"
+  },
+  {
+    "id": "loan-003",
+    "name": "新宿ビルローン",
+    "property_id": "550e8400-e29b-41d4-a716-446655440002",
+    "property_name": "新宿ビル",
+    "balance": 140000000,
+    "interestRate": 2.5,
+    "monthlyPayment": 350000,
+    "nextDue": "2023-12-25"
+  },
+  {
+    "id": "loan-004",
+    "name": "池袋マンションローン",
+    "property_id": "550e8400-e29b-41d4-a716-446655440003",
+    "property_name": "池袋マンション",
+    "balance": 160000000,
+    "interestRate": 1.8,
+    "monthlyPayment": 400000,
+    "nextDue": "2023-12-10"
+  },
+  {
+    "id": "loan-005",
+    "name": "上野アパートローン",
+    "property_id": "550e8400-e29b-41d4-a716-446655440004",
+    "property_name": "上野アパート",
+    "balance": 60000000,
+    "interestRate": 2.2,
+    "monthlyPayment": 150000,
+    "nextDue": "2023-12-05"
   }
 ]
