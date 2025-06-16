@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import MainLayout from '../../components/layout/MainLayout';
 import RentRollTable from '../../components/rentroll/RentRollTable';
-import rentRollData from '../../mock/rentRoll.json';
+import { mockUnits, mockProperties } from '../../data/mockData';
 
 type UnitType = 'residence' | 'tenant' | 'parking' | 'vending' | 'solar';
 type UnitStatus = 'occupied' | 'vacant';
@@ -29,7 +29,29 @@ export default function RentRollPage() {
   const [units, setUnits] = useState<RentRollUnit[]>([]);
 
   useEffect(() => {
-    setUnits(rentRollData as unknown as RentRollUnit[]);
+    // 統一データからレントロールデータを生成
+    const rentRollUnits: RentRollUnit[] = mockUnits.map((unit) => {
+      const property = mockProperties.find((p) => p.id === unit.property_id);
+
+      return {
+        id: unit.id,
+        property_id: unit.property_id,
+        property_name: property?.name || '',
+        unit_number: unit.unit_number,
+        unit_type: unit.unit_type,
+        status: unit.status,
+        area: unit.area || null,
+        bedrooms: unit.bedrooms || null,
+        bathrooms: unit.bathrooms || null,
+        rent_amount: unit.rent_amount || 0,
+        deposit_amount: unit.deposit_amount || 0,
+        current_tenant_name: unit.current_tenant_name || null,
+        lease_start_date: unit.lease_start_date || null,
+        lease_end_date: unit.lease_end_date || null,
+      };
+    });
+
+    setUnits(rentRollUnits);
   }, []);
 
   return (

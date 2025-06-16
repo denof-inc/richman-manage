@@ -1,0 +1,618 @@
+/**
+ * 統一モックデータ
+ * データベーススキーマに基づいた一元管理されたモックデータ
+ */
+
+// 基本型定義
+export type OwnerType = 'individual' | 'corporate';
+export type UnitType = 'residence' | 'tenant' | 'parking' | 'vending' | 'solar';
+export type UnitStatus = 'occupied' | 'vacant';
+export type PaymentStatus = 'normal' | 'delayed' | 'delinquent' | 'adjusted';
+export type RepaymentMethod = 'principal_equal' | 'principal_and_interest';
+export type ExpenseCategory =
+  | 'management_fee'
+  | 'repair_cost'
+  | 'utility'
+  | 'insurance'
+  | 'tax'
+  | 'other';
+export type PaymentFrequency = 'monthly' | 'bi-weekly' | 'weekly';
+export type InterestType = 'fixed' | 'variable';
+
+// データ型定義
+export interface Owner {
+  id: string;
+  type: OwnerType;
+  name: string;
+  contact_person?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  tax_id?: string;
+}
+
+export interface Property {
+  id: string;
+  owner_id: string;
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  postal_code: string;
+  country: string;
+  property_type: string;
+  year_built?: number;
+  total_area?: number;
+  purchase_date?: string;
+  purchase_price?: number;
+  current_value?: number;
+}
+
+export interface Unit {
+  id: string;
+  property_id: string;
+  unit_number: string;
+  unit_type: UnitType;
+  status: UnitStatus;
+  area?: number;
+  bedrooms?: number;
+  bathrooms?: number;
+  rent_amount?: number;
+  deposit_amount?: number;
+  current_tenant_name?: string;
+  lease_start_date?: string;
+  lease_end_date?: string;
+}
+
+export interface Loan {
+  id: string;
+  property_id: string;
+  lender_name: string;
+  loan_amount: number;
+  interest_rate: number;
+  interest_type: InterestType;
+  term_years: number;
+  start_date: string;
+  end_date: string;
+  repayment_method: RepaymentMethod;
+  payment_frequency: PaymentFrequency;
+  payment_amount: number;
+}
+
+export interface LoanRepayment {
+  id: string;
+  loan_id: string;
+  payment_date: string;
+  amount: number;
+  principal_amount: number;
+  interest_amount: number;
+  payment_method?: string;
+  reference_number?: string;
+  notes?: string;
+}
+
+export interface LoanInterestChange {
+  id: string;
+  loan_id: string;
+  change_date: string;
+  previous_rate: number;
+  new_rate: number;
+  reason?: string;
+}
+
+export interface Expense {
+  id: string;
+  property_id: string;
+  expense_date: string;
+  category: ExpenseCategory;
+  amount: number;
+  vendor?: string;
+  description?: string;
+  receipt_url?: string;
+  is_recurring: boolean;
+  recurring_frequency?: string;
+}
+
+export interface UnitPaymentRecord {
+  id: string;
+  unit_id: string;
+  payment_date: string;
+  amount: number;
+  payment_status: PaymentStatus;
+  payment_method?: string;
+  reference_number?: string;
+  notes?: string;
+}
+
+// モックデータ
+export const mockOwners: Owner[] = [
+  {
+    id: 'owner-001',
+    type: 'individual',
+    name: '田中 太郎',
+    contact_email: 'tanaka@example.com',
+    contact_phone: '090-1234-5678',
+    tax_id: '1234567890',
+  },
+  {
+    id: 'owner-002',
+    type: 'corporate',
+    name: '株式会社不動産投資',
+    contact_person: '山田 花子',
+    contact_email: 'yamada@realestate.co.jp',
+    contact_phone: '03-1234-5678',
+    tax_id: '9876543210',
+  },
+];
+
+export const mockProperties: Property[] = [
+  {
+    id: '550e8400-e29b-41d4-a716-446655440000',
+    owner_id: 'owner-001',
+    name: '青山マンション',
+    address: '東京都港区南青山1-2-3',
+    city: '港区',
+    state: '東京都',
+    postal_code: '107-0062',
+    country: '日本',
+    property_type: 'マンション',
+    year_built: 2015,
+    total_area: 85.5,
+    purchase_date: '2020-04-15',
+    purchase_price: 95000000,
+    current_value: 105000000,
+  },
+  {
+    id: '550e8400-e29b-41d4-a716-446655440001',
+    owner_id: 'owner-001',
+    name: '渋谷アパート',
+    address: '東京都渋谷区神南1-2-3',
+    city: '渋谷区',
+    state: '東京都',
+    postal_code: '150-0041',
+    country: '日本',
+    property_type: 'アパート',
+    year_built: 2010,
+    total_area: 250.0,
+    purchase_date: '2021-06-01',
+    purchase_price: 120000000,
+    current_value: 125000000,
+  },
+  {
+    id: '550e8400-e29b-41d4-a716-446655440002',
+    owner_id: 'owner-002',
+    name: '新宿ビル',
+    address: '東京都新宿区西新宿1-3-5',
+    city: '新宿区',
+    state: '東京都',
+    postal_code: '160-0023',
+    country: '日本',
+    property_type: 'オフィスビル',
+    year_built: 2005,
+    total_area: 220.0,
+    purchase_date: '2022-03-15',
+    purchase_price: 180000000,
+    current_value: 185000000,
+  },
+  {
+    id: '550e8400-e29b-41d4-a716-446655440003',
+    owner_id: 'owner-001',
+    name: '池袋マンション',
+    address: '東京都豊島区東池袋2-4-6',
+    city: '豊島区',
+    state: '東京都',
+    postal_code: '170-0013',
+    country: '日本',
+    property_type: 'マンション',
+    year_built: 2018,
+    total_area: 340.0,
+    purchase_date: '2019-03-01',
+    purchase_price: 200000000,
+    current_value: 210000000,
+  },
+  {
+    id: '550e8400-e29b-41d4-a716-446655440004',
+    owner_id: 'owner-002',
+    name: '上野アパート',
+    address: '東京都台東区上野5-7-9',
+    city: '台東区',
+    state: '東京都',
+    postal_code: '110-0005',
+    country: '日本',
+    property_type: 'アパート',
+    year_built: 2012,
+    total_area: 180.0,
+    purchase_date: '2021-09-01',
+    purchase_price: 85000000,
+    current_value: 90000000,
+  },
+];
+
+export const mockUnits: Unit[] = [
+  // 青山マンション
+  {
+    id: 'unit-001',
+    property_id: '550e8400-e29b-41d4-a716-446655440000',
+    unit_number: '101',
+    unit_type: 'residence',
+    status: 'occupied',
+    area: 45.5,
+    bedrooms: 1,
+    bathrooms: 1,
+    rent_amount: 180000,
+    deposit_amount: 360000,
+    current_tenant_name: '田中 太郎',
+    lease_start_date: '2023-04-01',
+    lease_end_date: '2025-03-31',
+  },
+  {
+    id: 'unit-002',
+    property_id: '550e8400-e29b-41d4-a716-446655440000',
+    unit_number: '102',
+    unit_type: 'residence',
+    status: 'vacant',
+    area: 50.0,
+    bedrooms: 1,
+    bathrooms: 1,
+    rent_amount: 190000,
+    deposit_amount: 380000,
+  },
+  {
+    id: 'unit-003',
+    property_id: '550e8400-e29b-41d4-a716-446655440000',
+    unit_number: '201',
+    unit_type: 'residence',
+    status: 'occupied',
+    area: 45.5,
+    bedrooms: 1,
+    bathrooms: 1,
+    rent_amount: 185000,
+    deposit_amount: 370000,
+    current_tenant_name: '佐藤 花子',
+    lease_start_date: '2023-07-01',
+    lease_end_date: '2025-06-30',
+  },
+  {
+    id: 'unit-004',
+    property_id: '550e8400-e29b-41d4-a716-446655440000',
+    unit_number: '202',
+    unit_type: 'residence',
+    status: 'occupied',
+    area: 50.0,
+    bedrooms: 1,
+    bathrooms: 1,
+    rent_amount: 195000,
+    deposit_amount: 390000,
+    current_tenant_name: '山田 次郎',
+    lease_start_date: '2024-01-01',
+    lease_end_date: '2025-12-31',
+  },
+  {
+    id: 'unit-011',
+    property_id: '550e8400-e29b-41d4-a716-446655440000',
+    unit_number: 'P1',
+    unit_type: 'parking',
+    status: 'occupied',
+    rent_amount: 25000,
+    deposit_amount: 50000,
+    current_tenant_name: '田中 太郎',
+    lease_start_date: '2023-04-01',
+    lease_end_date: '2025-03-31',
+  },
+  {
+    id: 'unit-012',
+    property_id: '550e8400-e29b-41d4-a716-446655440000',
+    unit_number: 'P2',
+    unit_type: 'parking',
+    status: 'vacant',
+    rent_amount: 25000,
+    deposit_amount: 50000,
+  },
+  // 渋谷アパート
+  {
+    id: 'unit-005',
+    property_id: '550e8400-e29b-41d4-a716-446655440001',
+    unit_number: 'A101',
+    unit_type: 'residence',
+    status: 'occupied',
+    area: 65.0,
+    bedrooms: 2,
+    bathrooms: 1,
+    rent_amount: 280000,
+    deposit_amount: 560000,
+    current_tenant_name: '鈴木 一郎',
+    lease_start_date: '2023-10-01',
+    lease_end_date: '2025-09-30',
+  },
+  {
+    id: 'unit-006',
+    property_id: '550e8400-e29b-41d4-a716-446655440001',
+    unit_number: 'A102',
+    unit_type: 'residence',
+    status: 'occupied',
+    area: 60.0,
+    bedrooms: 2,
+    bathrooms: 1,
+    rent_amount: 270000,
+    deposit_amount: 540000,
+    current_tenant_name: '高橋 美咲',
+    lease_start_date: '2024-02-01',
+    lease_end_date: '2026-01-31',
+  },
+  {
+    id: 'unit-007',
+    property_id: '550e8400-e29b-41d4-a716-446655440001',
+    unit_number: 'B101',
+    unit_type: 'residence',
+    status: 'vacant',
+    area: 65.0,
+    bedrooms: 2,
+    bathrooms: 1,
+    rent_amount: 285000,
+    deposit_amount: 570000,
+  },
+  {
+    id: 'unit-008',
+    property_id: '550e8400-e29b-41d4-a716-446655440001',
+    unit_number: 'B102',
+    unit_type: 'residence',
+    status: 'occupied',
+    area: 60.0,
+    bedrooms: 2,
+    bathrooms: 1,
+    rent_amount: 275000,
+    deposit_amount: 550000,
+    current_tenant_name: '中村 健太',
+    lease_start_date: '2023-12-01',
+    lease_end_date: '2025-11-30',
+  },
+  // 新宿ビル
+  {
+    id: 'unit-009',
+    property_id: '550e8400-e29b-41d4-a716-446655440002',
+    unit_number: '301',
+    unit_type: 'tenant',
+    status: 'occupied',
+    area: 120.0,
+    bathrooms: 2,
+    rent_amount: 450000,
+    deposit_amount: 1350000,
+    current_tenant_name: '株式会社テクノロジー',
+    lease_start_date: '2024-04-01',
+    lease_end_date: '2027-03-31',
+  },
+  {
+    id: 'unit-010',
+    property_id: '550e8400-e29b-41d4-a716-446655440002',
+    unit_number: '302',
+    unit_type: 'tenant',
+    status: 'vacant',
+    area: 100.0,
+    bathrooms: 1,
+    rent_amount: 380000,
+    deposit_amount: 1140000,
+  },
+];
+
+export const mockLoans: Loan[] = [
+  {
+    id: 'loan-001',
+    property_id: '550e8400-e29b-41d4-a716-446655440000',
+    lender_name: '三菱UFJ銀行',
+    loan_amount: 80000000,
+    interest_rate: 1.5,
+    interest_type: 'variable',
+    term_years: 35,
+    start_date: '2020-04-01',
+    end_date: '2055-03-31',
+    repayment_method: 'principal_and_interest',
+    payment_frequency: 'monthly',
+    payment_amount: 210000,
+  },
+  {
+    id: 'loan-002',
+    property_id: '550e8400-e29b-41d4-a716-446655440001',
+    lender_name: 'みずほ銀行',
+    loan_amount: 100000000,
+    interest_rate: 2.0,
+    interest_type: 'fixed',
+    term_years: 30,
+    start_date: '2021-01-15',
+    end_date: '2051-01-14',
+    repayment_method: 'principal_equal',
+    payment_frequency: 'monthly',
+    payment_amount: 200000,
+  },
+  {
+    id: 'loan-003',
+    property_id: '550e8400-e29b-41d4-a716-446655440002',
+    lender_name: '三井住友銀行',
+    loan_amount: 150000000,
+    interest_rate: 2.5,
+    interest_type: 'variable',
+    term_years: 25,
+    start_date: '2022-06-01',
+    end_date: '2047-05-31',
+    repayment_method: 'principal_and_interest',
+    payment_frequency: 'monthly',
+    payment_amount: 350000,
+  },
+  {
+    id: 'loan-004',
+    property_id: '550e8400-e29b-41d4-a716-446655440003',
+    lender_name: 'りそな銀行',
+    loan_amount: 180000000,
+    interest_rate: 1.8,
+    interest_type: 'fixed',
+    term_years: 35,
+    start_date: '2019-03-01',
+    end_date: '2054-02-28',
+    repayment_method: 'principal_and_interest',
+    payment_frequency: 'monthly',
+    payment_amount: 400000,
+  },
+  {
+    id: 'loan-005',
+    property_id: '550e8400-e29b-41d4-a716-446655440004',
+    lender_name: '横浜銀行',
+    loan_amount: 65000000,
+    interest_rate: 2.2,
+    interest_type: 'variable',
+    term_years: 20,
+    start_date: '2021-09-01',
+    end_date: '2041-08-31',
+    repayment_method: 'principal_equal',
+    payment_frequency: 'monthly',
+    payment_amount: 150000,
+  },
+];
+
+export const mockLoanInterestChanges: LoanInterestChange[] = [
+  // 青山マンションローン（変動金利）の金利変動履歴
+  {
+    id: 'interest-change-001',
+    loan_id: 'loan-001',
+    change_date: '2024-01-01',
+    previous_rate: 2.3,
+    new_rate: 2.5,
+    reason: '日銀政策変更に伴う調整',
+  },
+  {
+    id: 'interest-change-002',
+    loan_id: 'loan-001',
+    change_date: '2024-04-01',
+    previous_rate: 2.5,
+    new_rate: 2.7,
+    reason: '定期見直し',
+  },
+  {
+    id: 'interest-change-003',
+    loan_id: 'loan-001',
+    change_date: '2024-07-01',
+    previous_rate: 2.7,
+    new_rate: 2.9,
+    reason: '市場金利上昇に伴う変動',
+  },
+  // 新宿ビルローン（変動金利）の金利変動履歴
+  {
+    id: 'interest-change-004',
+    loan_id: 'loan-003',
+    change_date: '2024-03-01',
+    previous_rate: 2.2,
+    new_rate: 2.5,
+    reason: '定期見直し',
+  },
+  // 上野アパートローン（変動金利）の金利変動履歴
+  {
+    id: 'interest-change-005',
+    loan_id: 'loan-005',
+    change_date: '2024-06-01',
+    previous_rate: 2.0,
+    new_rate: 2.2,
+    reason: '金利環境変化',
+  },
+];
+
+export const mockLoanRepayments: LoanRepayment[] = [
+  // 青山マンションローンの返済履歴（直近3か月）
+  {
+    id: 'repayment-001',
+    loan_id: 'loan-001',
+    payment_date: '2024-12-01',
+    amount: 210000,
+    principal_amount: 100000,
+    interest_amount: 110000,
+    payment_method: '口座振替',
+    reference_number: 'REF-20241201-001',
+  },
+  {
+    id: 'repayment-002',
+    loan_id: 'loan-001',
+    payment_date: '2024-11-01',
+    amount: 210000,
+    principal_amount: 99000,
+    interest_amount: 111000,
+    payment_method: '口座振替',
+    reference_number: 'REF-20241101-001',
+  },
+  {
+    id: 'repayment-003',
+    loan_id: 'loan-001',
+    payment_date: '2024-10-01',
+    amount: 210000,
+    principal_amount: 98000,
+    interest_amount: 112000,
+    payment_method: '口座振替',
+    reference_number: 'REF-20241001-001',
+  },
+];
+
+export const mockExpenses: Expense[] = [
+  {
+    id: 'expense-001',
+    property_id: '550e8400-e29b-41d4-a716-446655440000',
+    expense_date: '2024-01-15',
+    category: 'management_fee',
+    amount: 25000,
+    vendor: '青山管理株式会社',
+    description: '管理費（1月分）',
+    is_recurring: true,
+    recurring_frequency: 'monthly',
+  },
+  {
+    id: 'expense-002',
+    property_id: '550e8400-e29b-41d4-a716-446655440000',
+    expense_date: '2024-01-20',
+    category: 'tax',
+    amount: 8500,
+    vendor: '港区役所',
+    description: '固定資産税（第1期）',
+    is_recurring: false,
+  },
+  {
+    id: 'expense-003',
+    property_id: '550e8400-e29b-41d4-a716-446655440000',
+    expense_date: '2024-02-10',
+    category: 'repair_cost',
+    amount: 45000,
+    vendor: '東京リフォーム株式会社',
+    description: '102号室エアコン修理',
+    is_recurring: false,
+  },
+];
+
+// 計算用ヘルパー関数
+export function calculateRemainingBalance(loan: Loan, repayments: LoanRepayment[]): number {
+  const totalPrincipalPaid = repayments
+    .filter((r) => r.loan_id === loan.id)
+    .reduce((sum, r) => sum + r.principal_amount, 0);
+
+  return loan.loan_amount - totalPrincipalPaid;
+}
+
+export function getPropertyUnits(propertyId: string): Unit[] {
+  return mockUnits.filter((unit) => unit.property_id === propertyId);
+}
+
+export function getPropertyLoans(propertyId: string): Loan[] {
+  return mockLoans.filter((loan) => loan.property_id === propertyId);
+}
+
+export function getPropertyExpenses(propertyId: string): Expense[] {
+  return mockExpenses.filter((expense) => expense.property_id === propertyId);
+}
+
+export function getPropertyByName(name: string): Property | undefined {
+  return mockProperties.find((property) => property.name === name);
+}
+
+export function getLoanById(id: string): Loan | undefined {
+  return mockLoans.find((loan) => loan.id === id);
+}
+
+export function getPropertyById(id: string): Property | undefined {
+  return mockProperties.find((property) => property.id === id);
+}
+
+export function getUnitById(id: string): Unit | undefined {
+  return mockUnits.find((unit) => unit.id === id);
+}

@@ -7,7 +7,12 @@ import { Button } from '@/components/ui/button';
 import { ArrowUpIcon, ArrowDownIcon, DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
 
 import MainLayout from '../components/layout/MainLayout';
-import propertySummaryData from '../mock/propertySummary.json';
+import {
+  mockProperties,
+  getPropertyUnits,
+  getPropertyLoans,
+  getPropertyExpenses,
+} from '../data/mockData';
 
 type PropertySummary = {
   id: string;
@@ -34,7 +39,42 @@ export default function HomePage() {
   const [recentTransactions, setRecentTransactions] = useState<RecentTransaction[]>([]);
 
   useEffect(() => {
-    setProperties(propertySummaryData as unknown as PropertySummary[]);
+    // 統一データから物件サマリーを生成
+    const propertySummaries: PropertySummary[] = mockProperties.map((property) => {
+      const units = getPropertyUnits(property.id);
+      const loans = getPropertyLoans(property.id);
+      const expenses = getPropertyExpenses(property.id);
+
+      // 潜在家賃と実際の家賃を計算
+      const potential_rent = units.reduce((sum, unit) => sum + (unit.rent_amount || 0), 0);
+      const actual_rent = units
+        .filter((unit) => unit.status === 'occupied')
+        .reduce((sum, unit) => sum + (unit.rent_amount || 0), 0);
+
+      // 月次ローン返済額を計算
+      const monthly_repayment = loans.reduce((sum, loan) => sum + loan.payment_amount, 0);
+
+      // 月次経費を計算
+      const monthly_expenses = expenses
+        .filter((expense) => expense.is_recurring && expense.recurring_frequency === 'monthly')
+        .reduce((sum, expense) => sum + expense.amount, 0);
+
+      // ネットキャッシュフロー = 実際の家賃 - ローン返済 - 経費
+      const net_cf = actual_rent - monthly_repayment - monthly_expenses;
+
+      return {
+        id: property.id,
+        name: property.name,
+        address: property.address,
+        potential_rent,
+        actual_rent,
+        monthly_repayment,
+        net_cf,
+        owner_id: property.owner_id,
+      };
+    });
+
+    setProperties(propertySummaries);
 
     // モック取引データを生成
     const mockTransactions: RecentTransaction[] = [
