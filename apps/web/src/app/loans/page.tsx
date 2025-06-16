@@ -11,26 +11,32 @@ type Loan = {
   id: string;
   name: string;
   property_name: string;
-  balance: number;
+  lender: string;
+  loanAmount: number;
+  remainingBalance: number;
   interestRate: number;
+  interestType: 'fixed' | 'variable';
+  repaymentType: 'principal_and_interest' | 'principal_equal';
+  termYears: number;
+  startDate: string;
   monthlyPayment: number;
   nextDue: string;
 };
 
 type SortField =
-  | 'name'
-  | 'property_name'
-  | 'balance'
+  | 'lender'
+  | 'loanAmount'
   | 'interestRate'
+  | 'termYears'
   | 'monthlyPayment'
-  | 'nextDue';
+  | 'remainingBalance';
 type SortDirection = 'asc' | 'desc';
 
 export default function LoanListPage() {
   const router = useRouter();
   const [loans, setLoans] = useState<Loan[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortField, setSortField] = useState<SortField>('lender');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [filterProperty, setFilterProperty] = useState<string>('');
 
@@ -38,12 +44,7 @@ export default function LoanListPage() {
     fetch('/api/loans')
       .then((res) => res.json())
       .then((data) => {
-        // monthlyPaymentフィールドを追加（APIで提供されていない場合の暫定対応）
-        const loansWithPayment = data.map((loan: Loan) => ({
-          ...loan,
-          monthlyPayment: loan.monthlyPayment || Math.round(loan.balance * 0.003), // 仮の計算
-        }));
-        setLoans(loansWithPayment);
+        setLoans(data);
       });
   }, []);
 
@@ -129,20 +130,9 @@ export default function LoanListPage() {
                 ...loan,
                 property: loan.property_name, // LoanTableコンポーネントがpropertyフィールドを期待
               }))}
-              sortField={
-                sortField === 'property_name'
-                  ? 'property'
-                  : (sortField as
-                      | 'name'
-                      | 'balance'
-                      | 'interestRate'
-                      | 'monthlyPayment'
-                      | 'nextDue')
-              }
+              sortField={sortField}
               sortDirection={sortDirection}
-              onSort={(field) =>
-                handleSort(field === 'property' ? 'property_name' : (field as SortField))
-              }
+              onSort={handleSort}
             />
           </CardContent>
         </Card>

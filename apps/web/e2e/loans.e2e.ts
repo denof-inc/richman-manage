@@ -71,11 +71,12 @@ test.describe('Loans', () => {
     await expect(page.getByText('青山マンション')).toBeVisible();
 
     // 返済状況カードの確認
-    await expect(page.getByText('残高')).toBeVisible();
+    await expect(page.getByText('残債')).toBeVisible();
     await expect(page.getByText('¥75,000,000')).toBeVisible();
 
-    // グラフの確認
-    await expect(page.getByText('金利推移')).toBeVisible();
+    // 返済方式の確認
+    await expect(page.getByText('返済方式')).toBeVisible();
+    await expect(page.getByText('元利均等')).toBeVisible();
 
     // 返済履歴テーブルの確認
     await expect(page.getByText('返済履歴')).toBeVisible();

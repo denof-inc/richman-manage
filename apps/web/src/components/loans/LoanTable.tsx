@@ -8,14 +8,24 @@ type Loan = {
   id: string;
   name: string;
   property: string;
-  balance: number;
+  lender: string;
+  loanAmount: number;
+  remainingBalance: number;
   interestRate: number;
+  interestType: 'fixed' | 'variable';
+  repaymentType: 'principal_and_interest' | 'principal_equal';
+  termYears: number;
+  startDate: string;
   monthlyPayment: number;
-  nextDue: string;
-  lender?: string;
 };
 
-type SortField = 'name' | 'property' | 'balance' | 'interestRate' | 'monthlyPayment' | 'nextDue';
+type SortField =
+  | 'lender'
+  | 'loanAmount'
+  | 'interestRate'
+  | 'termYears'
+  | 'monthlyPayment'
+  | 'remainingBalance';
 type SortDirection = 'asc' | 'desc';
 
 interface LoanTableProps {
@@ -54,20 +64,18 @@ export default function LoanTable({ loans, sortField, sortDirection, onSort }: L
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className={onSort ? 'cursor-pointer' : ''} onClick={() => onSort?.('name')}>
-              ローン名{renderSortIndicator('name')}
-            </TableHead>
             <TableHead
               className={onSort ? 'cursor-pointer' : ''}
-              onClick={() => onSort?.('property')}
+              onClick={() => onSort?.('lender')}
             >
-              物件{renderSortIndicator('property')}
+              金融機関{renderSortIndicator('lender')}
             </TableHead>
+            <TableHead>物件</TableHead>
             <TableHead
               className={`text-right ${onSort ? 'cursor-pointer' : ''}`}
-              onClick={() => onSort?.('balance')}
+              onClick={() => onSort?.('loanAmount')}
             >
-              残高{renderSortIndicator('balance')}
+              借入額{renderSortIndicator('loanAmount')}
             </TableHead>
             <TableHead
               className={`text-right ${onSort ? 'cursor-pointer' : ''}`}
@@ -77,15 +85,22 @@ export default function LoanTable({ loans, sortField, sortDirection, onSort }: L
             </TableHead>
             <TableHead
               className={`text-right ${onSort ? 'cursor-pointer' : ''}`}
+              onClick={() => onSort?.('termYears')}
+            >
+              期間{renderSortIndicator('termYears')}
+            </TableHead>
+            <TableHead>開始日</TableHead>
+            <TableHead
+              className={`text-right ${onSort ? 'cursor-pointer' : ''}`}
               onClick={() => onSort?.('monthlyPayment')}
             >
               月額返済{renderSortIndicator('monthlyPayment')}
             </TableHead>
             <TableHead
-              className={onSort ? 'cursor-pointer' : ''}
-              onClick={() => onSort?.('nextDue')}
+              className={`text-right ${onSort ? 'cursor-pointer' : ''}`}
+              onClick={() => onSort?.('remainingBalance')}
             >
-              次回支払日{renderSortIndicator('nextDue')}
+              残債{renderSortIndicator('remainingBalance')}
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -97,19 +112,28 @@ export default function LoanTable({ loans, sortField, sortDirection, onSort }: L
                 className="cursor-pointer hover:bg-gray-50"
                 onClick={() => handleLoanClick(loan.id)}
               >
-                <TableCell className="font-medium">{loan.name}</TableCell>
+                <TableCell className="font-medium">{loan.lender}</TableCell>
                 <TableCell>{loan.property}</TableCell>
-                <TableCell className="text-right">{formatCurrency(loan.balance)}</TableCell>
-                <TableCell className="text-right">{loan.interestRate}%</TableCell>
-                <TableCell className="text-right text-red-600">
-                  {formatCurrency(loan.monthlyPayment || 0)}
+                <TableCell className="text-right">{formatCurrency(loan.loanAmount)}</TableCell>
+                <TableCell className="text-right">
+                  {loan.interestRate}%
+                  <span className="ml-1 text-xs text-gray-500">
+                    ({loan.interestType === 'fixed' ? '固定' : '変動'})
+                  </span>
                 </TableCell>
-                <TableCell>{formatDate(loan.nextDue)}</TableCell>
+                <TableCell className="text-right">{loan.termYears}年</TableCell>
+                <TableCell>{formatDate(loan.startDate)}</TableCell>
+                <TableCell className="text-right text-red-600">
+                  {formatCurrency(loan.monthlyPayment)}
+                </TableCell>
+                <TableCell className="text-right">
+                  {formatCurrency(loan.remainingBalance)}
+                </TableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={6} className="py-8 text-center">
+              <TableCell colSpan={8} className="py-8 text-center">
                 借入データがありません
               </TableCell>
             </TableRow>
