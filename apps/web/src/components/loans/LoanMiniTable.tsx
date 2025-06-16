@@ -2,6 +2,11 @@
 
 import React from 'react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@richman/ui';
+import {
+  getPropertyLoans,
+  mockLoanRepayments,
+  calculateRemainingBalance,
+} from '../../data/mockData';
 
 type Loan = {
   id: string;
@@ -19,33 +24,19 @@ interface LoanMiniTableProps {
 }
 
 export default function LoanMiniTable({ propertyId }: LoanMiniTableProps): React.ReactElement {
-  // propertyIdが提供された場合、将来的に特定物件のデータ取得に使用予定
-  if (propertyId) {
-    console.log('Loading loan data for property:', propertyId);
-  }
+  // 統一データから物件のローン情報を取得
+  const rawLoans = propertyId ? getPropertyLoans(propertyId) : [];
 
-  const loansData: Loan[] = [
-    {
-      id: '1',
-      lender_name: '三菱UFJ銀行',
-      loan_amount: 50000000,
-      interest_rate: 1.2,
-      term_years: 35,
-      start_date: '2020-04-01',
-      payment_amount: 150000,
-      remaining_balance: 48500000,
-    },
-    {
-      id: '2',
-      lender_name: 'みずほ銀行',
-      loan_amount: 20000000,
-      interest_rate: 1.5,
-      term_years: 20,
-      start_date: '2021-07-15',
-      payment_amount: 100000,
-      remaining_balance: 19200000,
-    },
-  ];
+  const loansData: Loan[] = rawLoans.map((loan) => ({
+    id: loan.id,
+    lender_name: loan.lender_name,
+    loan_amount: loan.loan_amount,
+    interest_rate: loan.interest_rate,
+    term_years: loan.term_years,
+    start_date: loan.start_date,
+    payment_amount: loan.payment_amount,
+    remaining_balance: calculateRemainingBalance(loan, mockLoanRepayments),
+  }));
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('ja-JP', {

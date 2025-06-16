@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Home, Calendar, DollarSign, User, Edit } from 'lucide-react';
 import MainLayout from '@/components/layout/MainLayout';
-import rentRollData from '@/mock/rentRoll.json';
+import { mockUnits, mockProperties } from '@/data/mockData';
 
 type UnitType = 'residence' | 'tenant' | 'parking' | 'vending' | 'solar';
 type UnitStatus = 'occupied' | 'vacant';
@@ -112,10 +112,27 @@ export default function RoomDetailPage() {
   ]);
 
   useEffect(() => {
-    // モックデータから該当のユニットを検索
-    const foundUnit = rentRollData.find((u) => u.id === roomId) as unknown as RentRollUnit;
+    // 統一データから該当のユニットを検索
+    const foundUnit = mockUnits.find((u) => u.id === roomId);
     if (foundUnit) {
-      setUnit(foundUnit);
+      const property = mockProperties.find((p) => p.id === foundUnit.property_id);
+
+      setUnit({
+        id: foundUnit.id,
+        property_id: foundUnit.property_id,
+        property_name: property?.name || '',
+        unit_number: foundUnit.unit_number,
+        unit_type: foundUnit.unit_type,
+        status: foundUnit.status,
+        area: foundUnit.area,
+        bedrooms: foundUnit.bedrooms,
+        bathrooms: foundUnit.bathrooms,
+        rent_amount: foundUnit.rent_amount || 0,
+        deposit_amount: foundUnit.deposit_amount || 0,
+        current_tenant_name: foundUnit.current_tenant_name,
+        lease_start_date: foundUnit.lease_start_date,
+        lease_end_date: foundUnit.lease_end_date,
+      });
     }
   }, [roomId]);
 

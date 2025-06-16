@@ -19,8 +19,12 @@ import MainLayout from '../../../components/layout/MainLayout';
 import RentRollTable from '../../../components/rentroll/RentRollTable';
 import LoanMiniTable from '../../../components/loans/LoanMiniTable';
 
-import propertySummary from '../../../mock/propertySummary.json';
-import rentRollData from '../../../mock/rentRoll.json';
+import {
+  mockProperties,
+  getPropertyUnits,
+  getPropertyLoans,
+  getPropertyExpenses,
+} from '../../../data/mockData';
 
 type UnitType = 'residence' | 'tenant' | 'parking' | 'vending' | 'solar';
 type UnitStatus = 'occupied' | 'vacant';
@@ -67,23 +71,44 @@ export default function PropertyDetailPage() {
   const [showMoreOptions, setShowMoreOptions] = useState(false);
 
   useEffect(() => {
-    const foundProperty = propertySummary.find((p) => p.id === propertyId);
+    const foundProperty = mockProperties.find((p) => p.id === propertyId);
     if (foundProperty) {
+      const units = getPropertyUnits(propertyId);
+      const loans = getPropertyLoans(propertyId);
+      const expenses = getPropertyExpenses(propertyId);
+
+      // 潜在家賃と実際の家賃を計算
+      const potential_rent = units.reduce((sum, unit) => sum + (unit.rent_amount || 0), 0);
+      const actual_rent = units
+        .filter((unit) => unit.status === 'occupied')
+        .reduce((sum, unit) => sum + (unit.rent_amount || 0), 0);
+
+      // 月次ローン返済額を計算
+      const monthly_repayment = loans.reduce((sum, loan) => sum + loan.payment_amount, 0);
+
+      // 月次経費を計算
+      const monthly_expenses = expenses
+        .filter((expense) => expense.is_recurring && expense.recurring_frequency === 'monthly')
+        .reduce((sum, expense) => sum + expense.amount, 0);
+
+      // ネットキャッシュフロー = 実際の家賃 - ローン返済 - 経費
+      const net_cf = actual_rent - monthly_repayment - monthly_expenses;
+
       setProperty({
         id: foundProperty.id,
         name: foundProperty.name,
         address: foundProperty.address,
-        owner_id: foundProperty.owner_id || '1',
-        property_type: foundProperty.type || 'マンション',
-        year_built: foundProperty.yearBuilt || 2015,
-        total_area: foundProperty.size || 500,
-        purchase_date: foundProperty.acquisitionDate || '2020-05-15',
-        purchase_price: foundProperty.acquisitionPrice || 80000000,
-        current_value: foundProperty.currentValue || 85000000,
-        potential_rent: foundProperty.potential_rent,
-        actual_rent: foundProperty.actual_rent,
-        monthly_repayment: foundProperty.monthly_repayment,
-        net_cf: foundProperty.net_cf,
+        owner_id: foundProperty.owner_id,
+        property_type: foundProperty.property_type,
+        year_built: foundProperty.year_built || 2015,
+        total_area: foundProperty.total_area || 500,
+        purchase_date: foundProperty.purchase_date || '2020-05-15',
+        purchase_price: foundProperty.purchase_price || 80000000,
+        current_value: foundProperty.current_value || 85000000,
+        potential_rent,
+        actual_rent,
+        monthly_repayment,
+        net_cf,
       });
     }
   }, [propertyId]);
@@ -115,9 +140,22 @@ export default function PropertyDetailPage() {
   }
 
   // Filter units for this property
-  const filteredUnits = (rentRollData as unknown as RentRollUnit[]).filter(
-    (unit) => unit.property_id === propertyId
-  );
+  const filteredUnits: RentRollUnit[] = getPropertyUnits(propertyId).map((unit) => ({
+    id: unit.id,
+    property_id: unit.property_id,
+    property_name: property.name,
+    unit_number: unit.unit_number,
+    unit_type: unit.unit_type,
+    status: unit.status,
+    area: unit.area,
+    bedrooms: unit.bedrooms,
+    bathrooms: unit.bathrooms,
+    rent_amount: unit.rent_amount || 0,
+    deposit_amount: unit.deposit_amount || 0,
+    current_tenant_name: unit.current_tenant_name,
+    lease_start_date: unit.lease_start_date,
+    lease_end_date: unit.lease_end_date,
+  }));
 
   return (
     <MainLayout>
