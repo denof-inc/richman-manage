@@ -195,5 +195,3 @@ export async function analyzeDocument(imageUrl: string) {
 - 入力時間削減: 90%（手動入力比）
 - エラー率: 1%以下
 
----
-最終更新: 2024-12-16

@@ -341,5 +341,3 @@ async function createExpenseFromPayment(payment: PropertyTaxPayment, propertyTax
 - 通知タイミング
 - 年度またぎの処理
 
----
-最終更新: 2024-12-16

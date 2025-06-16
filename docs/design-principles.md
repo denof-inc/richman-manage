@@ -445,5 +445,3 @@ logger.error('Database connection failed', { error });
 3. リファクタリングする
 4. テストが通ることを確認
 
----
-最終更新: 2024-12-16

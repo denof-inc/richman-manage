@@ -350,5 +350,3 @@ async function checkPaymentDelays() {
 - 契約期限アラート
 - 大量データ（1000室）でのパフォーマンス
 
----
-最終更新: 2024-12-16

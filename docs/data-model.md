@@ -479,5 +479,3 @@ WHERE mean_time > 1000  -- 1秒以上
 ORDER BY mean_time DESC;
 ```
 
----
-最終更新: 2024-12-16

@@ -413,5 +413,3 @@ async function checkRepaymentDelays() {
 - 大量データでのパフォーマンス
 - 遅延チェックバッチの動作
 
----
-最終更新: 2024-12-16

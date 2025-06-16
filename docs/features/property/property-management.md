@@ -234,5 +234,3 @@ const occupancyRate = (occupiedUnits / totalUnits) * 100;
 - 権限チェック
 - パフォーマンス（100物件での表示速度）
 
----
-最終更新: 2024-12-16
