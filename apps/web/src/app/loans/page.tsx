@@ -1,75 +1,100 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { DataTable, Column } from '@/components/ui/DataTable';
-import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
+import { Card, CardContent, Button, Input } from '@richman/ui';
+import { Search } from 'lucide-react';
 import MainLayout from '../../components/layout/MainLayout';
+import LoanTable from '../../components/loans/LoanTable';
 
-interface Loan {
+type Loan = {
   id: string;
   name: string;
-  property: string;
+  property_name: string;
   balance: number;
   interestRate: number;
+  monthlyPayment: number;
   nextDue: string;
-}
+};
+
+type SortField =
+  | 'name'
+  | 'property_name'
+  | 'balance'
+  | 'interestRate'
+  | 'monthlyPayment'
+  | 'nextDue';
+type SortDirection = 'asc' | 'desc';
 
 export default function LoanListPage() {
+  const router = useRouter();
   const [loans, setLoans] = useState<Loan[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [filterProperty, setFilterProperty] = useState<string>('');
 
   useEffect(() => {
     fetch('/api/loans')
       .then((res) => res.json())
-      .then((data) => setLoans(data));
+      .then((data) => {
+        // monthlyPaymentフィールドを追加（APIで提供されていない場合の暫定対応）
+        const loansWithPayment = data.map((loan: Loan) => ({
+          ...loan,
+          monthlyPayment: loan.monthlyPayment || Math.round(loan.balance * 0.003), // 仮の計算
+        }));
+        setLoans(loansWithPayment);
+      });
   }, []);
 
-  const properties = Array.from(new Set(loans.map((loan) => loan.property)));
+  const properties = Array.from(new Set(loans.map((loan) => loan.property_name)));
 
-  const filteredLoans = filterProperty
-    ? loans.filter((loan) => loan.property === filterProperty)
-    : loans;
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
 
-  const columns: Column<Loan>[] = [
-    { header: 'ローン名', accessor: 'name' },
-    { header: '物件', accessor: 'property' },
-    {
-      header: '残高',
-      accessor: 'balance',
-      render: (row) => `¥${row.balance.toLocaleString()}`,
-    },
-    {
-      header: '利率',
-      accessor: 'interestRate',
-      render: (row) => `${row.interestRate}%`,
-    },
-    {
-      header: '次回支払日',
-      accessor: 'nextDue',
-      render: (row) => new Date(row.nextDue).toLocaleDateString('ja-JP'),
-    },
-  ];
+  const filteredAndSortedLoans = loans
+    .filter((loan) => {
+      const matchesSearch =
+        loan.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        loan.property_name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesProperty = filterProperty ? loan.property_name === filterProperty : true;
+      return matchesSearch && matchesProperty;
+    })
+    .sort((a, b) => {
+      const aValue = a[sortField];
+      const bValue = b[sortField];
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortDirection === 'asc'
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      } else {
+        return sortDirection === 'asc'
+          ? (aValue as number) - (bValue as number)
+          : (bValue as number) - (aValue as number);
+      }
+    });
+
+  const handleAddLoan = () => {
+    router.push('/loans/new');
+  };
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-background p-8">
-        <div className="mx-auto max-w-5xl space-y-6">
-          <div className="flex items-center justify-between">
-            <h1 className="mb-6 text-2xl font-bold text-text-base">ローン一覧</h1>
-            <Link href="/loans/new">
-              <Button variant="accent">＋ローン追加</Button>
-            </Link>
-          </div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-6 flex flex-col items-start justify-between md:flex-row md:items-center">
+          <h1 className="mb-4 text-2xl font-bold text-primary md:mb-0">借入一覧</h1>
           <div className="flex items-center space-x-4">
-            <label htmlFor="property" className="mr-2 text-sm font-medium text-text-base">
-              物件：
-            </label>
             <select
-              id="property"
               value={filterProperty}
               onChange={(e) => setFilterProperty(e.target.value)}
-              className="block w-1/3 rounded-md border border-border-default bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary"
+              className="rounded border px-3 py-1 text-sm"
             >
               <option value="">すべての物件</option>
               {properties.map((prop) => (
@@ -78,9 +103,49 @@ export default function LoanListPage() {
                 </option>
               ))}
             </select>
+            <Button onClick={handleAddLoan} className="bg-primary hover:bg-primary/90">
+              + 借入を追加
+            </Button>
           </div>
-          <DataTable data={filteredLoans} columns={columns} />
         </div>
+
+        <div className="relative mb-6">
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 transform text-gray-400"
+            size={18}
+          />
+          <Input
+            placeholder="ローン名や物件名で検索..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
+        <Card>
+          <CardContent className="p-0">
+            <LoanTable
+              loans={filteredAndSortedLoans.map((loan) => ({
+                ...loan,
+                property: loan.property_name, // LoanTableコンポーネントがpropertyフィールドを期待
+              }))}
+              sortField={
+                sortField === 'property_name'
+                  ? 'property'
+                  : (sortField as
+                      | 'name'
+                      | 'balance'
+                      | 'interestRate'
+                      | 'monthlyPayment'
+                      | 'nextDue')
+              }
+              sortDirection={sortDirection}
+              onSort={(field) =>
+                handleSort(field === 'property' ? 'property_name' : (field as SortField))
+              }
+            />
+          </CardContent>
+        </Card>
       </div>
     </MainLayout>
   );
