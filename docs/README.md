@@ -21,6 +21,8 @@ docs/
     │   └── rent-roll-management.md
     ├── property-tax/             # 固定資産税管理機能
     │   └── property-tax-management.md
+    ├── ai/                       # AI機能
+    │   └── ai-data-import.md    # AIデータインポート
     ├── expense/                  # 支出管理機能
     ├── cash-flow/                # キャッシュフロー機能
     ├── dashboard/                # ダッシュボード機能
@@ -47,6 +49,7 @@ docs/
 | 借入管理 | [loan-management.md](./features/loan/loan-management.md) | ローン管理、返済スケジュール |
 | レントロール | [rent-roll-management.md](./features/rent-roll/rent-roll-management.md) | 入退去管理、家賃履歴 |
 | 固定資産税 | [property-tax-management.md](./features/property-tax/property-tax-management.md) | 税金管理、納付スケジュール |
+| AI機能 | [ai-data-import.md](./features/ai/ai-data-import.md) | 画像からのデータ自動抽出 |
 
 ## 🚀 ドキュメントの使い方
 
