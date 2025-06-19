@@ -124,14 +124,14 @@ export default function RoomDetailPage() {
         unit_number: foundUnit.unit_number,
         unit_type: foundUnit.unit_type,
         status: foundUnit.status,
-        area: foundUnit.area,
-        bedrooms: foundUnit.bedrooms,
-        bathrooms: foundUnit.bathrooms,
+        area: foundUnit.area ?? null,
+        bedrooms: foundUnit.bedrooms ?? null,
+        bathrooms: foundUnit.bathrooms ?? null,
         rent_amount: foundUnit.rent_amount || 0,
         deposit_amount: foundUnit.deposit_amount || 0,
-        current_tenant_name: foundUnit.current_tenant_name,
-        lease_start_date: foundUnit.lease_start_date,
-        lease_end_date: foundUnit.lease_end_date,
+        current_tenant_name: foundUnit.current_tenant_name ?? null,
+        lease_start_date: foundUnit.lease_start_date ?? null,
+        lease_end_date: foundUnit.lease_end_date ?? null,
       });
     }
   }, [roomId]);
