@@ -40,8 +40,7 @@ Object.defineProperty(document, 'documentElement', {
   writable: true,
 });
 
-// TODO: ButtonコンポーネントのReactバージョン競合によりテスト一時停止
-describe.skip('FontSizeSelector', () => {
+describe('FontSizeSelector', () => {
   beforeEach(() => {
     // テスト前にモックをリセット
     mockLocalStorage.clear();
