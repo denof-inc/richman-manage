@@ -185,7 +185,7 @@ export default function PropertyDetailPage() {
         <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
           <Card className="lg:col-span-1">
             <CardHeader className="bg-primary/10">
-              <CardTitle className="flex items-center text-primary">
+              <CardTitle as="h2" className="flex items-center text-lg font-semibold text-primary">
                 <Building className="mr-2" size={20} />
                 物件概要
               </CardTitle>
@@ -230,7 +230,7 @@ export default function PropertyDetailPage() {
 
           <Card className="lg:col-span-2">
             <CardHeader className="bg-primary/10">
-              <CardTitle className="flex items-center text-primary">
+              <CardTitle as="h2" className="flex items-center text-lg font-semibold text-primary">
                 <CreditCard className="mr-2" size={20} />
                 収支サマリー
               </CardTitle>
@@ -303,7 +303,9 @@ export default function PropertyDetailPage() {
           {activeTab === 'rentroll' && (
             <Card>
               <CardHeader className="bg-primary/10">
-                <CardTitle className="text-primary">賃貸表</CardTitle>
+                <CardTitle as="h3" className="text-lg font-semibold text-primary">
+                  賃貸表
+                </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <RentRollTable units={filteredUnits} />
@@ -314,7 +316,9 @@ export default function PropertyDetailPage() {
           {activeTab === 'loans' && (
             <Card>
               <CardHeader className="bg-primary/10">
-                <CardTitle className="text-primary">ローン情報</CardTitle>
+                <CardTitle as="h3" className="text-lg font-semibold text-primary">
+                  ローン情報
+                </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <LoanMiniTable propertyId={propertyId} />
@@ -325,7 +329,9 @@ export default function PropertyDetailPage() {
           {activeTab === 'expenses' && (
             <Card>
               <CardHeader className="bg-primary/10">
-                <CardTitle className="text-primary">経費情報</CardTitle>
+                <CardTitle as="h3" className="text-lg font-semibold text-primary">
+                  経費情報
+                </CardTitle>
               </CardHeader>
               <CardContent className="p-4">
                 <p className="py-8 text-center text-gray-500">経費情報は現在開発中です</p>
