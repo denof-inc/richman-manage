@@ -194,7 +194,9 @@ export default function RentRollTable({ units }: RentRollTableProps) {
       {/* フィルター */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-primary">フィルター</CardTitle>
+          <CardTitle as="h2" className="text-lg font-semibold text-primary">
+            フィルター
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-3">
@@ -274,7 +276,7 @@ export default function RentRollTable({ units }: RentRollTableProps) {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold text-primary">
+            <CardTitle as="h2" className="text-lg font-semibold text-primary">
               {viewMode === 'detailed'
                 ? `レントロール一覧 (${filteredUnits.length}件)`
                 : `物件別レントロール (${groupedProperties.length}物件)`}

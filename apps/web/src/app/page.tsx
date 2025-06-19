@@ -139,7 +139,9 @@ export default function HomePage() {
           {/* 最近の取引履歴 */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-xl font-semibold text-primary">最近の取引履歴</CardTitle>
+              <CardTitle as="h2" className="text-xl font-semibold text-primary">
+                最近の取引履歴
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -186,7 +188,7 @@ export default function HomePage() {
           {/* クイックアクション */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-xl font-semibold text-primary">
+              <CardTitle as="h2" className="text-xl font-semibold text-primary">
                 クイックアクション
               </CardTitle>
             </CardHeader>
@@ -233,7 +235,9 @@ export default function HomePage() {
         {/* 物件概要 */}
         <Card className="mt-8">
           <CardHeader>
-            <CardTitle className="text-xl font-semibold text-primary">物件概要</CardTitle>
+            <CardTitle as="h2" className="text-xl font-semibold text-primary">
+              物件概要
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
