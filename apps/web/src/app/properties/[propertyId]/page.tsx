@@ -147,14 +147,14 @@ export default function PropertyDetailPage() {
     unit_number: unit.unit_number,
     unit_type: unit.unit_type,
     status: unit.status,
-    area: unit.area,
-    bedrooms: unit.bedrooms,
-    bathrooms: unit.bathrooms,
+    area: unit.area ?? null,
+    bedrooms: unit.bedrooms ?? null,
+    bathrooms: unit.bathrooms ?? null,
     rent_amount: unit.rent_amount || 0,
     deposit_amount: unit.deposit_amount || 0,
-    current_tenant_name: unit.current_tenant_name,
-    lease_start_date: unit.lease_start_date,
-    lease_end_date: unit.lease_end_date,
+    current_tenant_name: unit.current_tenant_name ?? null,
+    lease_start_date: unit.lease_start_date ?? null,
+    lease_end_date: unit.lease_end_date ?? null,
   }));
 
   return (
