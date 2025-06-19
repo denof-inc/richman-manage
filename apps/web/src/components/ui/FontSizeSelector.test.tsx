@@ -40,7 +40,7 @@ Object.defineProperty(document, 'documentElement', {
   writable: true,
 });
 
-// TODO: React型定義競合解決後にテストを有効化（Issue #61）
+// TODO: ButtonコンポーネントのReactバージョン競合によりテスト一時停止
 describe.skip('FontSizeSelector', () => {
   beforeEach(() => {
     // テスト前にモックをリセット
@@ -119,8 +119,7 @@ describe.skip('FontSizeSelector', () => {
   });
 });
 
-// TODO: React型定義競合解決後にテストを有効化（Issue #61）
-describe.skip('FontSizeSelector ヘルパー関数', () => {
+describe('FontSizeSelector ヘルパー関数', () => {
   beforeEach(() => {
     mockLocalStorage.clear();
     jest.clearAllMocks();
