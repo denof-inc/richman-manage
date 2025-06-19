@@ -1,12 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@richman/ui';
-import {
-  getPropertyLoans,
-  mockLoanRepayments,
-  calculateRemainingBalance,
-} from '../../data/mockData';
+// Table components removed - using HTML table elements
+import { getPropertyLoans, mockLoanRepayments } from '../../data/mockData';
+import { calculateRemainingBalance } from '../../lib/utils';
 
 type Loan = {
   id: string;
@@ -52,32 +49,32 @@ export default function LoanMiniTable({ propertyId }: LoanMiniTableProps): React
 
   return (
     <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>金融機関</TableHead>
-            <TableHead className="text-right">借入額</TableHead>
-            <TableHead className="text-right">金利</TableHead>
-            <TableHead className="text-right">期間</TableHead>
-            <TableHead>開始日</TableHead>
-            <TableHead className="text-right">月額返済</TableHead>
-            <TableHead className="text-right">残債</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+      <table className="w-full border-collapse">
+        <thead>
+          <tr className="border-b border-border-default">
+            <th className="p-3 text-left text-sm font-medium text-text-muted">金融機関</th>
+            <th className="p-3 text-right text-sm font-medium text-text-muted">借入額</th>
+            <th className="p-3 text-right text-sm font-medium text-text-muted">金利</th>
+            <th className="p-3 text-right text-sm font-medium text-text-muted">期間</th>
+            <th className="p-3 text-left text-sm font-medium text-text-muted">開始日</th>
+            <th className="p-3 text-right text-sm font-medium text-text-muted">月額返済</th>
+            <th className="p-3 text-right text-sm font-medium text-text-muted">残債</th>
+          </tr>
+        </thead>
+        <tbody>
           {loansData.map((loan) => (
-            <TableRow key={loan.id}>
-              <TableCell className="font-medium">{loan.lender_name}</TableCell>
-              <TableCell className="text-right">{formatCurrency(loan.loan_amount)}</TableCell>
-              <TableCell className="text-right">{loan.interest_rate}%</TableCell>
-              <TableCell className="text-right">{loan.term_years}年</TableCell>
-              <TableCell>{formatDate(loan.start_date)}</TableCell>
-              <TableCell className="text-right">{formatCurrency(loan.payment_amount)}</TableCell>
-              <TableCell className="text-right">{formatCurrency(loan.remaining_balance)}</TableCell>
-            </TableRow>
+            <tr key={loan.id} className="border-b border-border-default">
+              <td className="p-3 font-medium">{loan.lender_name}</td>
+              <td className="p-3 text-right">{formatCurrency(loan.loan_amount)}</td>
+              <td className="p-3 text-right">{loan.interest_rate}%</td>
+              <td className="p-3 text-right">{loan.term_years}年</td>
+              <td className="p-3">{formatDate(loan.start_date)}</td>
+              <td className="p-3 text-right">{formatCurrency(loan.payment_amount)}</td>
+              <td className="p-3 text-right">{formatCurrency(loan.remaining_balance)}</td>
+            </tr>
           ))}
-        </TableBody>
-      </Table>
+        </tbody>
+      </table>
     </div>
   );
 }

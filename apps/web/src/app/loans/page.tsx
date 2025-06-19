@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, Button, Input } from '@richman/ui';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
 import MainLayout from '../../components/layout/MainLayout';
 import LoanTable from '../../components/loans/LoanTable';
@@ -115,11 +116,12 @@ export default function LoanListPage() {
             className="absolute left-3 top-1/2 -translate-y-1/2 transform text-gray-400"
             size={18}
           />
-          <Input
+          <input
+            type="text"
             placeholder="ローン名や物件名で検索..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="w-full rounded border border-border-default px-3 py-2 pl-10 text-sm"
           />
         </div>
 

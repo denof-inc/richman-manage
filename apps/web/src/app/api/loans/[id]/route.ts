@@ -4,8 +4,8 @@ import {
   mockProperties,
   mockLoanRepayments,
   mockLoanInterestChanges,
-  calculateRemainingBalance,
 } from '../../../../data/mockData';
+import { calculateRemainingBalance } from '../../../../lib/utils';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

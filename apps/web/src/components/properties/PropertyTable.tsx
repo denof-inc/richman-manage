@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@richman/ui';
+// Table components removed - using HTML table elements
 
 type PropertySummary = {
   id: string;
@@ -51,62 +51,67 @@ export default function PropertyTable({
 
   return (
     <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="cursor-pointer" onClick={() => onSort('name')}>
+      <table className="w-full border-collapse">
+        <thead>
+          <tr className="border-b border-border-default">
+            <th
+              className="cursor-pointer p-3 text-left text-sm font-medium text-text-muted"
+              onClick={() => onSort('name')}
+            >
               物件名{renderSortIndicator('name')}
-            </TableHead>
-            <TableHead
-              className="cursor-pointer text-right"
+            </th>
+            <th
+              className="cursor-pointer p-3 text-right text-sm font-medium text-text-muted"
               onClick={() => onSort('potential_rent')}
             >
               満室想定家賃{renderSortIndicator('potential_rent')}
-            </TableHead>
-            <TableHead className="cursor-pointer text-right" onClick={() => onSort('actual_rent')}>
+            </th>
+            <th
+              className="cursor-pointer p-3 text-right text-sm font-medium text-text-muted"
+              onClick={() => onSort('actual_rent')}
+            >
               実際の家賃{renderSortIndicator('actual_rent')}
-            </TableHead>
-            <TableHead
-              className="cursor-pointer text-right"
+            </th>
+            <th
+              className="cursor-pointer p-3 text-right text-sm font-medium text-text-muted"
               onClick={() => onSort('monthly_repayment')}
             >
               返済額{renderSortIndicator('monthly_repayment')}
-            </TableHead>
-            <TableHead className="cursor-pointer text-right" onClick={() => onSort('net_cf')}>
+            </th>
+            <th
+              className="cursor-pointer p-3 text-right text-sm font-medium text-text-muted"
+              onClick={() => onSort('net_cf')}
+            >
               キャッシュフロー{renderSortIndicator('net_cf')}
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
           {properties.length > 0 ? (
             properties.map((property) => (
-              <TableRow
+              <tr
                 key={property.id}
-                className="cursor-pointer hover:bg-gray-50"
+                className="cursor-pointer border-b border-border-default hover:bg-gray-50"
                 onClick={() => handlePropertyClick(property.id)}
               >
-                <TableCell className="font-medium">{property.name}</TableCell>
-                <TableCell className="text-right text-sm text-green-600">
+                <td className="p-3 font-medium">{property.name}</td>
+                <td className="p-3 text-right text-sm text-green-600">
                   {formatCurrency(property.potential_rent)}
-                </TableCell>
-                <TableCell className="text-right">{formatCurrency(property.actual_rent)}</TableCell>
-                <TableCell className="text-right">
-                  {formatCurrency(property.monthly_repayment)}
-                </TableCell>
-                <TableCell className="text-right font-semibold">
-                  {formatCurrency(property.net_cf)}
-                </TableCell>
-              </TableRow>
+                </td>
+                <td className="p-3 text-right">{formatCurrency(property.actual_rent)}</td>
+                <td className="p-3 text-right">{formatCurrency(property.monthly_repayment)}</td>
+                <td className="p-3 text-right font-semibold">{formatCurrency(property.net_cf)}</td>
+              </tr>
             ))
           ) : (
-            <TableRow>
-              <TableCell colSpan={5} className="py-8 text-center">
+            <tr>
+              <td colSpan={5} className="p-3 py-8 text-center">
                 物件データがありません
-              </TableCell>
-            </TableRow>
+              </td>
+            </tr>
           )}
-        </TableBody>
-      </Table>
+        </tbody>
+      </table>
     </div>
   );
 }

@@ -4,20 +4,17 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, X, User, LogOut } from 'lucide-react';
-import { Button } from '@richman/ui';
+import { Button } from '@/components/ui/button';
 import FontSizeSelector from '../ui/FontSizeSelector';
 
-type Owner = {
-  id: string;
-  name: string;
-};
+import type { Owner } from '@/types';
 
 export default function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [owners] = useState<Owner[]>([
-    { id: '1', name: '個人所有' },
-    { id: '2', name: '法人所有' },
+    { id: '1', name: '個人所有', type: 'individual' },
+    { id: '2', name: '法人所有', type: 'corporate' },
   ]);
   const [selectedOwnerId, setSelectedOwnerId] = useState('1');
 
@@ -95,7 +92,7 @@ export default function Header({ isLoggedIn = false }: { isLoggedIn?: boolean })
           <>
             {/* User Avatar */}
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               className="rounded-full p-1"
               aria-label="ユーザー設定"
@@ -105,7 +102,7 @@ export default function Header({ isLoggedIn = false }: { isLoggedIn?: boolean })
 
             {/* Logout button */}
             <Link href="/login">
-              <Button variant="ghost" size="sm" aria-label="ログアウト">
+              <Button variant="outline" size="sm" aria-label="ログアウト">
                 <LogOut size={20} className="text-gray-600" />
               </Button>
             </Link>

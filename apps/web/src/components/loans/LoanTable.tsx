@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@richman/ui';
+// Table components removed - using HTML table elements
 
 type Loan = {
   id: string;
@@ -61,85 +61,83 @@ export default function LoanTable({ loans, sortField, sortDirection, onSort }: L
 
   return (
     <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead
-              className={onSort ? 'cursor-pointer' : ''}
+      <table className="w-full border-collapse">
+        <thead>
+          <tr className="border-b border-border-default">
+            <th
+              className={`p-3 text-left text-sm font-medium text-text-muted ${onSort ? 'cursor-pointer' : ''}`}
               onClick={() => onSort?.('lender')}
             >
               金融機関{renderSortIndicator('lender')}
-            </TableHead>
-            <TableHead>物件</TableHead>
-            <TableHead
-              className={`text-right ${onSort ? 'cursor-pointer' : ''}`}
+            </th>
+            <th className="p-3 text-left text-sm font-medium text-text-muted">物件</th>
+            <th
+              className={`p-3 text-right text-sm font-medium text-text-muted ${onSort ? 'cursor-pointer' : ''}`}
               onClick={() => onSort?.('loanAmount')}
             >
               借入額{renderSortIndicator('loanAmount')}
-            </TableHead>
-            <TableHead
-              className={`text-right ${onSort ? 'cursor-pointer' : ''}`}
+            </th>
+            <th
+              className={`p-3 text-right text-sm font-medium text-text-muted ${onSort ? 'cursor-pointer' : ''}`}
               onClick={() => onSort?.('interestRate')}
             >
               金利{renderSortIndicator('interestRate')}
-            </TableHead>
-            <TableHead
-              className={`text-right ${onSort ? 'cursor-pointer' : ''}`}
+            </th>
+            <th
+              className={`p-3 text-right text-sm font-medium text-text-muted ${onSort ? 'cursor-pointer' : ''}`}
               onClick={() => onSort?.('termYears')}
             >
               期間{renderSortIndicator('termYears')}
-            </TableHead>
-            <TableHead>開始日</TableHead>
-            <TableHead
-              className={`text-right ${onSort ? 'cursor-pointer' : ''}`}
+            </th>
+            <th className="p-3 text-left text-sm font-medium text-text-muted">開始日</th>
+            <th
+              className={`p-3 text-right text-sm font-medium text-text-muted ${onSort ? 'cursor-pointer' : ''}`}
               onClick={() => onSort?.('monthlyPayment')}
             >
               月額返済{renderSortIndicator('monthlyPayment')}
-            </TableHead>
-            <TableHead
-              className={`text-right ${onSort ? 'cursor-pointer' : ''}`}
+            </th>
+            <th
+              className={`p-3 text-right text-sm font-medium text-text-muted ${onSort ? 'cursor-pointer' : ''}`}
               onClick={() => onSort?.('remainingBalance')}
             >
               残債{renderSortIndicator('remainingBalance')}
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
           {loans.length > 0 ? (
             loans.map((loan) => (
-              <TableRow
+              <tr
                 key={loan.id}
-                className="cursor-pointer hover:bg-gray-50"
+                className="cursor-pointer border-b border-border-default hover:bg-gray-50"
                 onClick={() => handleLoanClick(loan.id)}
               >
-                <TableCell className="font-medium">{loan.lender}</TableCell>
-                <TableCell>{loan.property}</TableCell>
-                <TableCell className="text-right">{formatCurrency(loan.loanAmount)}</TableCell>
-                <TableCell className="text-right">
+                <td className="p-3 font-medium">{loan.lender}</td>
+                <td className="p-3">{loan.property}</td>
+                <td className="p-3 text-right">{formatCurrency(loan.loanAmount)}</td>
+                <td className="p-3 text-right">
                   {loan.interestRate}%
                   <span className="ml-1 text-xs text-gray-500">
                     ({loan.interestType === 'fixed' ? '固定' : '変動'})
                   </span>
-                </TableCell>
-                <TableCell className="text-right">{loan.termYears}年</TableCell>
-                <TableCell>{formatDate(loan.startDate)}</TableCell>
-                <TableCell className="text-right text-red-600">
+                </td>
+                <td className="p-3 text-right">{loan.termYears}年</td>
+                <td className="p-3">{formatDate(loan.startDate)}</td>
+                <td className="p-3 text-right text-red-600">
                   {formatCurrency(loan.monthlyPayment)}
-                </TableCell>
-                <TableCell className="text-right">
-                  {formatCurrency(loan.remainingBalance)}
-                </TableCell>
-              </TableRow>
+                </td>
+                <td className="p-3 text-right">{formatCurrency(loan.remainingBalance)}</td>
+              </tr>
             ))
           ) : (
-            <TableRow>
-              <TableCell colSpan={8} className="py-8 text-center">
+            <tr>
+              <td colSpan={8} className="p-3 py-8 text-center">
                 借入データがありません
-              </TableCell>
-            </TableRow>
+              </td>
+            </tr>
           )}
-        </TableBody>
-      </Table>
+        </tbody>
+      </table>
     </div>
   );
 }

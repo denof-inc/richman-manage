@@ -13,26 +13,8 @@ import {
   getPropertyLoans,
   getPropertyExpenses,
 } from '../data/mockData';
-
-type PropertySummary = {
-  id: string;
-  name: string;
-  address: string;
-  potential_rent: number;
-  actual_rent: number;
-  monthly_repayment: number;
-  net_cf: number;
-  owner_id: string;
-};
-
-type RecentTransaction = {
-  id: string;
-  type: 'income' | 'expense';
-  description: string;
-  amount: number;
-  date: string;
-  property?: string;
-};
+import { formatCurrency, formatDateShort, calculatePropertySummary } from '@/lib/utils';
+import type { PropertySummary, RecentTransaction } from '@/types';
 
 export default function HomePage() {
   const [properties, setProperties] = useState<PropertySummary[]>([]);
@@ -45,33 +27,7 @@ export default function HomePage() {
       const loans = getPropertyLoans(property.id);
       const expenses = getPropertyExpenses(property.id);
 
-      // 潜在家賃と実際の家賃を計算
-      const potential_rent = units.reduce((sum, unit) => sum + (unit.rent_amount || 0), 0);
-      const actual_rent = units
-        .filter((unit) => unit.status === 'occupied')
-        .reduce((sum, unit) => sum + (unit.rent_amount || 0), 0);
-
-      // 月次ローン返済額を計算
-      const monthly_repayment = loans.reduce((sum, loan) => sum + loan.payment_amount, 0);
-
-      // 月次経費を計算
-      const monthly_expenses = expenses
-        .filter((expense) => expense.is_recurring && expense.recurring_frequency === 'monthly')
-        .reduce((sum, expense) => sum + expense.amount, 0);
-
-      // ネットキャッシュフロー = 実際の家賃 - ローン返済 - 経費
-      const net_cf = actual_rent - monthly_repayment - monthly_expenses;
-
-      return {
-        id: property.id,
-        name: property.name,
-        address: property.address,
-        potential_rent,
-        actual_rent,
-        monthly_repayment,
-        net_cf,
-        owner_id: property.owner_id,
-      };
+      return calculatePropertySummary(property, units, loans, expenses);
     });
 
     setProperties(propertySummaries);
@@ -126,21 +82,6 @@ export default function HomePage() {
   const totalIncome = properties.reduce((sum, property) => sum + property.actual_rent, 0);
   const totalExpenses = properties.reduce((sum, property) => sum + property.monthly_repayment, 0);
   const netCashFlow = properties.reduce((sum, property) => sum + property.net_cf, 0);
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ja-JP', {
-      style: 'currency',
-      currency: 'JPY',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ja-JP', {
-      month: 'short',
-      day: 'numeric',
-    });
-  };
 
   return (
     <MainLayout>
@@ -224,7 +165,7 @@ export default function HomePage() {
                       <div>
                         <p className="font-medium text-primary">{transaction.description}</p>
                         <p className="text-sm text-text-muted">
-                          {transaction.property} • {formatDate(transaction.date)}
+                          {transaction.property} • {formatDateShort(transaction.date)}
                         </p>
                       </div>
                     </div>
