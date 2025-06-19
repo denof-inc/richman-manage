@@ -1,10 +1,6 @@
 import { NextResponse } from 'next/server';
-import {
-  mockLoans,
-  mockProperties,
-  mockLoanRepayments,
-  calculateRemainingBalance,
-} from '../../../data/mockData';
+import { mockLoans, mockProperties, mockLoanRepayments } from '../../../data/mockData';
+import { calculateRemainingBalance } from '../../../lib/utils';
 
 export function GET() {
   // 借入データに物件名と残債を追加

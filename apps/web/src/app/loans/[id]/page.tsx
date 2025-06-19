@@ -3,19 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 // グラフコンポーネントを削除
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Button,
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from '@richman/ui';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { ArrowLeft, Edit, History } from 'lucide-react';
 import MainLayout from '../../../components/layout/MainLayout';
 
@@ -121,7 +110,7 @@ export default function LoanDetailPage() {
         {/* ヘッダー */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm" onClick={handleBack} className="p-2">
+            <Button variant="outline" size="sm" onClick={handleBack} className="p-2">
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <h1 className="text-2xl font-bold text-primary">{loan.name}</h1>
@@ -211,26 +200,30 @@ export default function LoanDetailPage() {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>変更日</TableHead>
-                    <TableHead className="text-right">変更前</TableHead>
-                    <TableHead className="text-right">変更後</TableHead>
-                    <TableHead>変更理由</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {interestChanges.map((change, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{formatDate(change.date)}</TableCell>
-                      <TableCell className="text-right">{change.oldRate}%</TableCell>
-                      <TableCell className="text-right font-medium">{change.newRate}%</TableCell>
-                      <TableCell className="text-sm text-gray-600">{change.reason}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b border-border-default">
+                      <th className="p-3 text-left text-sm font-medium text-text-muted">変更日</th>
+                      <th className="p-3 text-right text-sm font-medium text-text-muted">変更前</th>
+                      <th className="p-3 text-right text-sm font-medium text-text-muted">変更後</th>
+                      <th className="p-3 text-left text-sm font-medium text-text-muted">
+                        変更理由
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {interestChanges.map((change, index) => (
+                      <tr key={index} className="border-b border-border-default">
+                        <td className="p-3">{formatDate(change.date)}</td>
+                        <td className="p-3 text-right">{change.oldRate}%</td>
+                        <td className="p-3 text-right font-medium">{change.newRate}%</td>
+                        <td className="p-3 text-sm text-gray-600">{change.reason}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </CardContent>
           </Card>
         )}
@@ -248,32 +241,30 @@ export default function LoanDetailPage() {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>返済日</TableHead>
-                  <TableHead className="text-right">元金</TableHead>
-                  <TableHead className="text-right">利息</TableHead>
-                  <TableHead className="text-right">返済額</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {repayments.map((repayment, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{formatDate(repayment.date)}</TableCell>
-                    <TableCell className="text-right">
-                      {formatCurrency(repayment.principal || 0)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {formatCurrency(repayment.interest || 0)}
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {formatCurrency(repayment.amount)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b border-border-default">
+                    <th className="p-3 text-left text-sm font-medium text-text-muted">返済日</th>
+                    <th className="p-3 text-right text-sm font-medium text-text-muted">元金</th>
+                    <th className="p-3 text-right text-sm font-medium text-text-muted">利息</th>
+                    <th className="p-3 text-right text-sm font-medium text-text-muted">返済額</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {repayments.map((repayment, index) => (
+                    <tr key={index} className="border-b border-border-default">
+                      <td className="p-3">{formatDate(repayment.date)}</td>
+                      <td className="p-3 text-right">{formatCurrency(repayment.principal || 0)}</td>
+                      <td className="p-3 text-right">{formatCurrency(repayment.interest || 0)}</td>
+                      <td className="p-3 text-right font-medium">
+                        {formatCurrency(repayment.amount)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </CardContent>
         </Card>
       </div>

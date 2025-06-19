@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
-import { Button } from '@richman/ui';
+import { Button } from '@/components/ui/button';
 
-describe('Button asChild機能', () => {
-  test('asChild=falseの場合、button要素が表示される', () => {
+describe('Button コンポーネント', () => {
+  test('基本的なButtonが表示される', () => {
     render(<Button>ボタン</Button>);
 
     const button = screen.getByRole('button');
@@ -10,27 +10,19 @@ describe('Button asChild機能', () => {
     expect(button).toHaveTextContent('ボタン');
   });
 
-  test('asChild=trueの場合、Slotとして動作する', () => {
-    render(
-      <Button asChild>
-        <a href="/test">リンク</a>
-      </Button>
-    );
+  test('variant="outline"のスタイルが適用される', () => {
+    render(<Button variant="outline">アウトラインボタン</Button>);
 
-    const link = screen.getByRole('link');
-    expect(link.tagName).toBe('A');
-    expect(link).toHaveAttribute('href', '/test');
-    expect(link).toHaveTextContent('リンク');
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass('border', 'border-primary');
+    expect(button).toHaveTextContent('アウトラインボタン');
   });
 
-  test('asChild=trueでもButtonのスタイルが適用される', () => {
-    render(
-      <Button asChild variant="outline">
-        <a href="/test">スタイル付きリンク</a>
-      </Button>
-    );
+  test('size="sm"のスタイルが適用される', () => {
+    render(<Button size="sm">小さいボタン</Button>);
 
-    const link = screen.getByRole('link');
-    expect(link).toHaveClass('border', 'border-primary', 'bg-transparent');
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass('h-9', 'px-3');
+    expect(button).toHaveTextContent('小さいボタン');
   });
 });

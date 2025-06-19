@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@richman/ui';
+import { Button } from './button';
 
 export type FontSize = 'small' | 'medium' | 'large' | 'extra-large';
 
@@ -55,7 +55,7 @@ export default function FontSizeSelector({
 
       <div className="flex items-center gap-1 rounded-lg bg-gray-50 p-1">
         <Button
-          variant={fontSize === 'small' ? 'default' : 'ghost'}
+          variant={fontSize === 'small' ? 'primary' : 'outline'}
           size="sm"
           onClick={() => handleFontSizeChange('small')}
           className={`h-9 px-3 text-sm font-medium ${fontSize === 'small' ? 'bg-primary text-white' : ''}`}
@@ -66,7 +66,7 @@ export default function FontSizeSelector({
         </Button>
 
         <Button
-          variant={fontSize === 'medium' ? 'default' : 'ghost'}
+          variant={fontSize === 'medium' ? 'primary' : 'outline'}
           size="sm"
           onClick={() => handleFontSizeChange('medium')}
           className={`h-9 px-3 text-sm font-medium ${fontSize === 'medium' ? 'bg-primary text-white' : ''}`}
@@ -77,7 +77,7 @@ export default function FontSizeSelector({
         </Button>
 
         <Button
-          variant={fontSize === 'large' ? 'default' : 'ghost'}
+          variant={fontSize === 'large' ? 'primary' : 'outline'}
           size="sm"
           onClick={() => handleFontSizeChange('large')}
           className={`h-9 px-3 text-sm font-medium ${fontSize === 'large' ? 'bg-primary text-white' : ''}`}
@@ -88,7 +88,7 @@ export default function FontSizeSelector({
         </Button>
 
         <Button
-          variant={fontSize === 'extra-large' ? 'default' : 'ghost'}
+          variant={fontSize === 'extra-large' ? 'primary' : 'outline'}
           size="sm"
           onClick={() => handleFontSizeChange('extra-large')}
           className={`h-9 whitespace-nowrap px-3 text-sm font-medium ${fontSize === 'extra-large' ? 'bg-primary text-white' : ''}`}

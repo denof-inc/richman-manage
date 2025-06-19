@@ -6,6 +6,7 @@ module.exports = {
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
     '@supabase/supabase-js': '<rootDir>/__mocks__/@supabase/supabase-js.js',
+    '^@/(.*)$': '<rootDir>/src/$1',
   },
   moduleDirectories: ['node_modules', '../../node_modules'],
   transform: {

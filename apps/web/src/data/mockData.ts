@@ -3,125 +3,15 @@
  * データベーススキーマに基づいた一元管理されたモックデータ
  */
 
-// 基本型定義
-export type OwnerType = 'individual' | 'corporate';
-export type UnitType = 'residence' | 'tenant' | 'parking' | 'vending' | 'solar';
-export type UnitStatus = 'occupied' | 'vacant';
-export type PaymentStatus = 'normal' | 'delayed' | 'delinquent' | 'adjusted';
-export type RepaymentMethod = 'principal_equal' | 'principal_and_interest';
-export type ExpenseCategory =
-  | 'management_fee'
-  | 'repair_cost'
-  | 'utility'
-  | 'insurance'
-  | 'tax'
-  | 'other';
-export type PaymentFrequency = 'monthly' | 'bi-weekly' | 'weekly';
-export type InterestType = 'fixed' | 'variable';
-
-// データ型定義
-export interface Owner {
-  id: string;
-  type: OwnerType;
-  name: string;
-  contact_person?: string;
-  contact_email?: string;
-  contact_phone?: string;
-  tax_id?: string;
-}
-
-export interface Property {
-  id: string;
-  owner_id: string;
-  name: string;
-  address: string;
-  city: string;
-  state: string;
-  postal_code: string;
-  country: string;
-  property_type: string;
-  year_built?: number;
-  total_area?: number;
-  purchase_date?: string;
-  purchase_price?: number;
-  current_value?: number;
-}
-
-export interface Unit {
-  id: string;
-  property_id: string;
-  unit_number: string;
-  unit_type: UnitType;
-  status: UnitStatus;
-  area?: number;
-  bedrooms?: number;
-  bathrooms?: number;
-  rent_amount?: number;
-  deposit_amount?: number;
-  current_tenant_name?: string;
-  lease_start_date?: string;
-  lease_end_date?: string;
-}
-
-export interface Loan {
-  id: string;
-  property_id: string;
-  lender_name: string;
-  loan_amount: number;
-  interest_rate: number;
-  interest_type: InterestType;
-  term_years: number;
-  start_date: string;
-  end_date: string;
-  repayment_method: RepaymentMethod;
-  payment_frequency: PaymentFrequency;
-  payment_amount: number;
-}
-
-export interface LoanRepayment {
-  id: string;
-  loan_id: string;
-  payment_date: string;
-  amount: number;
-  principal_amount: number;
-  interest_amount: number;
-  payment_method?: string;
-  reference_number?: string;
-  notes?: string;
-}
-
-export interface LoanInterestChange {
-  id: string;
-  loan_id: string;
-  change_date: string;
-  previous_rate: number;
-  new_rate: number;
-  reason?: string;
-}
-
-export interface Expense {
-  id: string;
-  property_id: string;
-  expense_date: string;
-  category: ExpenseCategory;
-  amount: number;
-  vendor?: string;
-  description?: string;
-  receipt_url?: string;
-  is_recurring: boolean;
-  recurring_frequency?: string;
-}
-
-export interface UnitPaymentRecord {
-  id: string;
-  unit_id: string;
-  payment_date: string;
-  amount: number;
-  payment_status: PaymentStatus;
-  payment_method?: string;
-  reference_number?: string;
-  notes?: string;
-}
+import type {
+  Owner,
+  Property,
+  Unit,
+  Loan,
+  LoanRepayment,
+  LoanInterestChange,
+  Expense,
+} from '@/types';
 
 // モックデータ
 export const mockOwners: Owner[] = [
@@ -580,14 +470,7 @@ export const mockExpenses: Expense[] = [
   },
 ];
 
-// 計算用ヘルパー関数
-export function calculateRemainingBalance(loan: Loan, repayments: LoanRepayment[]): number {
-  const totalPrincipalPaid = repayments
-    .filter((r) => r.loan_id === loan.id)
-    .reduce((sum, r) => sum + r.principal_amount, 0);
-
-  return loan.loan_amount - totalPrincipalPaid;
-}
+// データアクセス用ヘルパー関数
 
 export function getPropertyUnits(propertyId: string): Unit[] {
   return mockUnits.filter((unit) => unit.property_id === propertyId);

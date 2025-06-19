@@ -2,17 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-  Button,
-} from '@richman/ui';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Building, Home, CreditCard, Receipt, MoreHorizontal } from 'lucide-react';
 
 import MainLayout from '../../../components/layout/MainLayout';
@@ -272,23 +263,44 @@ export default function PropertyDetailPage() {
           </Card>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-4">
-            <TabsTrigger value="rentroll" className="flex items-center">
+        <div className="w-full">
+          <div className="mb-4 flex rounded-lg border border-border-default p-1">
+            <button
+              onClick={() => setActiveTab('rentroll')}
+              className={`flex items-center rounded px-3 py-2 text-sm font-medium transition-colors ${
+                activeTab === 'rentroll'
+                  ? 'bg-primary text-white'
+                  : 'text-text-muted hover:text-primary'
+              }`}
+            >
               <Home className="mr-2" size={16} />
               賃貸表
-            </TabsTrigger>
-            <TabsTrigger value="loans" className="flex items-center">
+            </button>
+            <button
+              onClick={() => setActiveTab('loans')}
+              className={`flex items-center rounded px-3 py-2 text-sm font-medium transition-colors ${
+                activeTab === 'loans'
+                  ? 'bg-primary text-white'
+                  : 'text-text-muted hover:text-primary'
+              }`}
+            >
               <CreditCard className="mr-2" size={16} />
               ローン
-            </TabsTrigger>
-            <TabsTrigger value="expenses" className="flex items-center">
+            </button>
+            <button
+              onClick={() => setActiveTab('expenses')}
+              className={`flex items-center rounded px-3 py-2 text-sm font-medium transition-colors ${
+                activeTab === 'expenses'
+                  ? 'bg-primary text-white'
+                  : 'text-text-muted hover:text-primary'
+              }`}
+            >
               <Receipt className="mr-2" size={16} />
               経費
-            </TabsTrigger>
-          </TabsList>
+            </button>
+          </div>
 
-          <TabsContent value="rentroll">
+          {activeTab === 'rentroll' && (
             <Card>
               <CardHeader className="bg-primary/10">
                 <CardTitle className="text-primary">賃貸表</CardTitle>
@@ -297,9 +309,9 @@ export default function PropertyDetailPage() {
                 <RentRollTable units={filteredUnits} />
               </CardContent>
             </Card>
-          </TabsContent>
+          )}
 
-          <TabsContent value="loans">
+          {activeTab === 'loans' && (
             <Card>
               <CardHeader className="bg-primary/10">
                 <CardTitle className="text-primary">ローン情報</CardTitle>
@@ -308,9 +320,9 @@ export default function PropertyDetailPage() {
                 <LoanMiniTable propertyId={propertyId} />
               </CardContent>
             </Card>
-          </TabsContent>
+          )}
 
-          <TabsContent value="expenses">
+          {activeTab === 'expenses' && (
             <Card>
               <CardHeader className="bg-primary/10">
                 <CardTitle className="text-primary">経費情報</CardTitle>
@@ -319,8 +331,8 @@ export default function PropertyDetailPage() {
                 <p className="py-8 text-center text-gray-500">経費情報は現在開発中です</p>
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
       </div>
     </MainLayout>
   );
