@@ -25,4 +25,28 @@ describe('Button コンポーネント', () => {
     expect(button).toHaveClass('h-9', 'px-3');
     expect(button).toHaveTextContent('小さいボタン');
   });
+
+  test('asChild=trueの場合、Slotとして動作する', () => {
+    render(
+      <Button asChild>
+        <a href="/test">リンク</a>
+      </Button>
+    );
+
+    const link = screen.getByRole('link');
+    expect(link.tagName).toBe('A');
+    expect(link).toHaveAttribute('href', '/test');
+    expect(link).toHaveTextContent('リンク');
+  });
+
+  test('asChild=trueでもButtonのスタイルが適用される', () => {
+    render(
+      <Button asChild variant="outline">
+        <a href="/test">スタイル付きリンク</a>
+      </Button>
+    );
+
+    const link = screen.getByRole('link');
+    expect(link).toHaveClass('border', 'border-primary');
+  });
 });
