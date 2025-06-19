@@ -23,8 +23,27 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>{children}</body>
+    <html lang="ja" className="font-size-medium">
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        {children}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  const savedFontSize = localStorage.getItem('richman-font-size');
+                  if (savedFontSize && ['small', 'medium', 'large', 'extra-large'].includes(savedFontSize)) {
+                    document.documentElement.classList.remove('font-size-medium');
+                    document.documentElement.classList.add('font-size-' + savedFontSize);
+                  }
+                } catch (e) {
+                  console.log('Font size initialization failed:', e);
+                }
+              })();
+            `,
+          }}
+        />
+      </body>
     </html>
   );
 }

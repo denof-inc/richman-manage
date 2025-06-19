@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, X, User, LogOut } from 'lucide-react';
 import { Button } from '@richman/ui';
+import FontSizeSelector from '../ui/FontSizeSelector';
 
 type Owner = {
   id: string;
@@ -58,6 +59,9 @@ export default function Header({ isLoggedIn = false }: { isLoggedIn?: boolean })
       </div>
 
       <div className="flex items-center space-x-4">
+        {/* Font Size Selector - 常に表示 */}
+        <FontSizeSelector className="hidden sm:flex" />
+
         {/* Owner Selector - ログイン済み時のみ表示 */}
         {isLoggedIn && (
           <div className="hidden items-center md:flex">
@@ -141,6 +145,9 @@ export default function Header({ isLoggedIn = false }: { isLoggedIn?: boolean })
               </Link>
             ))}
             <div className="mt-2 border-t py-2">
+              <label className="mb-1 block text-sm text-gray-500">文字サイズ</label>
+              <FontSizeSelector className="mb-3" showLabel={false} />
+
               <label className="mb-1 block text-sm text-gray-500">所有者</label>
               <select
                 value={selectedOwnerId}
