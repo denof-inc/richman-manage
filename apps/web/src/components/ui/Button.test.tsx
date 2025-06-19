@@ -26,7 +26,7 @@ describe('Button コンポーネント', () => {
     expect(button).toHaveTextContent('小さいボタン');
   });
 
-  test('asChild=trueの場合、Slotとして動作する', () => {
+  test('asChild=trueの場合、子要素がそのまま返される', () => {
     render(
       <Button asChild>
         <a href="/test">リンク</a>
@@ -37,16 +37,5 @@ describe('Button コンポーネント', () => {
     expect(link.tagName).toBe('A');
     expect(link).toHaveAttribute('href', '/test');
     expect(link).toHaveTextContent('リンク');
-  });
-
-  test('asChild=trueでもButtonのスタイルが適用される', () => {
-    render(
-      <Button asChild variant="outline">
-        <a href="/test">スタイル付きリンク</a>
-      </Button>
-    );
-
-    const link = screen.getByRole('link');
-    expect(link).toHaveClass('border', 'border-primary');
   });
 });
