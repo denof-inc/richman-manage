@@ -22,7 +22,7 @@ export default function Header({ isLoggedIn = false }: { isLoggedIn?: boolean })
   };
 
   return (
-    <header className="flex h-14 items-center justify-between bg-white px-6 shadow">
+    <header className="flex h-14 items-center justify-between bg-white px-6 shadow fixed top-0 left-0 right-0 z-40 md:relative md:z-auto">
       <div className="flex items-center">
         <Link href="/" className="mr-8 text-xl font-bold text-primary">
           リッチマンManage
@@ -71,11 +71,10 @@ export default function Header({ isLoggedIn = false }: { isLoggedIn?: boolean })
               <Button
                 variant="outline"
                 size="sm"
-                className="min-h-[44px] px-4"
+                className="min-h-[44px] px-3"
                 aria-label="マイページ"
               >
-                <User size={20} className="text-gray-600 mr-2" />
-                マイページ
+                <User size={20} className="text-gray-600" />
               </Button>
             </Link>
           </>
@@ -115,16 +114,7 @@ export default function Header({ isLoggedIn = false }: { isLoggedIn?: boolean })
                 {item.name}
               </Link>
             ))}
-            <div className="mt-4 border-t pt-4">
-              <Link
-                href="/profile"
-                className="flex items-center rounded-lg px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-100 min-h-[44px]"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <User size={20} className="text-gray-600 mr-3" />
-                マイページ
-              </Link>
-            </div>
+
           </nav>
         </div>
       )}

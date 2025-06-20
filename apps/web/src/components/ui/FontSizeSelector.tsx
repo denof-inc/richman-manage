@@ -25,6 +25,24 @@ export default function FontSizeSelector({
     }
   }, []);
 
+  useEffect(() => {
+    const handleResize = () => {
+      const isMobile = window.innerWidth < 640; // sm breakpoint
+      if (isMobile && fontSize !== 'medium') {
+        setFontSize('medium');
+        applyFontSize('medium');
+      }
+    };
+
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [fontSize]);
+
   // 文字サイズをHTMLルート要素に適用
   const applyFontSize = (size: FontSize) => {
     const root = document.documentElement;
