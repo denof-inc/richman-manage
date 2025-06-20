@@ -291,7 +291,7 @@ export default function RentRollTable({ units }: RentRollTableProps) {
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="border-b border-border-default">
-                    <th className="p-2 md:p-3 text-left text-base md:text-sm font-medium text-text-muted min-w-[120px]">
+                    <th className="p-2 md:p-3 text-left text-base md:text-sm font-medium text-text-muted min-w-[160px]">
                       物件・部屋
                     </th>
                     <th className="p-2 md:p-3 text-left text-base md:text-sm font-medium text-text-muted min-w-[80px]">タイプ</th>
