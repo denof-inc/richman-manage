@@ -3,20 +3,13 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, User, LogOut } from 'lucide-react';
+import { Menu, X, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import FontSizeSelector from '../ui/FontSizeSelector';
-
-import type { Owner } from '@/types';
 
 export default function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [owners] = useState<Owner[]>([
-    { id: '1', name: '個人所有', type: 'individual' },
-    { id: '2', name: '法人所有', type: 'corporate' },
-  ]);
-  const [selectedOwnerId, setSelectedOwnerId] = useState('1');
 
   const navItems = [
     { name: '物件一覧', href: '/properties' },
@@ -56,25 +49,8 @@ export default function Header({ isLoggedIn = false }: { isLoggedIn?: boolean })
       </div>
 
       <div className="flex items-center space-x-4">
-        {/* Font Size Selector - 常に表示 */}
+        {/* Font Size Selector - デスクトップのみ表示 */}
         <FontSizeSelector className="hidden sm:flex" />
-
-        {/* Owner Selector - ログイン済み時のみ表示 */}
-        {isLoggedIn && (
-          <div className="hidden items-center md:flex">
-            <select
-              value={selectedOwnerId}
-              onChange={(e) => setSelectedOwnerId(e.target.value)}
-              className="rounded border px-2 py-1 text-sm"
-            >
-              {owners.map((owner) => (
-                <option key={owner.id} value={owner.id}>
-                  {owner.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
 
         {/* 未ログイン時はログインボタンを表示 */}
         {!isLoggedIn ? (
@@ -90,20 +66,16 @@ export default function Header({ isLoggedIn = false }: { isLoggedIn?: boolean })
           </div>
         ) : (
           <>
-            {/* User Avatar */}
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-full p-1"
-              aria-label="ユーザー設定"
-            >
-              <User size={20} className="text-gray-600" />
-            </Button>
-
-            {/* Logout button */}
-            <Link href="/login">
-              <Button variant="outline" size="sm" aria-label="ログアウト">
-                <LogOut size={20} className="text-gray-600" />
+            {/* マイページボタン */}
+            <Link href="/profile">
+              <Button
+                variant="outline"
+                size="sm"
+                className="min-h-[44px] px-4"
+                aria-label="マイページ"
+              >
+                <User size={20} className="text-gray-600 mr-2" />
+                マイページ
               </Button>
             </Link>
           </>
@@ -128,35 +100,30 @@ export default function Header({ isLoggedIn = false }: { isLoggedIn?: boolean })
       {/* Mobile Menu - ログイン済み時のみ表示 */}
       {isLoggedIn && mobileMenuOpen && (
         <div className="absolute left-0 right-0 top-14 z-50 bg-white shadow-md md:hidden">
-          <nav className="flex flex-col p-4">
+          <nav className="flex flex-col p-4 space-y-2">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`py-2 text-sm font-medium ${
-                  isActive(item.href) ? 'text-primary' : 'text-gray-600'
+                className={`rounded-lg px-4 py-3 text-base font-medium min-h-[44px] flex items-center transition-colors ${
+                  isActive(item.href) 
+                    ? 'bg-primary text-white' 
+                    : 'text-gray-700 hover:bg-gray-100'
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.name}
               </Link>
             ))}
-            <div className="mt-2 border-t py-2">
-              <label className="mb-1 block text-sm text-gray-500">文字サイズ</label>
-              <FontSizeSelector className="mb-3" showLabel={false} />
-
-              <label className="mb-1 block text-sm text-gray-500">所有者</label>
-              <select
-                value={selectedOwnerId}
-                onChange={(e) => setSelectedOwnerId(e.target.value)}
-                className="w-full rounded border px-2 py-1 text-sm"
+            <div className="mt-4 border-t pt-4">
+              <Link
+                href="/profile"
+                className="flex items-center rounded-lg px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-100 min-h-[44px]"
+                onClick={() => setMobileMenuOpen(false)}
               >
-                {owners.map((owner) => (
-                  <option key={owner.id} value={owner.id}>
-                    {owner.name}
-                  </option>
-                ))}
-              </select>
+                <User size={20} className="text-gray-600 mr-3" />
+                マイページ
+              </Link>
             </div>
           </nav>
         </div>
