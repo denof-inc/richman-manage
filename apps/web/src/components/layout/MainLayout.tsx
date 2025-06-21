@@ -10,7 +10,7 @@ export default function MainLayout({ children, isLoggedIn = true }: MainLayoutPr
   return (
     <div className="flex min-h-screen flex-col">
       <Header isLoggedIn={isLoggedIn} />
-      <main className="flex-grow">{children}</main>
+      <main className="flex-grow pt-14 md:pt-0">{children}</main>
     </div>
   );
 }
