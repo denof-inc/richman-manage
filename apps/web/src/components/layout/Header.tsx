@@ -15,6 +15,7 @@ export default function Header({ isLoggedIn = false }: { isLoggedIn?: boolean })
     { name: '物件一覧', href: '/properties' },
     { name: 'レントロール', href: '/rent-roll' },
     { name: '借入一覧', href: '/loans' },
+    { name: '支出一覧', href: '/expenses' },
   ];
 
   const isActive = (path: string) => {
@@ -22,7 +23,7 @@ export default function Header({ isLoggedIn = false }: { isLoggedIn?: boolean })
   };
 
   return (
-    <header className="flex h-14 items-center justify-between bg-white px-6 shadow fixed top-0 left-0 right-0 z-40 md:relative md:z-auto">
+    <header className="fixed left-0 right-0 top-0 z-40 flex h-14 items-center justify-between bg-white px-6 shadow md:relative md:z-auto">
       <div className="flex items-center">
         <Link href="/" className="mr-8 text-xl font-bold text-primary">
           リッチマンManage
@@ -99,22 +100,19 @@ export default function Header({ isLoggedIn = false }: { isLoggedIn?: boolean })
       {/* Mobile Menu - ログイン済み時のみ表示 */}
       {isLoggedIn && mobileMenuOpen && (
         <div className="absolute left-0 right-0 top-14 z-50 bg-white shadow-md md:hidden">
-          <nav className="flex flex-col p-4 space-y-2">
+          <nav className="flex flex-col space-y-2 p-4">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`rounded-lg px-4 py-3 text-base font-medium min-h-[44px] flex items-center transition-colors ${
-                  isActive(item.href) 
-                    ? 'bg-primary text-white' 
-                    : 'text-gray-700 hover:bg-gray-100'
+                className={`flex min-h-[44px] items-center rounded-lg px-4 py-3 text-base font-medium transition-colors ${
+                  isActive(item.href) ? 'bg-primary text-white' : 'text-gray-700 hover:bg-gray-100'
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.name}
               </Link>
             ))}
-
           </nav>
         </div>
       )}
