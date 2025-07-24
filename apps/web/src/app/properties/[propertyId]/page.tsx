@@ -305,7 +305,7 @@ export default function PropertyDetailPage() {
               }`}
             >
               <Receipt className="mr-2" size={16} />
-              経費
+              支出
             </button>
           </div>
 
@@ -339,7 +339,7 @@ export default function PropertyDetailPage() {
             <Card>
               <CardHeader className="bg-primary/10">
                 <CardTitle as="h3" className="text-lg font-semibold text-primary">
-                  経費情報
+                  支出情報
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">

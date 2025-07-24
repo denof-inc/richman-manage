@@ -50,8 +50,8 @@ export default function ExpenseTable({
     }).format(new Date(date));
   };
 
-  const handleExpenseClick = (id: string) => {
-    router.push(`/expenses/${id}`);
+  const handlePropertyClick = (propertyId: string) => {
+    router.push(`/properties/${propertyId}`);
   };
 
   const renderSortIndicator = (field: SortField) => {
@@ -82,9 +82,9 @@ export default function ExpenseTable({
                     variant="outline"
                     size="sm"
                     className="mt-2 min-h-[36px] w-full"
-                    onClick={() => handleExpenseClick(expense.id)}
+                    onClick={() => handlePropertyClick(expense.property_id)}
                   >
-                    詳細を見る
+                    物件を見る
                   </Button>
                 </div>
               </Card>
@@ -117,39 +117,38 @@ export default function ExpenseTable({
                   className="cursor-pointer p-3 text-left text-sm font-medium text-text-muted"
                   onClick={() => onSort('category')}
                 >
-                  カテゴリ{renderSortIndicator('category')}
+                  勘定科目{renderSortIndicator('category')}
                 </th>
-                <th className="p-3 text-left text-sm font-medium text-text-muted">説明</th>
-                <th className="p-3 text-left text-sm font-medium text-text-muted">業者</th>
                 <th
                   className="cursor-pointer p-3 text-right text-sm font-medium text-text-muted"
                   onClick={() => onSort('amount')}
                 >
                   金額{renderSortIndicator('amount')}
                 </th>
+                <th className="p-3 text-left text-sm font-medium text-text-muted">内容</th>
               </tr>
             </thead>
             <tbody>
               {expenses.length > 0 ? (
                 expenses.map((expense) => (
-                  <tr
-                    key={expense.id}
-                    className="cursor-pointer border-b border-border-default hover:bg-gray-50"
-                    onClick={() => handleExpenseClick(expense.id)}
-                  >
+                  <tr key={expense.id} className="border-b border-border-default">
                     <td className="p-3">{formatDate(expense.expense_date)}</td>
-                    <td className="p-3">{expense.property_name}</td>
+                    <td
+                      className="cursor-pointer p-3 hover:text-primary hover:underline"
+                      onClick={() => handlePropertyClick(expense.property_id)}
+                    >
+                      {expense.property_name}
+                    </td>
                     <td className="p-3">{expense.category}</td>
-                    <td className="p-3">{expense.description}</td>
-                    <td className="p-3">{expense.vendor}</td>
                     <td className="p-3 text-right font-semibold">
                       {formatCurrency(expense.amount)}
                     </td>
+                    <td className="p-3">{expense.description}</td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="p-3 py-8 text-center">
+                  <td colSpan={5} className="p-3 py-8 text-center">
                     支出データがありません
                   </td>
                 </tr>

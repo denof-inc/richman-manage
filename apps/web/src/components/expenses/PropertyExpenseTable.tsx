@@ -21,25 +21,23 @@ export default function PropertyExpenseTable({ propertyId }: PropertyExpenseTabl
       <table className="w-full">
         <thead>
           <tr className="border-b">
-            <th className="py-2 text-center text-sm font-medium">支出日</th>
-            <th className="py-2 text-center text-sm font-medium">カテゴリ</th>
-            <th className="py-2 text-center text-sm font-medium">内容</th>
+            <th className="py-2 text-left text-sm font-medium">支出日</th>
+            <th className="py-2 text-left text-sm font-medium">勘定科目</th>
             <th className="py-2 text-right text-sm font-medium">金額</th>
-            <th className="py-2 text-center text-sm font-medium">業者</th>
+            <th className="py-2 text-left text-sm font-medium">内容</th>
           </tr>
         </thead>
         <tbody>
           {propertyExpenses.map((expense) => (
             <tr key={expense.id} className="border-b">
-              <td className="py-2 text-center text-sm">
+              <td className="py-2 text-left text-sm">
                 {expense.expense_date.toLocaleDateString('ja-JP')}
               </td>
-              <td className="py-2 text-center text-sm">{expense.category}</td>
-              <td className="py-2 text-center text-sm">{expense.description || '-'}</td>
+              <td className="py-2 text-left text-sm">{expense.category}</td>
               <td className="py-2 text-right text-sm font-medium">
                 {formatCurrency(expense.amount)}
               </td>
-              <td className="py-2 text-center text-sm">{expense.vendor || '-'}</td>
+              <td className="py-2 text-left text-sm">{expense.description || '-'}</td>
             </tr>
           ))}
         </tbody>
