@@ -108,7 +108,7 @@ export interface LoanInterestChange {
 export interface Expense {
   id: string;
   property_id: string;
-  expense_date: string;
+  expense_date: Date;
   category: ExpenseCategory;
   amount: number;
   vendor?: string;
