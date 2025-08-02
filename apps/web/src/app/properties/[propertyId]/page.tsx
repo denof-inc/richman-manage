@@ -9,6 +9,7 @@ import { Building, Home, CreditCard, Receipt, MoreHorizontal } from 'lucide-reac
 import MainLayout from '../../../components/layout/MainLayout';
 import RentRollTable from '../../../components/rentroll/RentRollTable';
 import LoanMiniTable from '../../../components/loans/LoanMiniTable';
+import PropertyExpenseTable from '../../../components/expenses/PropertyExpenseTable';
 
 import {
   mockProperties,
@@ -51,6 +52,7 @@ type PropertyDetail = {
   potential_rent?: number;
   actual_rent?: number;
   monthly_repayment?: number;
+  monthly_expenses?: number;
   net_cf?: number;
 };
 
@@ -99,6 +101,7 @@ export default function PropertyDetailPage() {
         potential_rent,
         actual_rent,
         monthly_repayment,
+        monthly_expenses,
         net_cf,
       });
     }
@@ -236,7 +239,7 @@ export default function PropertyDetailPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <div className="rounded-lg bg-green-50 p-4">
                   <p className="text-sm text-gray-500">月間賃料収入</p>
                   <p className="text-xl font-bold text-green-600">
@@ -252,8 +255,14 @@ export default function PropertyDetailPage() {
                     {formatCurrency(property.monthly_repayment)}
                   </p>
                 </div>
+                <div className="rounded-lg bg-orange-50 p-4">
+                  <p className="text-sm text-gray-500">月間支出</p>
+                  <p className="text-xl font-bold text-orange-600">
+                    {formatCurrency(property.monthly_expenses)}
+                  </p>
+                </div>
                 <div className="rounded-lg bg-blue-50 p-4">
-                  <p className="text-sm text-gray-500">月間純キャッシュフロー</p>
+                  <p className="text-sm text-gray-500">月間準キャッシュフロー</p>
                   <p className="text-xl font-bold text-blue-600">
                     {formatCurrency(property.net_cf)}
                   </p>
@@ -296,7 +305,7 @@ export default function PropertyDetailPage() {
               }`}
             >
               <Receipt className="mr-2" size={16} />
-              経費
+              支出
             </button>
           </div>
 
@@ -330,11 +339,11 @@ export default function PropertyDetailPage() {
             <Card>
               <CardHeader className="bg-primary/10">
                 <CardTitle as="h3" className="text-lg font-semibold text-primary">
-                  経費情報
+                  支出情報
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-4">
-                <p className="py-8 text-center text-gray-500">経費情報は現在開発中です</p>
+              <CardContent className="p-0">
+                <PropertyExpenseTable propertyId={propertyId} />
               </CardContent>
             </Card>
           )}
