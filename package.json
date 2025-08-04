@@ -50,6 +50,7 @@
   "homepage": "https://github.com/denof-inc/richman-manage#readme",
   "devDependencies": {
     "@eslint/js": "^9.25.1",
+    "@supabase/ssr": "^0.6.1",
     "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/typography": "^0.5.16",
     "@typescript-eslint/eslint-plugin": "^8.31.1",
