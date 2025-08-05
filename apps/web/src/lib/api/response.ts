@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 
 // 成功レスポンスの型定義
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-interface SuccessResponse<T = any> {
+interface SuccessResponse<T = unknown> {
   success: true;
   data: T;
   error: null;
@@ -21,16 +20,14 @@ interface ErrorResponse {
   error: {
     code: string;
     message: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    details?: any;
+    details?: unknown;
   };
 }
 
 // APIレスポンスのユーティリティクラス
 export class ApiResponse {
   // 成功レスポンス
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static success<T = any>(
+  static success<T = unknown>(
     data: T,
     meta?: SuccessResponse<T>['meta'],
     status: number = 200
@@ -51,8 +48,7 @@ export class ApiResponse {
     code: string,
     message: string,
     status: number = 400,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    details?: any
+    details?: unknown
   ): NextResponse<ErrorResponse> {
     return NextResponse.json(
       {
@@ -69,8 +65,10 @@ export class ApiResponse {
   }
 
   // 一般的なエラーレスポンス
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static badRequest(message: string = 'Bad Request', details?: any): NextResponse<ErrorResponse> {
+  static badRequest(
+    message: string = 'Bad Request',
+    details?: unknown
+  ): NextResponse<ErrorResponse> {
     return this.error('BAD_REQUEST', message, 400, details);
   }
 
@@ -86,31 +84,27 @@ export class ApiResponse {
     return this.error('NOT_FOUND', message, 404);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static conflict(message: string = 'Conflict', details?: any): NextResponse<ErrorResponse> {
+  static conflict(message: string = 'Conflict', details?: unknown): NextResponse<ErrorResponse> {
     return this.error('CONFLICT', message, 409, details);
   }
 
   static validationError(
     message: string = 'Validation Error',
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    details?: any
+    details?: unknown
   ): NextResponse<ErrorResponse> {
     return this.error('VALIDATION_ERROR', message, 422, details);
   }
 
   static internalError(
     message: string = 'Internal Server Error',
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    details?: any
+    details?: unknown
   ): NextResponse<ErrorResponse> {
     console.error('Internal Server Error:', message, details);
     return this.error('INTERNAL_ERROR', message, 500, details);
   }
 
   // ページネーション付きレスポンス
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static paginated<T = any>(
+  static paginated<T = unknown>(
     data: T[],
     page: number,
     limit: number,

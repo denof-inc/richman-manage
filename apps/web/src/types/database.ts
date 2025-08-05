@@ -1,20 +1,23 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
+// Supabaseのユーザーテーブルの型定義
+export interface UserRow {
+  id: string;
+  email: string;
+  name: string;
+  role: 'admin' | 'owner' | 'manager' | 'viewer' | 'auditor';
+  timezone: string;
+  language: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
 export interface Database {
   public: {
     Tables: {
       users: {
-        Row: {
-          id: string;
-          email: string;
-          name: string;
-          role: 'admin' | 'owner' | 'manager' | 'viewer' | 'auditor';
-          timezone: string;
-          language: string;
-          created_at: string;
-          updated_at: string;
-          deleted_at: string | null;
-        };
+        Row: UserRow;
         Insert: {
           id?: string;
           email: string;

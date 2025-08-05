@@ -77,6 +77,10 @@ describe('Users API - GET /api/users', () => {
   const mockSupabaseClient = {
     auth: {
       getUser: jest.fn(),
+      admin: {
+        createUser: jest.fn(),
+        deleteUser: jest.fn(),
+      },
     },
     from: jest.fn(),
   };
@@ -91,18 +95,22 @@ describe('Users API - GET /api/users', () => {
       // モックデータ
       const mockUsers = [
         {
-          id: 'user-1',
+          id: '550e8400-e29b-41d4-a716-446655440001',
           email: 'user1@example.com',
           name: 'User One',
           role: 'owner',
+          timezone: 'Asia/Tokyo',
+          language: 'ja',
           created_at: '2024-01-01T00:00:00Z',
           updated_at: '2024-01-01T00:00:00Z',
         },
         {
-          id: 'user-2',
+          id: '550e8400-e29b-41d4-a716-446655440002',
           email: 'user2@example.com',
           name: 'User Two',
           role: 'viewer',
+          timezone: 'Asia/Tokyo',
+          language: 'ja',
           created_at: '2024-01-02T00:00:00Z',
           updated_at: '2024-01-02T00:00:00Z',
         },
@@ -238,8 +246,12 @@ describe('Users API - GET /api/users', () => {
       };
 
       const createdUser = {
-        id: 'new-user-id',
-        ...newUserData,
+        id: '550e8400-e29b-41d4-a716-446655440003',
+        email: newUserData.email,
+        name: newUserData.name,
+        role: newUserData.role,
+        timezone: 'Asia/Tokyo',
+        language: 'ja',
         created_at: '2024-01-03T00:00:00Z',
         updated_at: '2024-01-03T00:00:00Z',
       };
@@ -261,13 +273,10 @@ describe('Users API - GET /api/users', () => {
       };
 
       // ユーザー作成をモック
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (mockSupabaseClient as any).auth.admin = {
-        createUser: jest.fn().mockResolvedValue({
-          data: { user: { id: createdUser.id } },
-          error: null,
-        }),
-      };
+      mockSupabaseClient.auth.admin.createUser.mockResolvedValue({
+        data: { user: { id: createdUser.id } },
+        error: null,
+      });
 
       // データベース挿入をモック
       const mockInsert = {
@@ -379,7 +388,9 @@ describe('Users API - GET /api/users', () => {
       // アサーション
       expect(data.success).toBe(false);
       expect(data.error.code).toBe('VALIDATION_ERROR');
-      expect(data.error.details).toContain('パスワード');
+      // detailsは配列なので、メッセージを確認
+      const errorMessages = data.error.details.map((d: { message: string }) => d.message).join(' ');
+      expect(errorMessages).toContain('パスワード');
     });
 
     it('非管理者ユーザーが403エラーを受け取る', async () => {

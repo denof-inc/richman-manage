@@ -49,8 +49,7 @@ export async function GET(request: NextRequest) {
     }
 
     // レスポンス形式に変換
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const users = data?.map((user: any) => UserResponseSchema.parse(user)) || [];
+    const users = data?.map((user) => UserResponseSchema.parse(user)) || [];
 
     return ApiResponse.paginated(users, query.page, query.limit, count || 0);
   } catch (error) {
