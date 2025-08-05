@@ -68,13 +68,12 @@ export function calculatePaginationMeta(params: PaginationParams, total: number)
 /**
  * Supabaseクエリにページネーションを適用
  */
-export function applyPagination<T>(
-  query: T & {
+export function applyPagination<
+  T extends {
     range: (from: number, to: number) => T;
     order: (column: string, options?: { ascending?: boolean }) => T;
   },
-  params: PaginationParams
-): T {
+>(query: T, params: PaginationParams): T {
   const from = (params.page - 1) * params.limit;
   const to = from + params.limit - 1;
 

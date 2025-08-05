@@ -108,7 +108,6 @@ export function performanceMonitor(config: PerformanceMonitorConfig = DEFAULT_CO
         // 遅いリクエストをログ出力
         if (config.logSlowRequests && duration > (config.slowRequestThreshold || 1000)) {
           logger.warn('Slow request detected', {
-            duration,
             threshold: config.slowRequestThreshold,
             ...metrics,
           });

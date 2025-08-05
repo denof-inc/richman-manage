@@ -10,21 +10,24 @@ export function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
+        async get(name: string) {
+          const store = await cookieStore;
+          return store.get(name)?.value;
         },
-        set(name: string, value: string, options: Record<string, unknown>) {
+        async set(name: string, value: string, options: Record<string, unknown>) {
           try {
-            cookieStore.set({ name, value, ...options });
+            const store = await cookieStore;
+            store.set({ name, value, ...options });
           } catch {
             // The `set` method was called from a Server Component.
             // This can be ignored if you have middleware refreshing
             // user sessions.
           }
         },
-        remove(name: string, options: Record<string, unknown>) {
+        async remove(name: string, options: Record<string, unknown>) {
           try {
-            cookieStore.set({ name, value: '', ...options });
+            const store = await cookieStore;
+            store.set({ name, value: '', ...options });
           } catch {
             // The `delete` method was called from a Server Component.
             // This can be ignored if you have middleware refreshing

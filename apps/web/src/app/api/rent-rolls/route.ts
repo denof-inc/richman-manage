@@ -1,12 +1,26 @@
 import { NextRequest } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { ApiResponse } from '@/lib/api/response';
-import { CreateLoanSchema, LoanQuerySchema, LoanResponseSchema } from '@/lib/api/schemas/loan';
+import {
+  CreateRentRollSchema,
+  RentRollQuerySchema,
+  RentRollResponseSchema,
+} from '@/lib/api/schemas/rent-roll';
 import { z } from 'zod';
 import { getCache } from '@/lib/cache/redis-cache';
 import { extractPaginationParams, calculatePaginationMeta } from '@/lib/api/pagination';
 
-// GET /api/loans - 借入一覧取得
+// ユーザーID取得ヘルパー
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function getUserId(request: Request): Promise<string | null> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return user?.id || null;
+}
+
+// GET /api/rent-rolls - レントロール一覧取得
 export async function GET(request: NextRequest) {
   try {
     const supabase = createClient();
@@ -26,29 +40,31 @@ export async function GET(request: NextRequest) {
     // その他のクエリパラメータをパース
     const searchParams = Object.fromEntries(request.nextUrl.searchParams);
     const query = {
-      ...LoanQuerySchema.parse(searchParams),
+      ...RentRollQuerySchema.parse(searchParams),
       ...paginationParams,
     };
 
-    // データベースクエリ構築（物件情報と結合してユーザーの借入のみ取得）
+    // データベースクエリ構築（物件情報と結合してユーザーのレントロールのみ取得）
     let dbQuery = supabase
-      .from('loans')
+      .from('rent_rolls')
       .select('*, property:properties!inner(id, user_id, name)', { count: 'exact' })
       .eq('property.user_id', user.id);
-
-    // 検索フィルタ
-    if (query.search) {
-      dbQuery = dbQuery.ilike('lender_name', `%${query.search}%`);
-    }
 
     // 物件IDフィルタ
     if (query.property_id) {
       dbQuery = dbQuery.eq('property_id', query.property_id);
     }
 
-    // 借入タイプフィルタ
-    if (query.loan_type) {
-      dbQuery = dbQuery.eq('loan_type', query.loan_type);
+    // 入居状況フィルタ
+    if (query.occupancy_status) {
+      dbQuery = dbQuery.eq('occupancy_status', query.occupancy_status);
+    }
+
+    // 検索フィルタ（部屋番号または入居者名）
+    if (query.search) {
+      dbQuery = dbQuery.or(
+        `room_number.ilike.%${query.search}%,tenant_name.ilike.%${query.search}%`
+      );
     }
 
     // ソート適用
@@ -71,17 +87,17 @@ export async function GET(request: NextRequest) {
     }
 
     // レスポンス形式に変換（property情報を除外）
-    const loans =
-      data?.map((loan) => {
+    const rentRolls =
+      data?.map((rentRoll) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { property, ...loanData } = loan;
-        return LoanResponseSchema.parse(loanData);
+        const { property, ...rentRollData } = rentRoll;
+        return RentRollResponseSchema.parse(rentRollData);
       }) || [];
 
     // ページネーションメタデータを計算
     const meta = calculatePaginationMeta(paginationParams, count || 0);
 
-    return ApiResponse.paginated(loans, meta.page, meta.limit, meta.total);
+    return ApiResponse.paginated(rentRolls, meta.page, meta.limit, meta.total);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return ApiResponse.validationError('バリデーションエラー', error.errors);
@@ -91,7 +107,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/loans - 借入作成
+// POST /api/rent-rolls - レントロール作成
 export async function POST(request: NextRequest) {
   try {
     const supabase = createClient();
@@ -108,7 +124,7 @@ export async function POST(request: NextRequest) {
 
     // リクエストボディをパース
     const body = await request.json();
-    const validatedData = CreateLoanSchema.parse(body);
+    const validatedData = CreateRentRollSchema.parse(body);
 
     // 物件の所有権確認
     const { data: property, error: propertyError } = await supabase
@@ -119,37 +135,51 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (propertyError || !property) {
-      return ApiResponse.forbidden('この物件に対する借入を作成する権限がありません');
+      return ApiResponse.forbidden('この物件に対するレントロールを作成する権限がありません');
     }
 
-    // データベースに借入情報を保存
-    const { data: newLoan, error: dbError } = await supabase
-      .from('loans')
+    // 同じ物件内での部屋番号の重複チェック
+    const { data: existingRoom, error: duplicateError } = await supabase
+      .from('rent_rolls')
+      .select('id')
+      .eq('property_id', validatedData.property_id)
+      .eq('room_number', validatedData.room_number)
+      .single();
+
+    if (!duplicateError && existingRoom) {
+      return ApiResponse.conflict('この部屋番号は既に登録されています');
+    }
+
+    // データベースにレントロール情報を保存
+    const { data: newRentRoll, error: dbError } = await supabase
+      .from('rent_rolls')
       .insert({
         property_id: validatedData.property_id,
-        lender_name: validatedData.lender_name,
-        loan_type: validatedData.loan_type,
-        principal_amount: validatedData.principal_amount,
-        current_balance: validatedData.current_balance,
-        interest_rate: validatedData.interest_rate,
-        loan_term_months: validatedData.loan_term_months,
-        monthly_payment: validatedData.monthly_payment,
+        room_number: validatedData.room_number,
+        tenant_name: validatedData.tenant_name || null,
+        monthly_rent: validatedData.monthly_rent,
+        occupancy_status: validatedData.occupancy_status,
+        lease_start_date: validatedData.lease_start_date || null,
+        lease_end_date: validatedData.lease_end_date || null,
+        security_deposit: validatedData.security_deposit || null,
+        key_money: validatedData.key_money || null,
+        notes: validatedData.notes || null,
       })
       .select()
       .single();
 
     if (dbError) {
       console.error('Database error:', dbError);
-      return ApiResponse.internalError('借入情報の保存に失敗しました');
+      return ApiResponse.internalError('レントロール情報の保存に失敗しました');
     }
 
     // レスポンス形式に変換
-    const loanResponse = LoanResponseSchema.parse(newLoan);
+    const rentRollResponse = RentRollResponseSchema.parse(newRentRoll);
 
     // ユーザー固有のキャッシュを無効化
-    await cache.invalidateResource('loans', user.id);
+    await cache.invalidateResource('rent-rolls', user.id);
 
-    return ApiResponse.success(loanResponse, undefined, 201);
+    return ApiResponse.success(rentRollResponse, undefined, 201);
   } catch (error) {
     if (error instanceof z.ZodError) {
       const messages = error.errors.map((e) => e.message).join(', ');

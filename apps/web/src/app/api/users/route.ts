@@ -3,25 +3,11 @@ import { createClient } from '@/utils/supabase/server';
 import { ApiResponse } from '@/lib/api/response';
 import { CreateUserSchema, UserQuerySchema, UserResponseSchema } from '@/lib/api/schemas/user';
 import { z } from 'zod';
-import { withCache, getCache } from '@/lib/cache/redis-cache';
-import {
-  extractPaginationParams,
-  applyPagination,
-  calculatePaginationMeta,
-} from '@/lib/api/pagination';
-
-// ユーザーID取得ヘルパー
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function getUserId(request: Request): Promise<string | null> {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user?.id || null;
-}
+import { getCache } from '@/lib/cache/redis-cache';
+import { extractPaginationParams, calculatePaginationMeta } from '@/lib/api/pagination';
 
 // GET /api/users - ユーザー一覧取得
-const getUsersHandler = async (request: NextRequest) => {
+export async function GET(request: NextRequest) {
   try {
     const supabase = createClient();
 
@@ -57,11 +43,19 @@ const getUsersHandler = async (request: NextRequest) => {
       dbQuery = dbQuery.eq('role', query.role);
     }
 
-    // ページネーションを適用
-    dbQuery = applyPagination(dbQuery, paginationParams);
+    // ソート適用
+    if (paginationParams.sort) {
+      dbQuery = dbQuery.order(paginationParams.sort, {
+        ascending: paginationParams.order === 'asc',
+      });
+    }
+
+    // ページネーション範囲適用
+    const from = (paginationParams.page - 1) * paginationParams.limit;
+    const to = from + paginationParams.limit - 1;
 
     // クエリ実行
-    const { data, error, count } = await dbQuery;
+    const { data, error, count } = await dbQuery.range(from, to);
 
     if (error) {
       console.error('Database error:', error);
@@ -82,14 +76,7 @@ const getUsersHandler = async (request: NextRequest) => {
     console.error('Unexpected error:', error);
     return ApiResponse.internalError('予期しないエラーが発生しました');
   }
-};
-
-// キャッシュを適用
-export const GET = withCache(getUsersHandler, {
-  resource: 'users',
-  ttl: 300, // 5分
-  getUserId,
-});
+}
 
 // POST /api/users - ユーザー作成
 export async function POST(request: NextRequest) {

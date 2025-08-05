@@ -3,22 +3,10 @@ import { createClient } from '@/utils/supabase/server';
 import { ApiResponse } from '@/lib/api/response';
 import { UpdateUserSchema, UserResponseSchema } from '@/lib/api/schemas/user';
 import { z } from 'zod';
-import { withApiLogging } from '@/lib/logging/api-logger';
-import { withPerformanceMonitoring } from '@/lib/middleware/performance-monitor';
 import { getCache } from '@/lib/cache/redis-cache';
 
-// ユーザーID取得ヘルパー
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function getUserId(request: Request): Promise<string | null> {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user?.id || null;
-}
-
 // GET /api/users/[id] - 特定ユーザー取得
-const getUserHandler = async (request: NextRequest, { params }: { params: { id: string } }) => {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const supabase = createClient();
 
@@ -31,8 +19,11 @@ const getUserHandler = async (request: NextRequest, { params }: { params: { id: 
       return ApiResponse.unauthorized();
     }
 
+    // paramsを待機
+    const { id: userId } = await params;
+
     // ユーザー情報取得
-    const { data, error } = await supabase.from('users').select('*').eq('id', params.id).single();
+    const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
 
     if (error || !data) {
       return ApiResponse.notFound('ユーザーが見つかりません');
@@ -45,7 +36,7 @@ const getUserHandler = async (request: NextRequest, { params }: { params: { id: 
       .eq('id', user.id)
       .single();
 
-    if (params.id !== user.id && currentUser?.role !== 'admin') {
+    if (userId !== user.id && currentUser?.role !== 'admin') {
       return ApiResponse.forbidden('このユーザー情報へのアクセス権限がありません');
     }
 
@@ -57,23 +48,13 @@ const getUserHandler = async (request: NextRequest, { params }: { params: { id: 
     console.error('Unexpected error:', error);
     return ApiResponse.internalError('予期しないエラーが発生しました');
   }
-};
-
-// ロギングとパフォーマンスモニタリングを適用
-export const GET = withPerformanceMonitoring(
-  withApiLogging(getUserHandler, {
-    action: 'read',
-    resource: 'user',
-    getResourceId: (_, context) => (context as { params: { id: string } }).params.id,
-    getUserId,
-  }),
-  { name: 'GET /api/users/[id]' }
-);
+}
 
 // PUT /api/users/[id] - ユーザー更新
-const updateUserHandler = async (request: NextRequest, { params }: { params: { id: string } }) => {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const supabase = createClient();
+    const { id: userId } = await params;
 
     // 認証チェック
     const {
@@ -91,15 +72,15 @@ const updateUserHandler = async (request: NextRequest, { params }: { params: { i
       .eq('id', user.id)
       .single();
 
-    if (params.id !== user.id && currentUser?.role !== 'admin') {
-      return ApiResponse.forbidden('このユーザーを更新する権限がありません');
+    if (userId !== user.id && currentUser?.role !== 'admin') {
+      return ApiResponse.forbidden('このユーザー情報を更新する権限がありません');
     }
 
     // リクエストボディをパース
     const body = await request.json();
     const validatedData = UpdateUserSchema.parse(body);
 
-    // ロール変更は管理者のみ可能
+    // roleの変更は管理者のみ
     if (validatedData.role && currentUser?.role !== 'admin') {
       return ApiResponse.forbidden('ロールの変更は管理者のみ可能です');
     }
@@ -111,7 +92,7 @@ const updateUserHandler = async (request: NextRequest, { params }: { params: { i
         ...validatedData,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', params.id)
+      .eq('id', userId)
       .select()
       .single();
 
@@ -126,13 +107,13 @@ const updateUserHandler = async (request: NextRequest, { params }: { params: { i
 
     // メールアドレスが変更された場合、Auth側も更新
     if (validatedData.email) {
-      const { error: updateAuthError } = await supabase.auth.admin.updateUserById(params.id, {
+      const { error: updateAuthError } = await supabase.auth.admin.updateUserById(userId, {
         email: validatedData.email,
       });
 
       if (updateAuthError) {
         // データベースをロールバック
-        await supabase.from('users').update({ email: data.email }).eq('id', params.id);
+        await supabase.from('users').update({ email: data.email }).eq('id', userId);
 
         return ApiResponse.internalError('メールアドレスの更新に失敗しました');
       }
@@ -144,7 +125,7 @@ const updateUserHandler = async (request: NextRequest, { params }: { params: { i
     // キャッシュを無効化
     const cache = getCache();
     await cache.invalidateResource('users');
-    await cache.invalidateUser(params.id);
+    await cache.invalidateUser(userId);
 
     return ApiResponse.success(userResponse);
   } catch (error) {
@@ -155,23 +136,16 @@ const updateUserHandler = async (request: NextRequest, { params }: { params: { i
     console.error('Unexpected error:', error);
     return ApiResponse.internalError('予期しないエラーが発生しました');
   }
-};
-
-// ロギングとパフォーマンスモニタリングを適用
-export const PUT = withPerformanceMonitoring(
-  withApiLogging(updateUserHandler, {
-    action: 'update',
-    resource: 'user',
-    getResourceId: (_, context) => (context as { params: { id: string } }).params.id,
-    getUserId,
-  }),
-  { name: 'PUT /api/users/[id]' }
-);
+}
 
 // DELETE /api/users/[id] - ユーザー削除（論理削除）
-const deleteUserHandler = async (request: NextRequest, { params }: { params: { id: string } }) => {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const supabase = createClient();
+    const { id: userId } = await params;
 
     // 認証チェック（管理者のみ）
     const {
@@ -182,70 +156,38 @@ const deleteUserHandler = async (request: NextRequest, { params }: { params: { i
       return ApiResponse.unauthorized();
     }
 
-    // 管理者権限チェック
     const { data: currentUser } = await supabase
       .from('users')
       .select('role')
       .eq('id', user.id)
       .single();
 
-    if (!currentUser || currentUser.role !== 'admin') {
-      return ApiResponse.forbidden('管理者権限が必要です');
+    if (currentUser?.role !== 'admin') {
+      return ApiResponse.forbidden('ユーザーを削除する権限がありません');
     }
 
-    // 自分自身は削除できない
-    if (params.id === user.id) {
-      return ApiResponse.badRequest('自分自身を削除することはできません');
-    }
-
-    // 論理削除実行
-    const { data, error } = await supabase
+    // 論理削除
+    const { error } = await supabase
       .from('users')
       .update({
         deleted_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
-      .eq('id', params.id)
-      .select()
-      .single();
+      .eq('id', userId);
 
-    if (error || !data) {
-      return ApiResponse.notFound('ユーザーが見つかりません');
-    }
-
-    // Auth側のユーザーも無効化
-    const { error: disableAuthError } = await supabase.auth.admin.updateUserById(
-      params.id,
-      { ban_duration: '876000h' } // 100年間のBAN（事実上の無効化）
-    );
-
-    if (disableAuthError) {
-      console.error('Auth disable error:', disableAuthError);
-      // ロールバック
-      await supabase.from('users').update({ deleted_at: null }).eq('id', params.id);
-
-      return ApiResponse.internalError('ユーザーの無効化に失敗しました');
+    if (error) {
+      console.error('Database error:', error);
+      return ApiResponse.internalError('ユーザーの削除に失敗しました');
     }
 
     // キャッシュを無効化
     const cache = getCache();
     await cache.invalidateResource('users');
-    await cache.invalidateUser(params.id);
+    await cache.invalidateUser(userId);
 
     return ApiResponse.success({ message: 'ユーザーを削除しました' });
   } catch (error) {
     console.error('Unexpected error:', error);
     return ApiResponse.internalError('予期しないエラーが発生しました');
   }
-};
-
-// ロギングとパフォーマンスモニタリングを適用
-export const DELETE = withPerformanceMonitoring(
-  withApiLogging(deleteUserHandler, {
-    action: 'delete',
-    resource: 'user',
-    getResourceId: (_, context) => (context as { params: { id: string } }).params.id,
-    getUserId,
-  }),
-  { name: 'DELETE /api/users/[id]' }
-);
+}

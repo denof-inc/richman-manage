@@ -4,17 +4,11 @@ import { ApiResponse } from '@/lib/api/response';
 import { UpdatePropertySchema, PropertyResponseSchema } from '@/lib/api/schemas/property';
 import { z } from 'zod';
 
-interface RouteContext {
-  params: {
-    id: string;
-  };
-}
-
 // GET /api/properties/[id] - 物件詳細取得
-export async function GET(request: NextRequest, context: RouteContext) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const supabase = createClient();
-    const propertyId = context.params.id;
+    const { id: propertyId } = await params;
 
     // 認証チェック
     const {
@@ -48,10 +42,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
 }
 
 // PUT /api/properties/[id] - 物件更新
-export async function PUT(request: NextRequest, context: RouteContext) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const supabase = createClient();
-    const propertyId = context.params.id;
+    const { id: propertyId } = await params;
 
     // 認証チェック
     const {
@@ -109,10 +103,13 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 }
 
 // DELETE /api/properties/[id] - 物件削除（論理削除）
-export async function DELETE(request: NextRequest, context: RouteContext) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const supabase = createClient();
-    const propertyId = context.params.id;
+    const { id: propertyId } = await params;
 
     // 認証チェック
     const {

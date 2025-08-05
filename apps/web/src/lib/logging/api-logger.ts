@@ -44,7 +44,7 @@ export class ApiLogger {
       activity.resourceId ? `/${activity.resourceId}` : ''
     } - ${activity.statusCode} ${activity.duration}ms`;
 
-    const context = {
+    const context: Record<string, unknown> = {
       requestId: activity.requestId,
       userId: activity.userId,
       action: activity.action,
@@ -84,8 +84,8 @@ export class ApiLogger {
    */
   logAuthEvent(
     event: 'login' | 'logout' | 'signup' | 'password_reset',
-    userId?: string,
     success: boolean,
+    userId?: string,
     error?: string
   ): void {
     const message = `Auth event: ${event} - ${success ? 'success' : 'failed'}`;
@@ -135,7 +135,7 @@ export class ApiLogger {
     }
   ): void {
     const message = `Data ${action}: ${resource}/${resourceId}`;
-    const context = {
+    const context: Record<string, unknown> = {
       action,
       resource,
       resourceId,
@@ -163,7 +163,7 @@ export class ApiLogger {
     }
 
     const sensitiveFields = ['password', 'token', 'secret', 'api_key', 'credit_card'];
-    const sanitized = { ...body };
+    const sanitized = { ...body } as Record<string, unknown>;
 
     for (const field of sensitiveFields) {
       if (field in sanitized) {
@@ -233,7 +233,7 @@ export function withApiLogging<T extends (...args: unknown[]) => Promise<Respons
     const activity: ApiActivityLog = {
       requestId: request.headers.get('x-request-id') || 'unknown',
       timestamp: new Date().toISOString(),
-      userId,
+      userId: userId || undefined,
       action: options.action,
       resource: options.resource,
       resourceId,

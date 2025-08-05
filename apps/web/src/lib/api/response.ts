@@ -57,7 +57,7 @@ export class ApiResponse {
         error: {
           code,
           message,
-          ...(details && { details }),
+          ...(details ? { details } : {}),
         },
       },
       { status }
