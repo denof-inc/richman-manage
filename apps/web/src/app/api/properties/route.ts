@@ -7,9 +7,25 @@ import {
   PropertyResponseSchema,
 } from '@/lib/api/schemas/property';
 import { z } from 'zod';
+import { withCache, getCache } from '@/lib/cache/redis-cache';
+import {
+  extractPaginationParams,
+  applyPagination,
+  calculatePaginationMeta,
+} from '@/lib/api/pagination';
+
+// ユーザーID取得ヘルパー
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function getUserId(request: Request): Promise<string | null> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return user?.id || null;
+}
 
 // GET /api/properties - 物件一覧取得
-export async function GET(request: NextRequest) {
+const getPropertiesHandler = async (request: NextRequest) => {
   try {
     const supabase = createClient();
 
@@ -22,9 +38,15 @@ export async function GET(request: NextRequest) {
       return ApiResponse.unauthorized();
     }
 
-    // クエリパラメータをパース
+    // ページネーションパラメータを抽出
+    const paginationParams = extractPaginationParams(request.nextUrl);
+
+    // その他のクエリパラメータをパース
     const searchParams = Object.fromEntries(request.nextUrl.searchParams);
-    const query = PropertyQuerySchema.parse(searchParams);
+    const query = {
+      ...PropertyQuerySchema.parse(searchParams),
+      ...paginationParams,
+    };
 
     // データベースクエリ構築
     let dbQuery = supabase
@@ -42,13 +64,11 @@ export async function GET(request: NextRequest) {
       dbQuery = dbQuery.eq('property_type', query.property_type);
     }
 
-    // ソート
-    dbQuery = dbQuery.order(query.sort, { ascending: query.order === 'asc' });
+    // ページネーションを適用
+    dbQuery = applyPagination(dbQuery, paginationParams);
 
-    // ページネーション
-    const from = (query.page - 1) * query.limit;
-    const to = from + query.limit - 1;
-    const { data, error, count } = await dbQuery.range(from, to);
+    // クエリ実行
+    const { data, error, count } = await dbQuery;
 
     if (error) {
       console.error('Database error:', error);
@@ -58,7 +78,10 @@ export async function GET(request: NextRequest) {
     // レスポンス形式に変換
     const properties = data?.map((property) => PropertyResponseSchema.parse(property)) || [];
 
-    return ApiResponse.paginated(properties, query.page, query.limit, count || 0);
+    // ページネーションメタデータを計算
+    const meta = calculatePaginationMeta(paginationParams, count || 0);
+
+    return ApiResponse.paginated(properties, meta.page, meta.limit, meta.total);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return ApiResponse.validationError('バリデーションエラー', error.errors);
@@ -66,12 +89,20 @@ export async function GET(request: NextRequest) {
     console.error('Unexpected error:', error);
     return ApiResponse.internalError('予期しないエラーが発生しました');
   }
-}
+};
+
+// キャッシュを適用
+export const GET = withCache(getPropertiesHandler, {
+  resource: 'properties',
+  ttl: 300, // 5分
+  getUserId,
+});
 
 // POST /api/properties - 物件作成
 export async function POST(request: NextRequest) {
   try {
     const supabase = createClient();
+    const cache = getCache();
 
     // 認証チェック
     const {
@@ -108,6 +139,9 @@ export async function POST(request: NextRequest) {
 
     // レスポンス形式に変換
     const propertyResponse = PropertyResponseSchema.parse(newProperty);
+
+    // ユーザー固有のキャッシュを無効化
+    await cache.invalidateResource('properties', user.id);
 
     return ApiResponse.success(propertyResponse, undefined, 201);
   } catch (error) {
