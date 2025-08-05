@@ -3,9 +3,22 @@ import { createClient } from '@/utils/supabase/server';
 import { ApiResponse } from '@/lib/api/response';
 import { UpdateUserSchema, UserResponseSchema } from '@/lib/api/schemas/user';
 import { z } from 'zod';
+import { withApiLogging } from '@/lib/logging/api-logger';
+import { withPerformanceMonitoring } from '@/lib/middleware/performance-monitor';
+import { getCache } from '@/lib/cache/redis-cache';
+
+// ユーザーID取得ヘルパー
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function getUserId(request: Request): Promise<string | null> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return user?.id || null;
+}
 
 // GET /api/users/[id] - 特定ユーザー取得
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+const getUserHandler = async (request: NextRequest, { params }: { params: { id: string } }) => {
   try {
     const supabase = createClient();
 
@@ -44,10 +57,21 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     console.error('Unexpected error:', error);
     return ApiResponse.internalError('予期しないエラーが発生しました');
   }
-}
+};
+
+// ロギングとパフォーマンスモニタリングを適用
+export const GET = withPerformanceMonitoring(
+  withApiLogging(getUserHandler, {
+    action: 'read',
+    resource: 'user',
+    getResourceId: (_, context) => (context as { params: { id: string } }).params.id,
+    getUserId,
+  }),
+  { name: 'GET /api/users/[id]' }
+);
 
 // PUT /api/users/[id] - ユーザー更新
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+const updateUserHandler = async (request: NextRequest, { params }: { params: { id: string } }) => {
   try {
     const supabase = createClient();
 
@@ -117,6 +141,11 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     // レスポンス形式に変換
     const userResponse = UserResponseSchema.parse(data);
 
+    // キャッシュを無効化
+    const cache = getCache();
+    await cache.invalidateResource('users');
+    await cache.invalidateUser(params.id);
+
     return ApiResponse.success(userResponse);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -126,10 +155,21 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     console.error('Unexpected error:', error);
     return ApiResponse.internalError('予期しないエラーが発生しました');
   }
-}
+};
+
+// ロギングとパフォーマンスモニタリングを適用
+export const PUT = withPerformanceMonitoring(
+  withApiLogging(updateUserHandler, {
+    action: 'update',
+    resource: 'user',
+    getResourceId: (_, context) => (context as { params: { id: string } }).params.id,
+    getUserId,
+  }),
+  { name: 'PUT /api/users/[id]' }
+);
 
 // DELETE /api/users/[id] - ユーザー削除（論理削除）
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+const deleteUserHandler = async (request: NextRequest, { params }: { params: { id: string } }) => {
   try {
     const supabase = createClient();
 
@@ -187,9 +227,25 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return ApiResponse.internalError('ユーザーの無効化に失敗しました');
     }
 
+    // キャッシュを無効化
+    const cache = getCache();
+    await cache.invalidateResource('users');
+    await cache.invalidateUser(params.id);
+
     return ApiResponse.success({ message: 'ユーザーを削除しました' });
   } catch (error) {
     console.error('Unexpected error:', error);
     return ApiResponse.internalError('予期しないエラーが発生しました');
   }
-}
+};
+
+// ロギングとパフォーマンスモニタリングを適用
+export const DELETE = withPerformanceMonitoring(
+  withApiLogging(deleteUserHandler, {
+    action: 'delete',
+    resource: 'user',
+    getResourceId: (_, context) => (context as { params: { id: string } }).params.id,
+    getUserId,
+  }),
+  { name: 'DELETE /api/users/[id]' }
+);
