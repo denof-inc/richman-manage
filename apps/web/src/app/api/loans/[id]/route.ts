@@ -4,104 +4,180 @@ import { ApiResponse } from '@/lib/api/response';
 import { UpdateLoanSchema, LoanResponseSchema } from '@/lib/api/schemas/loan';
 import { z } from 'zod';
 
+// パフォーマンス監視ユーティリティ（Edge Runtime対応）
+const withPerformanceMonitoring = async <T>(
+  operation: () => Promise<T>,
+  operationName: string
+): Promise<T> => {
+  const startTime = performance.now();
+
+  try {
+    const result = await operation();
+    const endTime = performance.now();
+    const duration = endTime - startTime;
+
+    console.log(
+      JSON.stringify({
+        timestamp: new Date().toISOString(),
+        operation: operationName,
+        duration: Math.round(duration * 100) / 100,
+        status: 'success',
+      })
+    );
+
+    return result;
+  } catch (error) {
+    const endTime = performance.now();
+    const duration = endTime - startTime;
+
+    console.error(
+      JSON.stringify({
+        timestamp: new Date().toISOString(),
+        operation: operationName,
+        duration: Math.round(duration * 100) / 100,
+        status: 'error',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      })
+    );
+
+    throw error;
+  }
+};
+
+// 統一エラーハンドリング（Edge Runtime対応）
+const handleApiError = (error: unknown, context: string) => {
+  const errorInfo = {
+    timestamp: new Date().toISOString(),
+    context,
+    error: error instanceof Error ? error.message : 'Unknown error',
+    stack: error instanceof Error ? error.stack : undefined,
+  };
+
+  console.error('API Error:', JSON.stringify(errorInfo));
+
+  if (error instanceof z.ZodError) {
+    const messages = error.errors.map((e) => e.message).join(', ');
+    return ApiResponse.validationError(messages, error.errors);
+  }
+
+  if (error && typeof error === 'object' && 'code' in error) {
+    const supabaseError = error as { code: string; message: string };
+    if (supabaseError.code === 'PGRST116') {
+      return ApiResponse.notFound('リソースが見つかりません');
+    }
+    return ApiResponse.badRequest(supabaseError.message);
+  }
+
+  return ApiResponse.internalError('予期しないエラーが発生しました');
+};
+
 // GET /api/loans/[id] - 借入詳細取得
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const supabase = createClient();
-    const { id: loanId } = await params;
+  return withPerformanceMonitoring(async () => {
+    try {
+      const supabase = createClient();
+      const { id: loanId } = await params;
 
-    // 認証チェック
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return ApiResponse.unauthorized();
+      // 認証チェック
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+      if (authError || !user) {
+        return ApiResponse.unauthorized();
+      }
+
+      // 借入取得（物件の所有者チェック込み）
+      const { data: loan, error } = await withPerformanceMonitoring(
+        () =>
+          supabase
+            .from('loans')
+            .select('*, property:properties!inner(user_id)')
+            .eq('id', loanId)
+            .eq('property.user_id', user.id)
+            .single(),
+        'loans.database.getById'
+      );
+
+      if (error || !loan) {
+        return ApiResponse.notFound('借入が見つかりません');
+      }
+
+      // レスポンス形式に変換（property情報を除外）
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { property, ...loanData } = loan;
+      const loanResponse = LoanResponseSchema.parse(loanData);
+
+      return ApiResponse.success(loanResponse);
+    } catch (error) {
+      return handleApiError(error, `GET /api/loans/${await params.then((p) => p.id)}`);
     }
-
-    // 借入取得（物件の所有者チェック込み）
-    const { data: loan, error } = await supabase
-      .from('loans')
-      .select('*, property:properties!inner(user_id)')
-      .eq('id', loanId)
-      .eq('property.user_id', user.id)
-      .single();
-
-    if (error || !loan) {
-      return ApiResponse.notFound('借入が見つかりません');
-    }
-
-    // レスポンス形式に変換（property情報を除外）
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { property, ...loanData } = loan;
-    const loanResponse = LoanResponseSchema.parse(loanData);
-
-    return ApiResponse.success(loanResponse);
-  } catch (error) {
-    console.error('Unexpected error:', error);
-    return ApiResponse.internalError('予期しないエラーが発生しました');
-  }
+  }, 'GET /api/loans/[id]');
 }
 
 // PUT /api/loans/[id] - 借入更新
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const supabase = createClient();
-    const { id: loanId } = await params;
+  return withPerformanceMonitoring(async () => {
+    try {
+      const supabase = createClient();
+      const { id: loanId } = await params;
 
-    // 認証チェック
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return ApiResponse.unauthorized();
+      // 認証チェック
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+      if (authError || !user) {
+        return ApiResponse.unauthorized();
+      }
+
+      // 既存借入の確認（物件の所有者チェック込み）
+      const { data: existingLoan, error: fetchError } = await withPerformanceMonitoring(
+        () =>
+          supabase
+            .from('loans')
+            .select('*, property:properties!inner(user_id)')
+            .eq('id', loanId)
+            .eq('property.user_id', user.id)
+            .single(),
+        'loans.database.checkExisting'
+      );
+
+      if (fetchError || !existingLoan) {
+        return ApiResponse.notFound('借入が見つかりません');
+      }
+
+      // リクエストボディをパース
+      const body = await request.json();
+      const validatedData = UpdateLoanSchema.parse(body);
+
+      // 借入を更新
+      const { data: updatedLoan, error: updateError } = await withPerformanceMonitoring(
+        () =>
+          supabase
+            .from('loans')
+            .update({
+              ...validatedData,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', loanId)
+            .select()
+            .single(),
+        'loans.database.update'
+      );
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      // レスポンス形式に変換
+      const loanResponse = LoanResponseSchema.parse(updatedLoan);
+
+      return ApiResponse.success(loanResponse);
+    } catch (error) {
+      return handleApiError(error, `PUT /api/loans/${await params.then((p) => p.id)}`);
     }
-
-    // 既存借入の確認（物件の所有者チェック込み）
-    const { data: existingLoan, error: fetchError } = await supabase
-      .from('loans')
-      .select('*, property:properties!inner(user_id)')
-      .eq('id', loanId)
-      .eq('property.user_id', user.id)
-      .single();
-
-    if (fetchError || !existingLoan) {
-      return ApiResponse.notFound('借入が見つかりません');
-    }
-
-    // リクエストボディをパース
-    const body = await request.json();
-    const validatedData = UpdateLoanSchema.parse(body);
-
-    // 借入を更新
-    const { data: updatedLoan, error: updateError } = await supabase
-      .from('loans')
-      .update({
-        ...validatedData,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', loanId)
-      .select()
-      .single();
-
-    if (updateError) {
-      console.error('Update error:', updateError);
-      return ApiResponse.internalError('借入の更新に失敗しました');
-    }
-
-    // レスポンス形式に変換
-    const loanResponse = LoanResponseSchema.parse(updatedLoan);
-
-    return ApiResponse.success(loanResponse);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      const messages = error.errors.map((e) => e.message).join(', ');
-      return ApiResponse.validationError(messages, error.errors);
-    }
-    console.error('Unexpected error:', error);
-    return ApiResponse.internalError('予期しないエラーが発生しました');
-  }
+  }, 'PUT /api/loans/[id]');
 }
 
 // DELETE /api/loans/[id] - 借入削除（論理削除）
@@ -109,45 +185,50 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const supabase = createClient();
-    const { id: loanId } = await params;
+  return withPerformanceMonitoring(async () => {
+    try {
+      const supabase = createClient();
+      const { id: loanId } = await params;
 
-    // 認証チェック
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return ApiResponse.unauthorized();
+      // 認証チェック
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+      if (authError || !user) {
+        return ApiResponse.unauthorized();
+      }
+
+      // 既存借入の確認（物件の所有者チェック込み）
+      const { data: existingLoan, error: fetchError } = await withPerformanceMonitoring(
+        () =>
+          supabase
+            .from('loans')
+            .select('*, property:properties!inner(user_id)')
+            .eq('id', loanId)
+            .eq('property.user_id', user.id)
+            .single(),
+        'loans.database.checkExisting'
+      );
+
+      if (fetchError || !existingLoan) {
+        return ApiResponse.notFound('借入が見つかりません');
+      }
+
+      // 論理削除
+      const { error: deleteError } = await withPerformanceMonitoring(
+        () =>
+          supabase.from('loans').update({ deleted_at: new Date().toISOString() }).eq('id', loanId),
+        'loans.database.delete'
+      );
+
+      if (deleteError) {
+        throw deleteError;
+      }
+
+      return ApiResponse.success({ message: '借入を削除しました' });
+    } catch (error) {
+      return handleApiError(error, `DELETE /api/loans/${await params.then((p) => p.id)}`);
     }
-
-    // 既存借入の確認（物件の所有者チェック込み）
-    const { data: existingLoan, error: fetchError } = await supabase
-      .from('loans')
-      .select('*, property:properties!inner(user_id)')
-      .eq('id', loanId)
-      .eq('property.user_id', user.id)
-      .single();
-
-    if (fetchError || !existingLoan) {
-      return ApiResponse.notFound('借入が見つかりません');
-    }
-
-    // 論理削除
-    const { error: deleteError } = await supabase
-      .from('loans')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', loanId);
-
-    if (deleteError) {
-      console.error('Delete error:', deleteError);
-      return ApiResponse.internalError('借入の削除に失敗しました');
-    }
-
-    return ApiResponse.success({ message: '借入を削除しました' });
-  } catch (error) {
-    console.error('Unexpected error:', error);
-    return ApiResponse.internalError('予期しないエラーが発生しました');
-  }
+  }, 'DELETE /api/loans/[id]');
 }
