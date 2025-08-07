@@ -5,6 +5,17 @@ import { UpdateLoanSchema, LoanResponseSchema } from '@/lib/api/schemas/loan';
 import { z } from 'zod';
 
 // パフォーマンス監視ユーティリティ（Edge Runtime対応）
+// エラーメッセージのサニタイズ
+const sanitizeErrorMessage = (message: string): string => {
+  // パスワードやトークンなどの機密情報を除去
+  return message
+    .replace(/password[=:][\S]+/gi, 'password=***')
+    .replace(/token[=:][\S]+/gi, 'token=***')
+    .replace(/secret[=:][\S]+/gi, 'secret=***')
+    .replace(/postgresql:\/\/[^@]+@/gi, 'postgresql://***@')
+    .replace(/mysql:\/\/[^@]+@/gi, 'mysql://***@')
+    .replace(/mongodb:\/\/[^@]+@/gi, 'mongodb://***@');
+};
 const withPerformanceMonitoring = async <T>(
   operation: () => Promise<T>,
   operationName: string
@@ -65,7 +76,7 @@ const handleApiError = (error: unknown, context: string) => {
     if (supabaseError.code === 'PGRST116') {
       return ApiResponse.notFound('リソースが見つかりません');
     }
-    return ApiResponse.badRequest(supabaseError.message);
+    return ApiResponse.badRequest(sanitizeErrorMessage(supabaseError.message));
   }
 
   return ApiResponse.internalError('予期しないエラーが発生しました');
@@ -89,8 +100,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
       // 借入取得（物件の所有者チェック込み）
       const { data: loan, error } = await withPerformanceMonitoring(
-        () =>
-          supabase
+        async () =>
+          await supabase
             .from('loans')
             .select('*, property:properties!inner(user_id)')
             .eq('id', loanId)
@@ -133,8 +144,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
       // 既存借入の確認（物件の所有者チェック込み）
       const { data: existingLoan, error: fetchError } = await withPerformanceMonitoring(
-        () =>
-          supabase
+        async () =>
+          await supabase
             .from('loans')
             .select('*, property:properties!inner(user_id)')
             .eq('id', loanId)
@@ -153,8 +164,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
       // 借入を更新
       const { data: updatedLoan, error: updateError } = await withPerformanceMonitoring(
-        () =>
-          supabase
+        async () =>
+          await supabase
             .from('loans')
             .update({
               ...validatedData,
@@ -201,8 +212,8 @@ export async function DELETE(
 
       // 既存借入の確認（物件の所有者チェック込み）
       const { data: existingLoan, error: fetchError } = await withPerformanceMonitoring(
-        () =>
-          supabase
+        async () =>
+          await supabase
             .from('loans')
             .select('*, property:properties!inner(user_id)')
             .eq('id', loanId)
@@ -217,8 +228,11 @@ export async function DELETE(
 
       // 論理削除
       const { error: deleteError } = await withPerformanceMonitoring(
-        () =>
-          supabase.from('loans').update({ deleted_at: new Date().toISOString() }).eq('id', loanId),
+        async () =>
+          await supabase
+            .from('loans')
+            .update({ deleted_at: new Date().toISOString() })
+            .eq('id', loanId),
         'loans.database.delete'
       );
 

@@ -5,6 +5,17 @@ import { UpdateRentRollSchema, RentRollResponseSchema } from '@/lib/api/schemas/
 import { z } from 'zod';
 
 // パフォーマンス監視ユーティリティ（Edge Runtime対応）
+// エラーメッセージのサニタイズ
+const sanitizeErrorMessage = (message: string): string => {
+  // パスワードやトークンなどの機密情報を除去
+  return message
+    .replace(/password[=:][\S]+/gi, 'password=***')
+    .replace(/token[=:][\S]+/gi, 'token=***')
+    .replace(/secret[=:][\S]+/gi, 'secret=***')
+    .replace(/postgresql:\/\/[^@]+@/gi, 'postgresql://***@')
+    .replace(/mysql:\/\/[^@]+@/gi, 'mysql://***@')
+    .replace(/mongodb:\/\/[^@]+@/gi, 'mongodb://***@');
+};
 const withPerformanceMonitoring = async <T>(
   operation: () => Promise<T>,
   operationName: string
@@ -65,7 +76,7 @@ const handleApiError = (error: unknown, context: string) => {
     if (supabaseError.code === 'PGRST116') {
       return ApiResponse.notFound('リソースが見つかりません');
     }
-    return ApiResponse.badRequest(supabaseError.message);
+    return ApiResponse.badRequest(sanitizeErrorMessage(supabaseError.message));
   }
 
   return ApiResponse.internalError('予期しないエラーが発生しました');
@@ -89,8 +100,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
       // レントロール取得（物件の所有者チェック込み）
       const { data: rentRoll, error } = await withPerformanceMonitoring(
-        () =>
-          supabase
+        async () =>
+          await supabase
             .from('rent_rolls')
             .select('*, property:properties!inner(user_id)')
             .eq('id', rentRollId)
@@ -133,8 +144,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
       // 既存レントロールの確認（物件の所有者チェック込み）
       const { data: existingRentRoll, error: fetchError } = await withPerformanceMonitoring(
-        () =>
-          supabase
+        async () =>
+          await supabase
             .from('rent_rolls')
             .select('*, property:properties!inner(user_id)')
             .eq('id', rentRollId)
@@ -161,8 +172,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
       // レントロールを更新
       const { data: updatedRentRoll, error: updateError } = await withPerformanceMonitoring(
-        () =>
-          supabase
+        async () =>
+          await supabase
             .from('rent_rolls')
             .update({
               ...updateData,
@@ -209,8 +220,8 @@ export async function DELETE(
 
       // 既存レントロールの確認（物件の所有者チェック込み）
       const { data: existingRentRoll, error: fetchError } = await withPerformanceMonitoring(
-        () =>
-          supabase
+        async () =>
+          await supabase
             .from('rent_rolls')
             .select('*, property:properties!inner(user_id)')
             .eq('id', rentRollId)
@@ -225,8 +236,8 @@ export async function DELETE(
 
       // 論理削除
       const { error: deleteError } = await withPerformanceMonitoring(
-        () =>
-          supabase
+        async () =>
+          await supabase
             .from('rent_rolls')
             .update({ deleted_at: new Date().toISOString() })
             .eq('id', rentRollId),

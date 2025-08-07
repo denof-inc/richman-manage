@@ -50,12 +50,24 @@ const withPerformanceMonitoring = async <T>(
   }
 };
 
+// エラーメッセージのサニタイズ
+const sanitizeErrorMessage = (message: string): string => {
+  // パスワードやトークンなどの機密情報を除去
+  return message
+    .replace(/password[=:][\S]+/gi, 'password=***')
+    .replace(/token[=:][\S]+/gi, 'token=***')
+    .replace(/secret[=:][\S]+/gi, 'secret=***')
+    .replace(/postgresql:\/\/[^@]+@/gi, 'postgresql://***@')
+    .replace(/mysql:\/\/[^@]+@/gi, 'mysql://***@')
+    .replace(/mongodb:\/\/[^@]+@/gi, 'mongodb://***@');
+};
+
 // 統一エラーハンドリング（Edge Runtime対応）
 const handleApiError = (error: unknown, context: string) => {
   const errorInfo = {
     timestamp: new Date().toISOString(),
     context,
-    error: error instanceof Error ? error.message : 'Unknown error',
+    error: error instanceof Error ? sanitizeErrorMessage(error.message) : 'Unknown error',
     stack: error instanceof Error ? error.stack : undefined,
   };
 
@@ -71,7 +83,7 @@ const handleApiError = (error: unknown, context: string) => {
     if (supabaseError.code === 'PGRST116') {
       return ApiResponse.notFound('リソースが見つかりません');
     }
-    return ApiResponse.badRequest(supabaseError.message);
+    return ApiResponse.badRequest(sanitizeErrorMessage(supabaseError.message));
   }
 
   return ApiResponse.internalError('予期しないエラーが発生しました');
@@ -131,7 +143,7 @@ export async function GET(request: NextRequest) {
 
       // クエリ実行（パフォーマンス監視付き）
       const { data, error, count } = await withPerformanceMonitoring(
-        () => dbQuery.range(from, to),
+        async () => await dbQuery.range(from, to),
         'properties.database.query'
       );
 
@@ -174,8 +186,8 @@ export async function POST(request: NextRequest) {
 
       // データベースに物件情報を保存
       const { data: newProperty, error: dbError } = await withPerformanceMonitoring(
-        () =>
-          supabase
+        async () =>
+          await supabase
             .from('properties')
             .insert({
               user_id: user.id,

@@ -89,6 +89,10 @@ describe('Expenses API - GET /api/expenses', () => {
     (createClient as jest.Mock).mockReturnValue(mockSupabaseClient);
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('GET - 支出一覧取得', () => {
     it('認証済みユーザーが自分の物件の支出を取得できる', async () => {
       // モックデータ
@@ -394,6 +398,7 @@ describe('Expenses API - GET /api/expenses', () => {
         error: null,
       });
 
+      // バリデーションエラーは物件チェック前に発生するため、物件クエリは呼ばれない
       // リクエストを作成
       const request = new NextRequest('http://localhost:3000/api/expenses', {
         method: 'POST',

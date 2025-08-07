@@ -114,7 +114,7 @@ describe('Loan API - /api/loans/[id]', () => {
       const request = new NextRequest(
         'http://localhost:3000/api/loans/550e8400-e29b-41d4-a716-446655440201'
       );
-      const context = { params: { id: '550e8400-e29b-41d4-a716-446655440201' } };
+      const context = { params: Promise.resolve({ id: '550e8400-e29b-41d4-a716-446655440201' }) };
 
       // APIを呼び出し
       const response = await GET(request, context);
@@ -152,7 +152,7 @@ describe('Loan API - /api/loans/[id]', () => {
 
       // リクエストを作成
       const request = new NextRequest('http://localhost:3000/api/loans/non-existent-id');
-      const context = { params: { id: 'non-existent-id' } };
+      const context = { params: Promise.resolve({ id: '550e8400-e29b-41d4-a716-446655440201' }) };
 
       // APIを呼び出し
       const response = await GET(request, context);
@@ -217,7 +217,7 @@ describe('Loan API - /api/loans/[id]', () => {
           headers: { 'Content-Type': 'application/json' },
         }
       );
-      const context = { params: { id: '550e8400-e29b-41d4-a716-446655440201' } };
+      const context = { params: Promise.resolve({ id: '550e8400-e29b-41d4-a716-446655440201' }) };
 
       // APIを呼び出し
       const response = await PUT(request, context);
@@ -258,7 +258,7 @@ describe('Loan API - /api/loans/[id]', () => {
           headers: { 'Content-Type': 'application/json' },
         }
       );
-      const context = { params: { id: '550e8400-e29b-41d4-a716-446655440201' } };
+      const context = { params: Promise.resolve({ id: '550e8400-e29b-41d4-a716-446655440201' }) };
 
       // APIを呼び出し
       const response = await PUT(request, context);
@@ -305,7 +305,7 @@ describe('Loan API - /api/loans/[id]', () => {
           method: 'DELETE',
         }
       );
-      const context = { params: { id: '550e8400-e29b-41d4-a716-446655440201' } };
+      const context = { params: Promise.resolve({ id: '550e8400-e29b-41d4-a716-446655440201' }) };
 
       // APIを呼び出し
       const response = await DELETE(request, context);
@@ -342,7 +342,7 @@ describe('Loan API - /api/loans/[id]', () => {
           method: 'DELETE',
         }
       );
-      const context = { params: { id: '550e8400-e29b-41d4-a716-446655440201' } };
+      const context = { params: Promise.resolve({ id: '550e8400-e29b-41d4-a716-446655440201' }) };
 
       // APIを呼び出し
       const response = await DELETE(request, context);

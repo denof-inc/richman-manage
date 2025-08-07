@@ -86,6 +86,10 @@ describe('Properties API - GET /api/properties', () => {
     (createClient as jest.Mock).mockReturnValue(mockSupabaseClient);
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('GET - 物件一覧取得', () => {
     it('認証済みユーザーが自分の物件一覧を取得できる', async () => {
       // モックデータ

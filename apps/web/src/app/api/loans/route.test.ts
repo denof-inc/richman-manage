@@ -86,6 +86,10 @@ describe('Loans API - GET /api/loans', () => {
     (createClient as jest.Mock).mockReturnValue(mockSupabaseClient);
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('GET - 借入一覧取得', () => {
     it('認証済みユーザーが自分の物件に紐づく借入一覧を取得できる', async () => {
       // モックデータ

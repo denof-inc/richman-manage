@@ -50,12 +50,24 @@ const withPerformanceMonitoring = async <T>(
   }
 };
 
+// エラーメッセージのサニタイズ
+const sanitizeErrorMessage = (message: string): string => {
+  // パスワードやトークンなどの機密情報を除去
+  return message
+    .replace(/password[=:][\S]+/gi, 'password=***')
+    .replace(/token[=:][\S]+/gi, 'token=***')
+    .replace(/secret[=:][\S]+/gi, 'secret=***')
+    .replace(/postgresql:\/\/[^@]+@/gi, 'postgresql://***@')
+    .replace(/mysql:\/\/[^@]+@/gi, 'mysql://***@')
+    .replace(/mongodb:\/\/[^@]+@/gi, 'mongodb://***@');
+};
+
 // 統一エラーハンドリング（Edge Runtime対応）
 const handleApiError = (error: unknown, context: string) => {
   const errorInfo = {
     timestamp: new Date().toISOString(),
     context,
-    error: error instanceof Error ? error.message : 'Unknown error',
+    error: error instanceof Error ? sanitizeErrorMessage(error.message) : 'Unknown error',
     stack: error instanceof Error ? error.stack : undefined,
   };
 
@@ -71,7 +83,7 @@ const handleApiError = (error: unknown, context: string) => {
     if (supabaseError.code === 'PGRST116') {
       return ApiResponse.notFound('リソースが見つかりません');
     }
-    return ApiResponse.badRequest(supabaseError.message);
+    return ApiResponse.badRequest(sanitizeErrorMessage(supabaseError.message));
   }
 
   return ApiResponse.internalError('予期しないエラーが発生しました');
@@ -148,7 +160,7 @@ export async function GET(request: NextRequest) {
 
       // クエリ実行（パフォーマンス監視付き）
       const { data, error, count } = await withPerformanceMonitoring(
-        () => dbQuery.range(from, to),
+        async () => await dbQuery.range(from, to),
         'rent-rolls.database.query'
       );
 
@@ -192,28 +204,32 @@ export async function POST(request: NextRequest) {
 
       // リクエストボディをパース
       const body = await request.json();
+
+      // バリデーション
       const validatedData = CreateRentRollSchema.parse(body);
 
-      // 物件の所有権確認
-      const { data: property, error: propertyError } = await withPerformanceMonitoring(
-        () =>
-          supabase
-            .from('properties')
-            .select('id')
-            .eq('id', validatedData.property_id)
-            .eq('user_id', user.id)
-            .single(),
-        'rent-rolls.check.property_ownership'
-      );
+      // property_idが指定されている場合は所有権を確認
+      if (validatedData.property_id) {
+        const { data: property, error: propertyError } = await withPerformanceMonitoring(
+          async () =>
+            await supabase
+              .from('properties')
+              .select('id')
+              .eq('id', validatedData.property_id)
+              .eq('user_id', user.id)
+              .single(),
+          'rent-rolls.check.property_ownership'
+        );
 
-      if (propertyError || !property) {
-        return ApiResponse.forbidden('この物件に対するレントロールを作成する権限がありません');
+        if (propertyError || !property) {
+          return ApiResponse.forbidden('この物件に対するレントロールを作成する権限がありません');
+        }
       }
 
       // 同じ物件内での部屋番号の重複チェック
       const { data: existingRoom, error: duplicateError } = await withPerformanceMonitoring(
-        () =>
-          supabase
+        async () =>
+          await supabase
             .from('rent_rolls')
             .select('id')
             .eq('property_id', validatedData.property_id)
@@ -228,8 +244,8 @@ export async function POST(request: NextRequest) {
 
       // データベースにレントロール情報を保存
       const { data: newRentRoll, error: dbError } = await withPerformanceMonitoring(
-        () =>
-          supabase
+        async () =>
+          await supabase
             .from('rent_rolls')
             .insert({
               property_id: validatedData.property_id,

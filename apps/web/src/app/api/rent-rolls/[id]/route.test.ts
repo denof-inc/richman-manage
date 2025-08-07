@@ -116,7 +116,7 @@ describe('RentRoll API - /api/rent-rolls/[id]', () => {
       const request = new NextRequest(
         'http://localhost:3000/api/rent-rolls/550e8400-e29b-41d4-a716-446655440301'
       );
-      const context = { params: { id: '550e8400-e29b-41d4-a716-446655440301' } };
+      const context = { params: Promise.resolve({ id: '550e8400-e29b-41d4-a716-446655440301' }) };
 
       // APIを呼び出し
       const response = await GET(request, context);
@@ -154,7 +154,7 @@ describe('RentRoll API - /api/rent-rolls/[id]', () => {
 
       // リクエストを作成
       const request = new NextRequest('http://localhost:3000/api/rent-rolls/non-existent-id');
-      const context = { params: { id: 'non-existent-id' } };
+      const context = { params: Promise.resolve({ id: '550e8400-e29b-41d4-a716-446655440301' }) };
 
       // APIを呼び出し
       const response = await GET(request, context);
@@ -220,7 +220,7 @@ describe('RentRoll API - /api/rent-rolls/[id]', () => {
           headers: { 'Content-Type': 'application/json' },
         }
       );
-      const context = { params: { id: '550e8400-e29b-41d4-a716-446655440301' } };
+      const context = { params: Promise.resolve({ id: '550e8400-e29b-41d4-a716-446655440301' }) };
 
       // APIを呼び出し
       const response = await PUT(request, context);
@@ -285,7 +285,7 @@ describe('RentRoll API - /api/rent-rolls/[id]', () => {
           headers: { 'Content-Type': 'application/json' },
         }
       );
-      const context = { params: { id: '550e8400-e29b-41d4-a716-446655440301' } };
+      const context = { params: Promise.resolve({ id: '550e8400-e29b-41d4-a716-446655440301' }) };
 
       // APIを呼び出し
       const response = await PUT(request, context);
@@ -332,7 +332,7 @@ describe('RentRoll API - /api/rent-rolls/[id]', () => {
           headers: { 'Content-Type': 'application/json' },
         }
       );
-      const context = { params: { id: '550e8400-e29b-41d4-a716-446655440301' } };
+      const context = { params: Promise.resolve({ id: '550e8400-e29b-41d4-a716-446655440301' }) };
 
       // APIを呼び出し
       const response = await PUT(request, context);
@@ -379,7 +379,7 @@ describe('RentRoll API - /api/rent-rolls/[id]', () => {
           method: 'DELETE',
         }
       );
-      const context = { params: { id: '550e8400-e29b-41d4-a716-446655440301' } };
+      const context = { params: Promise.resolve({ id: '550e8400-e29b-41d4-a716-446655440301' }) };
 
       // APIを呼び出し
       const response = await DELETE(request, context);
@@ -416,7 +416,7 @@ describe('RentRoll API - /api/rent-rolls/[id]', () => {
           method: 'DELETE',
         }
       );
-      const context = { params: { id: '550e8400-e29b-41d4-a716-446655440301' } };
+      const context = { params: Promise.resolve({ id: '550e8400-e29b-41d4-a716-446655440301' }) };
 
       // APIを呼び出し
       const response = await DELETE(request, context);

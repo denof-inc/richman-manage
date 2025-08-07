@@ -90,6 +90,10 @@ describe('Users API - GET /api/users', () => {
     (createClient as jest.Mock).mockReturnValue(mockSupabaseClient);
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('GET - ユーザー一覧取得', () => {
     it('認証済みユーザーがユーザー一覧を取得できる', async () => {
       // モックデータ

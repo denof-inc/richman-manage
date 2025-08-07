@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { performanceMonitor } from '@/lib/middleware/performance-monitor';
 import { cacheMiddleware } from '@/lib/middleware/cache-middleware';
+import { rateLimiter } from '@/lib/security/rate-limiter';
 
 // APIルートのパスパターン
 const API_PATHS = ['/api/'];
@@ -29,6 +30,20 @@ export async function middleware(request: NextRequest) {
 
   // APIルートの場合
   if (API_PATHS.some((path) => pathname.startsWith(path))) {
+    // レート制限チェック
+    const clientIP =
+      request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+
+    if (!rateLimiter.isAllowed(clientIP)) {
+      return new NextResponse('Too Many Requests', {
+        status: 429,
+        headers: {
+          'Retry-After': '3600', // 1時間後に再試行
+          'X-RateLimit-Remaining': '0',
+        },
+      });
+    }
+
     // パフォーマンスモニタリングを適用
     const monitoringConfig = {
       enabled: process.env.ENABLE_MONITORING === 'true',
@@ -56,6 +71,12 @@ export async function middleware(request: NextRequest) {
     // パフォーマンスモニタリングを実行
     const performanceMiddleware = performanceMonitor(monitoringConfig);
     const response = await performanceMiddleware(request, event);
+
+    // レート制限ヘッダーを追加
+    response.headers.set(
+      'X-RateLimit-Remaining',
+      rateLimiter.getRemainingRequests(clientIP).toString()
+    );
 
     // キャッシュミドルウェアを実行（GETリクエストのみ）
     if (request.method === 'GET' && process.env.ENABLE_CACHE === 'true') {

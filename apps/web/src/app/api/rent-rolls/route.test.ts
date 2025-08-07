@@ -93,6 +93,10 @@ describe('RentRolls API - GET /api/rent-rolls', () => {
     (createClient as jest.Mock).mockReturnValue(mockSupabaseClient);
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('GET - レントロール一覧取得', () => {
     it('認証済みユーザーが自分の物件のレントロールを取得できる', async () => {
       // モックデータ

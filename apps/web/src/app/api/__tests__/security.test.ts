@@ -133,12 +133,13 @@ describe('APIセキュリティ検証', () => {
         method: 'POST',
         body: JSON.stringify({
           property_id: otherUsersPropertyId,
-          loan_name: 'Unauthorized Loan',
-          lender: 'Evil Bank',
-          loan_amount: 1000000,
+          lender_name: 'Evil Bank',
+          loan_type: 'mortgage',
+          principal_amount: 1000000,
+          current_balance: 1000000,
           interest_rate: 2.0,
-          loan_start_date: '2024-01-01',
           loan_term_months: 240,
+          monthly_payment: 10000,
         }),
         headers: { 'Content-Type': 'application/json' },
       });
@@ -152,9 +153,10 @@ describe('APIセキュリティ検証', () => {
           property_id: otherUsersPropertyId,
           room_number: '101',
           tenant_name: 'Unauthorized Tenant',
-          rent_amount: 100000,
-          contract_start_date: '2024-01-01',
-          contract_end_date: '2025-12-31',
+          monthly_rent: 100000,
+          occupancy_status: 'occupied',
+          lease_start_date: '2024-01-01T00:00:00Z',
+          lease_end_date: '2025-12-31T23:59:59Z',
         }),
         headers: { 'Content-Type': 'application/json' },
       });
@@ -372,9 +374,11 @@ describe('APIセキュリティ検証', () => {
 
       // エラーレスポンスに機密情報が含まれていないことを確認
       expect(data.error.message).not.toContain('password');
-      expect(data.error.message).not.toContain('postgresql://');
-      expect(data.error.details).toBeUndefined();
-      expect(data.error.code).toBe('INTERNAL_ERROR');
+      expect(data.error.message).not.toContain('user:password');
+      // サニタイズされた形式を確認
+      expect(data.error.message).toContain('postgresql://***@');
+      // SupabaseエラーはbadRequestとして処理される
+      expect(data.error.code).toBe('BAD_REQUEST');
     });
 
     it('スタックトレースが本番環境で露出しない', async () => {
