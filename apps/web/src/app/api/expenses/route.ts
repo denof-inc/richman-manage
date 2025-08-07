@@ -1,7 +1,11 @@
 import { NextRequest } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { ApiResponse } from '@/lib/api/response';
-import { CreateLoanSchema, LoanQuerySchema, LoanResponseSchema } from '@/lib/api/schemas/loan';
+import {
+  CreateExpenseSchema,
+  ExpenseQuerySchema,
+  ExpenseResponseSchema,
+} from '@/lib/api/schemas/expense';
 import { z } from 'zod';
 import { getCache } from '@/lib/cache/redis-cache';
 import { extractPaginationParams, calculatePaginationMeta } from '@/lib/api/pagination';
@@ -85,7 +89,7 @@ const handleApiError = (error: unknown, context: string) => {
   return ApiResponse.internalError('予期しないエラーが発生しました');
 };
 
-// GET /api/loans - 借入一覧取得
+// GET /api/expenses - 支出一覧取得
 export async function GET(request: NextRequest) {
   return withPerformanceMonitoring(async () => {
     try {
@@ -106,29 +110,50 @@ export async function GET(request: NextRequest) {
       // その他のクエリパラメータをパース
       const searchParams = Object.fromEntries(request.nextUrl.searchParams);
       const query = {
-        ...LoanQuerySchema.parse(searchParams),
+        ...ExpenseQuerySchema.parse(searchParams),
         ...paginationParams,
       };
 
-      // データベースクエリ構築（物件情報と結合してユーザーの借入のみ取得）
+      // データベースクエリ構築（物件情報と結合してユーザーの支出のみ取得）
       let dbQuery = supabase
-        .from('loans')
+        .from('expenses')
         .select('*, property:properties!inner(id, user_id, name)', { count: 'exact' })
         .eq('property.user_id', user.id);
-
-      // 検索フィルタ
-      if (query.search) {
-        dbQuery = dbQuery.ilike('lender_name', `%${query.search}%`);
-      }
 
       // 物件IDフィルタ
       if (query.property_id) {
         dbQuery = dbQuery.eq('property_id', query.property_id);
       }
 
-      // 借入タイプフィルタ
-      if (query.loan_type) {
-        dbQuery = dbQuery.eq('loan_type', query.loan_type);
+      // カテゴリーフィルタ
+      if (query.category) {
+        dbQuery = dbQuery.eq('category', query.category);
+      }
+
+      // 日付範囲フィルタ
+      if (query.start_date) {
+        dbQuery = dbQuery.gte('expense_date', query.start_date);
+      }
+      if (query.end_date) {
+        dbQuery = dbQuery.lte('expense_date', query.end_date);
+      }
+
+      // 金額範囲フィルタ
+      if (query.min_amount !== undefined) {
+        dbQuery = dbQuery.gte('amount', query.min_amount);
+      }
+      if (query.max_amount !== undefined) {
+        dbQuery = dbQuery.lte('amount', query.max_amount);
+      }
+
+      // 定期支出フィルタ
+      if (query.is_recurring !== undefined) {
+        dbQuery = dbQuery.eq('is_recurring', query.is_recurring);
+      }
+
+      // 検索フィルタ（ベンダー名または説明）
+      if (query.search) {
+        dbQuery = dbQuery.or(`vendor.ilike.%${query.search}%,description.ilike.%${query.search}%`);
       }
 
       // ソート適用
@@ -136,6 +161,9 @@ export async function GET(request: NextRequest) {
         dbQuery = dbQuery.order(paginationParams.sort, {
           ascending: paginationParams.order === 'asc',
         });
+      } else {
+        // デフォルトは支出日の降順
+        dbQuery = dbQuery.order('expense_date', { ascending: false });
       }
 
       // ページネーション範囲適用
@@ -145,7 +173,7 @@ export async function GET(request: NextRequest) {
       // クエリ実行（パフォーマンス監視付き）
       const { data, error, count } = await withPerformanceMonitoring(
         async () => await dbQuery.range(from, to),
-        'loans.database.query'
+        'expenses.database.query'
       );
 
       if (error) {
@@ -153,24 +181,24 @@ export async function GET(request: NextRequest) {
       }
 
       // レスポンス形式に変換（property情報を除外）
-      const loans =
-        data?.map((loan) => {
+      const expenses =
+        data?.map((expense) => {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { property, ...loanData } = loan;
-          return LoanResponseSchema.parse(loanData);
+          const { property, ...expenseData } = expense;
+          return ExpenseResponseSchema.parse(expenseData);
         }) || [];
 
       // ページネーションメタデータを計算
       const meta = calculatePaginationMeta(paginationParams, count || 0);
 
-      return ApiResponse.paginated(loans, meta.page, meta.limit, meta.total);
+      return ApiResponse.paginated(expenses, meta.page, meta.limit, meta.total);
     } catch (error) {
-      return handleApiError(error, 'GET /api/loans');
+      return handleApiError(error, 'GET /api/expenses');
     }
-  }, 'GET /api/loans');
+  }, 'GET /api/expenses');
 }
 
-// POST /api/loans - 借入作成
+// POST /api/expenses - 支出作成
 export async function POST(request: NextRequest) {
   return withPerformanceMonitoring(async () => {
     try {
@@ -188,42 +216,47 @@ export async function POST(request: NextRequest) {
 
       // リクエストボディをパース
       const body = await request.json();
-      const validatedData = CreateLoanSchema.parse(body);
 
-      // 物件の所有権確認
-      const { data: property, error: propertyError } = await withPerformanceMonitoring(
-        async () =>
-          await supabase
-            .from('properties')
-            .select('id')
-            .eq('id', validatedData.property_id)
-            .eq('user_id', user.id)
-            .single(),
-        'loans.check.property_ownership'
-      );
+      // バリデーション
+      const validatedData = CreateExpenseSchema.parse(body);
 
-      if (propertyError || !property) {
-        return ApiResponse.forbidden('この物件に対する借入を作成する権限がありません');
+      // property_idが指定されている場合は所有権を確認
+      if (validatedData.property_id) {
+        const { data: property, error: propertyError } = await withPerformanceMonitoring(
+          async () =>
+            await supabase
+              .from('properties')
+              .select('id')
+              .eq('id', validatedData.property_id)
+              .eq('user_id', user.id)
+              .single(),
+          'expenses.check.property_ownership'
+        );
+
+        if (propertyError || !property) {
+          return ApiResponse.forbidden('この物件に対する支出を作成する権限がありません');
+        }
       }
 
-      // データベースに借入情報を保存
-      const { data: newLoan, error: dbError } = await withPerformanceMonitoring(
+      // データベースに支出情報を保存
+      const { data: newExpense, error: dbError } = await withPerformanceMonitoring(
         async () =>
           await supabase
-            .from('loans')
+            .from('expenses')
             .insert({
               property_id: validatedData.property_id,
-              lender_name: validatedData.lender_name,
-              loan_type: validatedData.loan_type,
-              principal_amount: validatedData.principal_amount,
-              current_balance: validatedData.current_balance,
-              interest_rate: validatedData.interest_rate,
-              loan_term_months: validatedData.loan_term_months,
-              monthly_payment: validatedData.monthly_payment,
+              expense_date: validatedData.expense_date,
+              category: validatedData.category,
+              amount: validatedData.amount,
+              vendor: validatedData.vendor || null,
+              description: validatedData.description || null,
+              receipt_url: validatedData.receipt_url || null,
+              is_recurring: validatedData.is_recurring,
+              recurring_frequency: validatedData.recurring_frequency || null,
             })
             .select()
             .single(),
-        'loans.database.insert'
+        'expenses.database.insert'
       );
 
       if (dbError) {
@@ -231,14 +264,14 @@ export async function POST(request: NextRequest) {
       }
 
       // レスポンス形式に変換
-      const loanResponse = LoanResponseSchema.parse(newLoan);
+      const expenseResponse = ExpenseResponseSchema.parse(newExpense);
 
       // ユーザー固有のキャッシュを無効化
-      await cache.invalidateResource('loans', user.id);
+      await cache.invalidateResource('expenses', user.id);
 
-      return ApiResponse.success(loanResponse, undefined, 201);
+      return ApiResponse.success(expenseResponse, undefined, 201);
     } catch (error) {
-      return handleApiError(error, 'POST /api/loans');
+      return handleApiError(error, 'POST /api/expenses');
     }
-  }, 'POST /api/loans');
+  }, 'POST /api/expenses');
 }

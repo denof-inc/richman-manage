@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { ApiResponse } from '@/lib/api/response';
-import { UpdateLoanSchema, LoanResponseSchema } from '@/lib/api/schemas/loan';
+import { UpdateRentRollSchema, RentRollResponseSchema } from '@/lib/api/schemas/rent-roll';
 import { z } from 'zod';
 
 // パフォーマンス監視ユーティリティ（Edge Runtime対応）
@@ -82,12 +82,12 @@ const handleApiError = (error: unknown, context: string) => {
   return ApiResponse.internalError('予期しないエラーが発生しました');
 };
 
-// GET /api/loans/[id] - 借入詳細取得
+// GET /api/rent-rolls/[id] - レントロール詳細取得
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   return withPerformanceMonitoring(async () => {
     try {
       const supabase = createClient();
-      const { id: loanId } = await params;
+      const { id: rentRollId } = await params;
 
       // 認証チェック
       const {
@@ -98,40 +98,40 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         return ApiResponse.unauthorized();
       }
 
-      // 借入取得（物件の所有者チェック込み）
-      const { data: loan, error } = await withPerformanceMonitoring(
+      // レントロール取得（物件の所有者チェック込み）
+      const { data: rentRoll, error } = await withPerformanceMonitoring(
         async () =>
           await supabase
-            .from('loans')
+            .from('rent_rolls')
             .select('*, property:properties!inner(user_id)')
-            .eq('id', loanId)
+            .eq('id', rentRollId)
             .eq('property.user_id', user.id)
             .single(),
-        'loans.database.getById'
+        'rent-rolls.database.getById'
       );
 
-      if (error || !loan) {
-        return ApiResponse.notFound('借入が見つかりません');
+      if (error || !rentRoll) {
+        return ApiResponse.notFound('レントロールが見つかりません');
       }
 
       // レスポンス形式に変換（property情報を除外）
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { property, ...loanData } = loan;
-      const loanResponse = LoanResponseSchema.parse(loanData);
+      const { property, ...rentRollData } = rentRoll;
+      const rentRollResponse = RentRollResponseSchema.parse(rentRollData);
 
-      return ApiResponse.success(loanResponse);
+      return ApiResponse.success(rentRollResponse);
     } catch (error) {
-      return handleApiError(error, `GET /api/loans/${await params.then((p) => p.id)}`);
+      return handleApiError(error, `GET /api/rent-rolls/${await params.then((p) => p.id)}`);
     }
-  }, 'GET /api/loans/[id]');
+  }, 'GET /api/rent-rolls/[id]');
 }
 
-// PUT /api/loans/[id] - 借入更新
+// PUT /api/rent-rolls/[id] - レントロール更新
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   return withPerformanceMonitoring(async () => {
     try {
       const supabase = createClient();
-      const { id: loanId } = await params;
+      const { id: rentRollId } = await params;
 
       // 認証チェック
       const {
@@ -142,39 +142,47 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         return ApiResponse.unauthorized();
       }
 
-      // 既存借入の確認（物件の所有者チェック込み）
-      const { data: existingLoan, error: fetchError } = await withPerformanceMonitoring(
+      // 既存レントロールの確認（物件の所有者チェック込み）
+      const { data: existingRentRoll, error: fetchError } = await withPerformanceMonitoring(
         async () =>
           await supabase
-            .from('loans')
+            .from('rent_rolls')
             .select('*, property:properties!inner(user_id)')
-            .eq('id', loanId)
+            .eq('id', rentRollId)
             .eq('property.user_id', user.id)
             .single(),
-        'loans.database.checkExisting'
+        'rent-rolls.database.checkExisting'
       );
 
-      if (fetchError || !existingLoan) {
-        return ApiResponse.notFound('借入が見つかりません');
+      if (fetchError || !existingRentRoll) {
+        return ApiResponse.notFound('レントロールが見つかりません');
       }
 
       // リクエストボディをパース
       const body = await request.json();
-      const validatedData = UpdateLoanSchema.parse(body);
+      const validatedData = UpdateRentRollSchema.parse(body);
 
-      // 借入を更新
-      const { data: updatedLoan, error: updateError } = await withPerformanceMonitoring(
+      // 入居状況が空室に変更される場合、入居者関連情報をクリア
+      const updateData = { ...validatedData };
+      if (validatedData.occupancy_status === 'vacant') {
+        updateData.tenant_name = null;
+        updateData.lease_start_date = null;
+        updateData.lease_end_date = null;
+      }
+
+      // レントロールを更新
+      const { data: updatedRentRoll, error: updateError } = await withPerformanceMonitoring(
         async () =>
           await supabase
-            .from('loans')
+            .from('rent_rolls')
             .update({
-              ...validatedData,
+              ...updateData,
               updated_at: new Date().toISOString(),
             })
-            .eq('id', loanId)
+            .eq('id', rentRollId)
             .select()
             .single(),
-        'loans.database.update'
+        'rent-rolls.database.update'
       );
 
       if (updateError) {
@@ -182,16 +190,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       }
 
       // レスポンス形式に変換
-      const loanResponse = LoanResponseSchema.parse(updatedLoan);
+      const rentRollResponse = RentRollResponseSchema.parse(updatedRentRoll);
 
-      return ApiResponse.success(loanResponse);
+      return ApiResponse.success(rentRollResponse);
     } catch (error) {
-      return handleApiError(error, `PUT /api/loans/${await params.then((p) => p.id)}`);
+      return handleApiError(error, `PUT /api/rent-rolls/${await params.then((p) => p.id)}`);
     }
-  }, 'PUT /api/loans/[id]');
+  }, 'PUT /api/rent-rolls/[id]');
 }
 
-// DELETE /api/loans/[id] - 借入削除（論理削除）
+// DELETE /api/rent-rolls/[id] - レントロール削除（論理削除）
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -199,7 +207,7 @@ export async function DELETE(
   return withPerformanceMonitoring(async () => {
     try {
       const supabase = createClient();
-      const { id: loanId } = await params;
+      const { id: rentRollId } = await params;
 
       // 認証チェック
       const {
@@ -210,39 +218,39 @@ export async function DELETE(
         return ApiResponse.unauthorized();
       }
 
-      // 既存借入の確認（物件の所有者チェック込み）
-      const { data: existingLoan, error: fetchError } = await withPerformanceMonitoring(
+      // 既存レントロールの確認（物件の所有者チェック込み）
+      const { data: existingRentRoll, error: fetchError } = await withPerformanceMonitoring(
         async () =>
           await supabase
-            .from('loans')
+            .from('rent_rolls')
             .select('*, property:properties!inner(user_id)')
-            .eq('id', loanId)
+            .eq('id', rentRollId)
             .eq('property.user_id', user.id)
             .single(),
-        'loans.database.checkExisting'
+        'rent-rolls.database.checkExisting'
       );
 
-      if (fetchError || !existingLoan) {
-        return ApiResponse.notFound('借入が見つかりません');
+      if (fetchError || !existingRentRoll) {
+        return ApiResponse.notFound('レントロールが見つかりません');
       }
 
       // 論理削除
       const { error: deleteError } = await withPerformanceMonitoring(
         async () =>
           await supabase
-            .from('loans')
+            .from('rent_rolls')
             .update({ deleted_at: new Date().toISOString() })
-            .eq('id', loanId),
-        'loans.database.delete'
+            .eq('id', rentRollId),
+        'rent-rolls.database.delete'
       );
 
       if (deleteError) {
         throw deleteError;
       }
 
-      return ApiResponse.success({ message: '借入を削除しました' });
+      return ApiResponse.success({ message: 'レントロールを削除しました' });
     } catch (error) {
-      return handleApiError(error, `DELETE /api/loans/${await params.then((p) => p.id)}`);
+      return handleApiError(error, `DELETE /api/rent-rolls/${await params.then((p) => p.id)}`);
     }
-  }, 'DELETE /api/loans/[id]');
+  }, 'DELETE /api/rent-rolls/[id]');
 }

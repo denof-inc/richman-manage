@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { ApiResponse } from '@/lib/api/response';
-import { CreateLoanSchema, LoanQuerySchema, LoanResponseSchema } from '@/lib/api/schemas/loan';
+import { CreateUserSchema, UserQuerySchema, UserResponseSchema } from '@/lib/api/schemas/user';
 import { z } from 'zod';
 import { getCache } from '@/lib/cache/redis-cache';
 import { extractPaginationParams, calculatePaginationMeta } from '@/lib/api/pagination';
@@ -18,6 +18,7 @@ const withPerformanceMonitoring = async <T>(
     const endTime = performance.now();
     const duration = endTime - startTime;
 
+    // Edge Runtime対応のパフォーマンスログ
     console.log(
       JSON.stringify({
         timestamp: new Date().toISOString(),
@@ -60,6 +61,7 @@ const sanitizeErrorMessage = (message: string): string => {
 
 // 統一エラーハンドリング（Edge Runtime対応）
 const handleApiError = (error: unknown, context: string) => {
+  // Edge Runtime対応のエラーログ記録
   const errorInfo = {
     timestamp: new Date().toISOString(),
     context,
@@ -69,6 +71,7 @@ const handleApiError = (error: unknown, context: string) => {
 
   console.error('API Error:', JSON.stringify(errorInfo));
 
+  // エラータイプに基づく適切なレスポンス生成
   if (error instanceof z.ZodError) {
     const messages = error.errors.map((e) => e.message).join(', ');
     return ApiResponse.validationError(messages, error.errors);
@@ -85,7 +88,7 @@ const handleApiError = (error: unknown, context: string) => {
   return ApiResponse.internalError('予期しないエラーが発生しました');
 };
 
-// GET /api/loans - 借入一覧取得
+// GET /api/users - ユーザー一覧取得
 export async function GET(request: NextRequest) {
   return withPerformanceMonitoring(async () => {
     try {
@@ -106,29 +109,21 @@ export async function GET(request: NextRequest) {
       // その他のクエリパラメータをパース
       const searchParams = Object.fromEntries(request.nextUrl.searchParams);
       const query = {
-        ...LoanQuerySchema.parse(searchParams),
+        ...UserQuerySchema.parse(searchParams),
         ...paginationParams,
       };
 
-      // データベースクエリ構築（物件情報と結合してユーザーの借入のみ取得）
-      let dbQuery = supabase
-        .from('loans')
-        .select('*, property:properties!inner(id, user_id, name)', { count: 'exact' })
-        .eq('property.user_id', user.id);
+      // データベースクエリ構築
+      let dbQuery = supabase.from('users').select('*', { count: 'exact' });
 
       // 検索フィルタ
       if (query.search) {
-        dbQuery = dbQuery.ilike('lender_name', `%${query.search}%`);
+        dbQuery = dbQuery.ilike('name', `%${query.search}%`);
       }
 
-      // 物件IDフィルタ
-      if (query.property_id) {
-        dbQuery = dbQuery.eq('property_id', query.property_id);
-      }
-
-      // 借入タイプフィルタ
-      if (query.loan_type) {
-        dbQuery = dbQuery.eq('loan_type', query.loan_type);
+      // ロールフィルタ
+      if (query.role) {
+        dbQuery = dbQuery.eq('role', query.role);
       }
 
       // ソート適用
@@ -145,39 +140,34 @@ export async function GET(request: NextRequest) {
       // クエリ実行（パフォーマンス監視付き）
       const { data, error, count } = await withPerformanceMonitoring(
         async () => await dbQuery.range(from, to),
-        'loans.database.query'
+        'users.database.query'
       );
 
       if (error) {
         throw error;
       }
 
-      // レスポンス形式に変換（property情報を除外）
-      const loans =
-        data?.map((loan) => {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { property, ...loanData } = loan;
-          return LoanResponseSchema.parse(loanData);
-        }) || [];
+      // レスポンス形式に変換
+      const users = data?.map((user) => UserResponseSchema.parse(user)) || [];
 
       // ページネーションメタデータを計算
       const meta = calculatePaginationMeta(paginationParams, count || 0);
 
-      return ApiResponse.paginated(loans, meta.page, meta.limit, meta.total);
+      return ApiResponse.paginated(users, meta.page, meta.limit, meta.total);
     } catch (error) {
-      return handleApiError(error, 'GET /api/loans');
+      return handleApiError(error, 'GET /api/users');
     }
-  }, 'GET /api/loans');
+  }, 'GET /api/users');
 }
 
-// POST /api/loans - 借入作成
+// POST /api/users - ユーザー作成
 export async function POST(request: NextRequest) {
   return withPerformanceMonitoring(async () => {
     try {
       const supabase = createClient();
       const cache = getCache();
 
-      // 認証チェック
+      // 認証チェック（管理者のみ）
       const {
         data: { user },
         error: authError,
@@ -186,59 +176,75 @@ export async function POST(request: NextRequest) {
         return ApiResponse.unauthorized();
       }
 
-      // リクエストボディをパース
-      const body = await request.json();
-      const validatedData = CreateLoanSchema.parse(body);
-
-      // 物件の所有権確認
-      const { data: property, error: propertyError } = await withPerformanceMonitoring(
-        async () =>
-          await supabase
-            .from('properties')
-            .select('id')
-            .eq('id', validatedData.property_id)
-            .eq('user_id', user.id)
-            .single(),
-        'loans.check.property_ownership'
+      // 管理者権限チェック
+      const { data: currentUser } = await withPerformanceMonitoring(
+        async () => await supabase.from('users').select('role').eq('id', user.id).single(),
+        'users.check.admin'
       );
 
-      if (propertyError || !property) {
-        return ApiResponse.forbidden('この物件に対する借入を作成する権限がありません');
+      if (!currentUser || currentUser.role !== 'admin') {
+        return ApiResponse.forbidden('管理者権限が必要です');
       }
 
-      // データベースに借入情報を保存
-      const { data: newLoan, error: dbError } = await withPerformanceMonitoring(
+      // リクエストボディをパース
+      const body = await request.json();
+      const validatedData = CreateUserSchema.parse(body);
+
+      // Supabase Authでユーザー作成
+      const { data: authData, error: createAuthError } = await withPerformanceMonitoring(
+        async () =>
+          await supabase.auth.admin.createUser({
+            email: validatedData.email,
+            password: validatedData.password,
+            email_confirm: true,
+            user_metadata: {
+              name: validatedData.name,
+              role: validatedData.role,
+            },
+          }),
+        'users.auth.create'
+      );
+
+      if (createAuthError) {
+        if (createAuthError.message.includes('already registered')) {
+          return ApiResponse.conflict('このメールアドレスは既に登録されています');
+        }
+        throw createAuthError;
+      }
+
+      // データベースにユーザー情報を保存
+      const { data: newUser, error: dbError } = await withPerformanceMonitoring(
         async () =>
           await supabase
-            .from('loans')
+            .from('users')
             .insert({
-              property_id: validatedData.property_id,
-              lender_name: validatedData.lender_name,
-              loan_type: validatedData.loan_type,
-              principal_amount: validatedData.principal_amount,
-              current_balance: validatedData.current_balance,
-              interest_rate: validatedData.interest_rate,
-              loan_term_months: validatedData.loan_term_months,
-              monthly_payment: validatedData.monthly_payment,
+              id: authData.user!.id,
+              email: validatedData.email,
+              name: validatedData.name,
+              role: validatedData.role,
+              timezone: 'Asia/Tokyo',
+              language: 'ja',
             })
             .select()
             .single(),
-        'loans.database.insert'
+        'users.database.insert'
       );
 
       if (dbError) {
+        // Auth側のユーザーを削除（ロールバック）
+        await supabase.auth.admin.deleteUser(authData.user!.id);
         throw dbError;
       }
 
       // レスポンス形式に変換
-      const loanResponse = LoanResponseSchema.parse(newLoan);
+      const userResponse = UserResponseSchema.parse(newUser);
 
-      // ユーザー固有のキャッシュを無効化
-      await cache.invalidateResource('loans', user.id);
+      // キャッシュを無効化
+      await cache.invalidateResource('users');
 
-      return ApiResponse.success(loanResponse, undefined, 201);
+      return ApiResponse.success(userResponse, undefined, 201);
     } catch (error) {
-      return handleApiError(error, 'POST /api/loans');
+      return handleApiError(error, 'POST /api/users');
     }
-  }, 'POST /api/loans');
+  }, 'POST /api/users');
 }
