@@ -114,10 +114,18 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         return ApiResponse.notFound('借入が見つかりません');
       }
 
-      // レスポンス形式に変換（property情報を除外）
+      // レスポンス形式に変換（property情報を除外・スキーマ互換）
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { property, ...loanData } = loan;
-      const loanResponse = LoanResponseSchema.parse(loanData);
+      const { property, initial_interest_rate, loan_type, ...rest } = loan as Record<
+        string,
+        unknown
+      >;
+      const mapped = {
+        ...rest,
+        interest_rate: initial_interest_rate ?? rest.interest_rate ?? 0,
+        loan_type: loan_type === 'property_acquisition' ? 'mortgage' : 'other',
+      };
+      const loanResponse = LoanResponseSchema.parse(mapped);
 
       return ApiResponse.success(loanResponse);
     } catch (error) {

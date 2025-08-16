@@ -172,12 +172,22 @@ export async function GET(request: NextRequest) {
         throw error;
       }
 
-      // レスポンス形式に変換（property情報を除外）
+      // レスポンス形式に変換（property情報を除外・スキーマ互換）
       const loans =
         data?.map((loan) => {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { property, ...loanData } = loan;
-          return LoanResponseSchema.parse(loanData);
+          const { property, initial_interest_rate, loan_type, ...rest } = loan as Record<
+            string,
+            unknown
+          >;
+          const mapped = {
+            ...rest,
+            // DBの初期金利列をAPIのinterest_rateとして提供
+            interest_rate: initial_interest_rate ?? rest.interest_rate ?? 0,
+            // DBのenumをUI契約へ寄せる
+            loan_type: loan_type === 'property_acquisition' ? 'mortgage' : 'other',
+          };
+          return LoanResponseSchema.parse(mapped);
         }) || [];
 
       // ページネーションメタデータを計算

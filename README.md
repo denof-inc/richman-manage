@@ -62,21 +62,19 @@ git clone git@github.com:denof-inc/richman-manage.git
 cd richman-manage
 
 # 依存関係のインストール（pnpm推奨）
-pnpm install
+pnpm install  # もしくは npm install
 
 # 環境変数の設定
 cp .env.example .env.local
 # .env.localを編集してSupabase接続情報を設定（詳細は下記参照）
 
 # 開発サーバーの起動
-pnpm run dev       # http://localhost:3000 でアクセス
+npm run dev        # http://localhost:3000 でアクセス（apps/web）
 
 # その他のコマンド
-pnpm run build     # プロダクションビルド
-pnpm run lint      # ESLintチェック
-pnpm run test      # Vitestユニットテスト
-pnpm run test:e2e  # Playwright E2Eテスト
-pnpm run quality:check  # 品質チェック（lint + type-check + test）
+npm run build      # プロダクションビルド
+npm run lint       # ESLintチェック
+npm run test       # テスト
 ```
 
 ## 📁 プロジェクト構造
@@ -156,6 +154,10 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 # アプリケーション設定
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+# 開発用Seed（固定アカウント運用）
+DEV_SEED_TOKEN="your-strong-token"          # /api/dev/seed 実行時のヘッダ x-seed-token に使用
+DEV_SEED_EMAIL="dev@example.com"
+DEV_SEED_PASSWORD="DevUser#12345"           # 記号(#)を含む場合は必ずクォートで囲む
 ```
 
 ### Supabase設定手順
@@ -166,7 +168,40 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
    - Anon/Public Key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - Service Role Key → `SUPABASE_SERVICE_ROLE_KEY`
 3. `.env.local`に設定値を記入
-4. データベーススキーマは`db/`ディレクトリのマイグレーションファイルを実行
+4. データベーススキーマは `supabase/migrations` を適用（CLI推奨）または最低限のテーブルをSQLエディタで作成
+
+## 💻 ローカル開発手順（最新）
+
+1) 開発サーバ起動
+
+```bash
+npm --workspace apps/web run dev
+# ローカルURLはターミナルの Local: を参照（例: http://localhost:3001）
+```
+
+2) 認証（SSR Cookie運用）
+- ログインUI: `/login`（サーバ側API `/api/auth/login` 経由でCookieにセッション設定）
+- ログアウト: ブラウザのコンソールで `await fetch('/api/auth/logout',{method:'POST'}); location.reload();`
+
+3) 開発用Seed（固定アカウントに投入）
+
+```bash
+# 追加投入
+curl -X POST -H "x-seed-token: $DEV_SEED_TOKEN" "http://localhost:<port>/api/dev/seed"
+
+# リセット（既存データ削除→再投入）
+curl -X POST -H "x-seed-token: $DEV_SEED_TOKEN" "http://localhost:<port>/api/dev/seed?reset=1"
+```
+
+4) 主要ページ
+- `/properties`（物件一覧: 青山マンション）
+- `/loans`（借入2件）
+- `/rent-roll`（101/102）
+- `/expenses`（管理費/修繕）
+
+5) APIドキュメント
+- JSON: `/api-docs`
+- UI: `/docs/api`（CDN版Swagger UIをiframeで表示）
 
 ### 環境別設定
 

@@ -129,10 +129,42 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         return ApiResponse.notFound('レントロールが見つかりません');
       }
 
-      // レスポンス形式に変換（property情報を除外）
+      // レスポンス形式に変換（property情報を除外・互換マッピング）
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { property, ...rentRollData } = rentRoll;
-      const rentRollResponse = RentRollResponseSchema.parse(rentRollData);
+      const {
+        property,
+        room_status,
+        deposit_months,
+        key_money_months,
+        current_tenant_name,
+        monthly_rent,
+        ...rest
+      } = rentRoll as Record<string, unknown>;
+      const rent =
+        typeof monthly_rent === 'number' ? monthly_rent : Number((monthly_rent as unknown) ?? 0);
+      const depMonths =
+        typeof deposit_months === 'number'
+          ? deposit_months
+          : Number((deposit_months as unknown) ?? 0);
+      const keyMonths =
+        typeof key_money_months === 'number'
+          ? key_money_months
+          : Number((key_money_months as unknown) ?? 0);
+      const mapped = {
+        ...rest,
+        occupancy_status:
+          (rest as Record<string, unknown>).occupancy_status ??
+          (room_status === 'maintenance' ? 'vacant' : room_status),
+        tenant_name: (rest as Record<string, unknown>).tenant_name ?? current_tenant_name ?? null,
+        security_deposit:
+          (rest as Record<string, unknown>).security_deposit ??
+          (depMonths ? depMonths * rent : null),
+        key_money:
+          (rest as Record<string, unknown>).key_money ?? (keyMonths ? keyMonths * rent : null),
+        monthly_rent: rent,
+        notes: (rest as Record<string, unknown>).notes ?? null,
+      };
+      const rentRollResponse = RentRollResponseSchema.parse(mapped);
 
       return ApiResponse.success(rentRollResponse);
     } catch (error) {

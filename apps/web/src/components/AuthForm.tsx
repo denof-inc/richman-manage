@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
+// サーバ側でセッションCookieを管理するため、フロントからはAPIを叩く
 
 const schema = z.object({
   email: z.string().email(),
@@ -29,8 +29,6 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const isDummyMode = !supabaseUrl || !supabaseKey;
 
-  const supabase = !isDummyMode ? createClient(supabaseUrl!, supabaseKey!) : null;
-
   const onSubmit = async (data: FormValues) => {
     setLoading(true);
     setError(null);
@@ -42,23 +40,29 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
       }, 500);
       return;
     }
-    // 通常のSupabase認証処理
+    // サーバ側API経由でCookieにセッションを設定
     try {
-      let result;
       if (mode === 'login') {
-        if (!supabase) throw new Error('Supabaseクライアントが初期化されていません');
-        result = await supabase.auth.signInWithPassword({
-          email: data.email,
-          password: data.password,
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: data.email, password: data.password }),
         });
+        if (!res.ok) {
+          const j = await res.json().catch(() => ({}));
+          throw new Error(j.error || 'ログインに失敗しました');
+        }
       } else {
-        if (!supabase) throw new Error('Supabaseクライアントが初期化されていません');
-        result = await supabase.auth.signUp({
-          email: data.email,
-          password: data.password,
+        const res = await fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: data.email, password: data.password }),
         });
+        if (!res.ok) {
+          const j = await res.json().catch(() => ({}));
+          throw new Error(j.error || 'サインアップに失敗しました');
+        }
       }
-      if (result.error) throw result.error;
       router.push('/');
     } catch (e: unknown) {
       if (e instanceof Error) {

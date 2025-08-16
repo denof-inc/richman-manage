@@ -203,12 +203,18 @@ export async function GET(request: NextRequest) {
         throw error;
       }
 
-      // レスポンス形式に変換（property情報を除外）
+      // レスポンス形式に変換（property情報を除外・不足列補完）
       const expenses =
-        data?.map((expense) => {
+        data?.map((expense: Record<string, unknown>) => {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { property, ...expenseData } = expense;
-          return ExpenseResponseSchema.parse(expenseData);
+          const { property, ...rest } = expense;
+          const mapped = {
+            vendor: null,
+            recurring_frequency: null,
+            receipt_url: null,
+            ...rest,
+          };
+          return ExpenseResponseSchema.parse(mapped);
         }) || [];
 
       // ページネーションメタデータを計算
