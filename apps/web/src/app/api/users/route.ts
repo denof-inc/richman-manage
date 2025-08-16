@@ -89,6 +89,26 @@ const handleApiError = (error: unknown, context: string) => {
 };
 
 // GET /api/users - ユーザー一覧取得
+/**
+ * @swagger
+ * /api/users:
+ *   get:
+ *     tags: [Users]
+ *     summary: ユーザー一覧を取得
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer }
+ *       - in: query
+ *         name: search
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: 成功
+ */
 export async function GET(request: NextRequest) {
   return withPerformanceMonitoring(async () => {
     try {
@@ -161,6 +181,22 @@ export async function GET(request: NextRequest) {
 }
 
 // POST /api/users - ユーザー作成
+/**
+ * @swagger
+ * /api/users:
+ *   post:
+ *     tags: [Users]
+ *     summary: ユーザーを作成
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateUser'
+ *     responses:
+ *       201:
+ *         description: 作成成功
+ */
 export async function POST(request: NextRequest) {
   return withPerformanceMonitoring(async () => {
     try {

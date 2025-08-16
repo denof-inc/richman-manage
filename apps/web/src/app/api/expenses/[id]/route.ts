@@ -83,6 +83,21 @@ const handleApiError = (error: unknown, context: string) => {
 };
 
 // GET /api/expenses/[id] - 支出詳細取得
+/**
+ * @swagger
+ * /api/expenses/{id}:
+ *   get:
+ *     tags: [Expenses]
+ *     summary: 支出の詳細を取得
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *     responses:
+ *       200:
+ *         description: 成功
+ */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   return withPerformanceMonitoring(async () => {
     try {
@@ -127,6 +142,27 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 // PUT /api/expenses/[id] - 支出更新
+/**
+ * @swagger
+ * /api/expenses/{id}:
+ *   put:
+ *     tags: [Expenses]
+ *     summary: 支出を更新
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateExpense'
+ *     responses:
+ *       200:
+ *         description: 更新成功
+ */
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   return withPerformanceMonitoring(async () => {
     try {
@@ -192,6 +228,21 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 // DELETE /api/expenses/[id] - 支出削除（論理削除）
+/**
+ * @swagger
+ * /api/expenses/{id}:
+ *   delete:
+ *     tags: [Expenses]
+ *     summary: 支出を削除（論理削除）
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *     responses:
+ *       200:
+ *         description: 削除成功
+ */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
