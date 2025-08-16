@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { performanceMonitor } from '@/lib/middleware/performance-monitor';
-import { cacheMiddleware } from '@/lib/middleware/cache-middleware';
+// Edge Runtimeではioredis等のNode依存を読み込めないため、
+// ミドルウェア段階のキャッシュ処理は無効化する（API側で行う）
 import { rateLimiter } from '@/lib/security/rate-limiter';
 
 // APIルートのパスパターン
@@ -53,12 +54,7 @@ export async function middleware(request: NextRequest) {
       collectCpuMetrics: process.platform !== 'win32',
     };
 
-    // キャッシュミドルウェアを適用
-    const cacheConfig = {
-      enabledPaths: ['/api/properties', '/api/loans', '/api/users'],
-      ttl: parseInt(process.env.CACHE_TTL || '300'),
-      excludePaths: ['/api/auth', '/api/health'],
-    };
+    // キャッシュはAPIルート内（Node Runtime）でのみ実施する
 
     // イベントオブジェクトを作成
     const event = {
@@ -78,16 +74,7 @@ export async function middleware(request: NextRequest) {
       rateLimiter.getRemainingRequests(clientIP).toString()
     );
 
-    // キャッシュミドルウェアを実行（GETリクエストのみ）
-    if (request.method === 'GET' && process.env.ENABLE_CACHE === 'true') {
-      const cacheMiddlewareHandler = cacheMiddleware(cacheConfig);
-      const cachedResponse = await cacheMiddlewareHandler(request);
-
-      // キャッシュヒットの場合はそのレスポンスを返す
-      if (cachedResponse.headers.get('X-Cache') === 'HIT') {
-        return cachedResponse;
-      }
-    }
+    // キャッシュはEdgeミドルウェアでは実施しない
 
     return response;
   }

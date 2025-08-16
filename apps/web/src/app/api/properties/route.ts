@@ -90,6 +90,26 @@ const handleApiError = (error: unknown, context: string) => {
 };
 
 // GET /api/properties - 物件一覧取得
+/**
+ * @swagger
+ * /api/properties:
+ *   get:
+ *     tags: [Properties]
+ *     summary: 物件一覧を取得
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer }
+ *       - in: query
+ *         name: search
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: 成功
+ */
 export async function GET(request: NextRequest) {
   return withPerformanceMonitoring(async () => {
     try {
