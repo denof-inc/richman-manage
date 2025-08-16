@@ -8,13 +8,11 @@ import { Search } from 'lucide-react';
 
 import MainLayout from '../../components/layout/MainLayout';
 import PropertyTable from '../../components/properties/PropertyTable';
-import {
-  mockProperties,
-  mockOwners,
-  getPropertyUnits,
-  getPropertyLoans,
-  getPropertyExpenses,
-} from '../../data/mockData';
+import { request } from '@/lib/api/client';
+import { PropertyResponseSchema } from '@/lib/api/schemas/property';
+import { RentRollResponseSchema } from '@/lib/api/schemas/rent-roll';
+import { ExpenseResponseSchema } from '@/lib/api/schemas/expense';
+import { LoanResponseSchema } from '@/lib/api/schemas/loan';
 
 type PropertySummary = {
   id: string;
@@ -39,42 +37,70 @@ export default function PropertyListPage() {
   const [selectedOwnerId, setSelectedOwnerId] = useState<string | null>(null);
 
   useEffect(() => {
-    // 統一データから物件サマリーを生成
-    const propertySummaries: PropertySummary[] = mockProperties.map((property) => {
-      const units = getPropertyUnits(property.id);
-      const loans = getPropertyLoans(property.id);
-      const expenses = getPropertyExpenses(property.id);
+    let mounted = true;
+    (async () => {
+      try {
+        const [propsRes, rentRes, expRes, loanRes] = await Promise.all([
+          request('/api/properties', PropertyResponseSchema.array()),
+          request('/api/rent-rolls', RentRollResponseSchema.array()),
+          request('/api/expenses', ExpenseResponseSchema.array()),
+          request('/api/loans', LoanResponseSchema.array()),
+        ]);
 
-      // 潜在家賃と実際の家賃を計算
-      const potential_rent = units.reduce((sum, unit) => sum + (unit.rent_amount || 0), 0);
-      const actual_rent = units
-        .filter((unit) => unit.status === 'occupied')
-        .reduce((sum, unit) => sum + (unit.rent_amount || 0), 0);
+        const rentByProperty = new Map<string, { potential: number; actual: number }>();
+        (rentRes.data || []).forEach((r) => {
+          const key = r.property_id;
+          const current = rentByProperty.get(key) || { potential: 0, actual: 0 };
+          current.potential += r.monthly_rent || 0;
+          if (r.occupancy_status === 'occupied') current.actual += r.monthly_rent || 0;
+          rentByProperty.set(key, current);
+        });
 
-      // 月次ローン返済額を計算
-      const monthly_repayment = loans.reduce((sum, loan) => sum + loan.payment_amount, 0);
+        const monthlyRepaymentByProperty = new Map<string, number>();
+        (loanRes.data || []).forEach((l) => {
+          const key = l.property_id;
+          monthlyRepaymentByProperty.set(
+            key,
+            (monthlyRepaymentByProperty.get(key) || 0) + (l.monthly_payment || 0)
+          );
+        });
 
-      // 月次経費を計算（年次経費を12で割る）
-      const monthly_expenses = expenses
-        .filter((expense) => expense.is_recurring && expense.recurring_frequency === 'monthly')
-        .reduce((sum, expense) => sum + expense.amount, 0);
+        const monthlyExpenseByProperty = new Map<string, number>();
+        (expRes.data || []).forEach((e) => {
+          if (e.is_recurring && e.recurring_frequency === 'monthly') {
+            const key = e.property_id;
+            monthlyExpenseByProperty.set(
+              key,
+              (monthlyExpenseByProperty.get(key) || 0) + (e.amount || 0)
+            );
+          }
+        });
 
-      // ネットキャッシュフロー = 実際の家賃 - ローン返済 - 経費
-      const net_cf = actual_rent - monthly_repayment - monthly_expenses;
+        const summaries: PropertySummary[] = (propsRes.data || []).map((p) => {
+          const rent = rentByProperty.get(p.id) || { potential: 0, actual: 0 };
+          const monthly_repayment = monthlyRepaymentByProperty.get(p.id) || 0;
+          const monthly_expenses = monthlyExpenseByProperty.get(p.id) || 0;
+          const net_cf = rent.actual - monthly_repayment - monthly_expenses;
+          return {
+            id: p.id,
+            name: p.name,
+            address: p.address,
+            potential_rent: rent.potential,
+            actual_rent: rent.actual,
+            monthly_repayment,
+            net_cf,
+            owner_id: p.user_id,
+          };
+        });
 
-      return {
-        id: property.id,
-        name: property.name,
-        address: property.address,
-        potential_rent,
-        actual_rent,
-        monthly_repayment,
-        net_cf,
-        owner_id: property.owner_id,
-      };
-    });
-
-    setProperties(propertySummaries);
+        if (mounted) setProperties(summaries);
+      } catch (e) {
+        console.warn('Failed to load property summaries', e);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const handleSort = (field: SortField) => {
@@ -124,11 +150,7 @@ export default function PropertyListPage() {
               className="rounded border px-3 py-1 text-sm"
             >
               <option value="">すべての所有者</option>
-              {mockOwners.map((owner) => (
-                <option key={owner.id} value={owner.id}>
-                  {owner.name}
-                </option>
-              ))}
+              {/* 所有者選択は現APIに未実装のため、一旦全件のみ */}
             </select>
             <Button onClick={handleAddProperty} className="bg-primary hover:bg-primary/90">
               + 物件を追加

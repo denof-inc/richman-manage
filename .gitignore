@@ -55,3 +55,10 @@ supabase/.temp/
 
 # windsurf rules
 .windsurfrules
+
+# cipher database files
+data/cipher-sessions.db
+data/cipher-sessions.db-shm
+data/cipher-sessions.db-wal
+data/*.db
+data/*.db-*

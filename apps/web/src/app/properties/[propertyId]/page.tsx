@@ -11,12 +11,11 @@ import RentRollTable from '../../../components/rentroll/RentRollTable';
 import LoanMiniTable from '../../../components/loans/LoanMiniTable';
 import PropertyExpenseTable from '../../../components/expenses/PropertyExpenseTable';
 
-import {
-  mockProperties,
-  getPropertyUnits,
-  getPropertyLoans,
-  getPropertyExpenses,
-} from '../../../data/mockData';
+import { request } from '@/lib/api/client';
+import { PropertyResponseSchema } from '@/lib/api/schemas/property';
+import { RentRollResponseSchema } from '@/lib/api/schemas/rent-roll';
+import { ExpenseResponseSchema } from '@/lib/api/schemas/expense';
+import { LoanResponseSchema } from '@/lib/api/schemas/loan';
 
 type UnitType = 'residence' | 'tenant' | 'parking' | 'vending' | 'solar';
 type UnitStatus = 'occupied' | 'vacant';
@@ -64,47 +63,55 @@ export default function PropertyDetailPage() {
   const [showMoreOptions, setShowMoreOptions] = useState(false);
 
   useEffect(() => {
-    const foundProperty = mockProperties.find((p) => p.id === propertyId);
-    if (foundProperty) {
-      const units = getPropertyUnits(propertyId);
-      const loans = getPropertyLoans(propertyId);
-      const expenses = getPropertyExpenses(propertyId);
+    let mounted = true;
+    (async () => {
+      try {
+        const [propRes, rentRes, expRes, loanRes] = await Promise.all([
+          request(`/api/properties/${propertyId}`, PropertyResponseSchema),
+          request(`/api/rent-rolls?property_id=${propertyId}`, RentRollResponseSchema.array()),
+          request(`/api/expenses?property_id=${propertyId}`, ExpenseResponseSchema.array()),
+          request(`/api/loans?property_id=${propertyId}`, LoanResponseSchema.array()),
+        ]);
 
-      // 潜在家賃と実際の家賃を計算
-      const potential_rent = units.reduce((sum, unit) => sum + (unit.rent_amount || 0), 0);
-      const actual_rent = units
-        .filter((unit) => unit.status === 'occupied')
-        .reduce((sum, unit) => sum + (unit.rent_amount || 0), 0);
+        const potential_rent = (rentRes.data || []).reduce((s, u) => s + (u.monthly_rent || 0), 0);
+        const actual_rent = (rentRes.data || [])
+          .filter((u) => u.occupancy_status === 'occupied')
+          .reduce((s, u) => s + (u.monthly_rent || 0), 0);
+        const monthly_repayment = (loanRes.data || []).reduce(
+          (s, l) => s + (l.monthly_payment || 0),
+          0
+        );
+        const monthly_expenses = (expRes.data || [])
+          .filter((e) => e.is_recurring && e.recurring_frequency === 'monthly')
+          .reduce((s, e) => s + (e.amount || 0), 0);
+        const net_cf = actual_rent - monthly_repayment - monthly_expenses;
 
-      // 月次ローン返済額を計算
-      const monthly_repayment = loans.reduce((sum, loan) => sum + loan.payment_amount, 0);
-
-      // 月次経費を計算
-      const monthly_expenses = expenses
-        .filter((expense) => expense.is_recurring && expense.recurring_frequency === 'monthly')
-        .reduce((sum, expense) => sum + expense.amount, 0);
-
-      // ネットキャッシュフロー = 実際の家賃 - ローン返済 - 経費
-      const net_cf = actual_rent - monthly_repayment - monthly_expenses;
-
-      setProperty({
-        id: foundProperty.id,
-        name: foundProperty.name,
-        address: foundProperty.address,
-        owner_id: foundProperty.owner_id,
-        property_type: foundProperty.property_type,
-        year_built: foundProperty.year_built || 2015,
-        total_area: foundProperty.total_area || 500,
-        purchase_date: foundProperty.purchase_date || '2020-05-15',
-        purchase_price: foundProperty.purchase_price || 80000000,
-        current_value: foundProperty.current_value || 85000000,
-        potential_rent,
-        actual_rent,
-        monthly_repayment,
-        monthly_expenses,
-        net_cf,
-      });
-    }
+        const p = propRes.data;
+        const detail: PropertyDetail = {
+          id: p.id,
+          name: p.name,
+          address: p.address,
+          owner_id: p.user_id,
+          property_type: p.property_type,
+          year_built: 0,
+          total_area: 0,
+          purchase_date: p.purchase_date,
+          purchase_price: p.purchase_price,
+          current_value: p.current_valuation || 0,
+          potential_rent,
+          actual_rent,
+          monthly_repayment,
+          monthly_expenses,
+          net_cf,
+        };
+        if (mounted) setProperty(detail);
+      } catch (e) {
+        console.warn('Failed to load property detail/analytics', e);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
   }, [propertyId]);
 
   const formatCurrency = (amount: number | undefined) => {
@@ -121,6 +128,42 @@ export default function PropertyDetailPage() {
     return new Date(dateString).toLocaleDateString('ja-JP');
   };
 
+  // Units from API
+  const [units, setUnits] = useState<RentRollUnit[]>([]);
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const { data } = await request(
+          `/api/rent-rolls?property_id=${propertyId}`,
+          RentRollResponseSchema.array()
+        );
+        const rentRollUnits: RentRollUnit[] = (data || []).map((u) => ({
+          id: u.id,
+          property_id: u.property_id,
+          property_name: property?.name || '',
+          unit_number: u.room_number,
+          unit_type: 'residence',
+          status: (u.occupancy_status as UnitStatus) || 'vacant',
+          area: null,
+          bedrooms: null,
+          bathrooms: null,
+          rent_amount: u.monthly_rent || 0,
+          deposit_amount: u.security_deposit || 0,
+          current_tenant_name: u.tenant_name || null,
+          lease_start_date: u.lease_start_date || null,
+          lease_end_date: u.lease_end_date || null,
+        }));
+        if (mounted) setUnits(rentRollUnits);
+      } catch (e) {
+        console.warn('Failed to load units', e);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [propertyId, property?.name]);
+
   if (!property) {
     return (
       <MainLayout>
@@ -132,24 +175,6 @@ export default function PropertyDetailPage() {
       </MainLayout>
     );
   }
-
-  // Filter units for this property
-  const filteredUnits: RentRollUnit[] = getPropertyUnits(propertyId).map((unit) => ({
-    id: unit.id,
-    property_id: unit.property_id,
-    property_name: property.name,
-    unit_number: unit.unit_number,
-    unit_type: unit.unit_type,
-    status: unit.status,
-    area: unit.area ?? null,
-    bedrooms: unit.bedrooms ?? null,
-    bathrooms: unit.bathrooms ?? null,
-    rent_amount: unit.rent_amount || 0,
-    deposit_amount: unit.deposit_amount || 0,
-    current_tenant_name: unit.current_tenant_name ?? null,
-    lease_start_date: unit.lease_start_date ?? null,
-    lease_end_date: unit.lease_end_date ?? null,
-  }));
 
   return (
     <MainLayout>
@@ -317,7 +342,7 @@ export default function PropertyDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <RentRollTable units={filteredUnits} />
+                <RentRollTable units={units} />
               </CardContent>
             </Card>
           )}
