@@ -38,11 +38,11 @@ async function parseJson(response: Response) {
   }
 }
 
-export async function request<T>(
+export async function request<S extends z.ZodTypeAny>(
   path: string,
-  dataSchema: z.ZodTypeAny,
+  dataSchema: S,
   options: ApiClientOptions = {}
-): Promise<ApiResult<T>> {
+): Promise<ApiResult<z.infer<S>>> {
   const res = await fetch(path, { credentials: 'same-origin', ...options.init });
   const json = await parseJson(res);
 
@@ -50,7 +50,7 @@ export async function request<T>(
   const Success = makeSuccessEnvelope(dataSchema);
   const success = Success.safeParse(json);
   if (success.success) {
-    return { data: success.data.data as T, meta: success.data.meta };
+    return { data: success.data.data as z.infer<S>, meta: success.data.meta };
   }
 
   // Then error envelope
@@ -66,7 +66,7 @@ export async function request<T>(
   if (res.ok) {
     const raw = dataSchema.safeParse(json);
     if (raw.success) {
-      return { data: raw.data as T };
+      return { data: raw.data as z.infer<S> };
     }
   }
 

@@ -6,25 +6,22 @@ import { z } from 'zod';
 
 describe('api/client request', () => {
   beforeEach(() => {
-    // @ts-expect-error override
-    global.fetch = jest.fn();
+    (global as unknown as { fetch: jest.Mock }).fetch = jest.fn();
   });
 
   it('unwraps success envelope', async () => {
-    // @ts-expect-error override
-    global.fetch.mockResolvedValue({
+    (global as unknown as { fetch: jest.Mock }).fetch.mockResolvedValue({
       ok: true,
       text: async () => JSON.stringify({ success: true, data: { x: 1 }, error: null }),
     });
 
     const schema = z.object({ x: z.number() });
     const res = await request('/api/test', schema);
-    expect(res.data.x).toBe(1);
+    expect((res.data as { x: number }).x).toBe(1);
   });
 
   it('throws on error envelope', async () => {
-    // @ts-expect-error override
-    global.fetch.mockResolvedValue({
+    (global as unknown as { fetch: jest.Mock }).fetch.mockResolvedValue({
       ok: false,
       text: async () =>
         JSON.stringify({ success: false, data: null, error: { code: 'X', message: 'boom' } }),

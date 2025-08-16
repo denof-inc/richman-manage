@@ -33,6 +33,7 @@ export default function ExpenseListPage() {
   const [sortField, setSortField] = useState<SortField>('expense_date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
+  const [propertyOptions, setPropertyOptions] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -42,9 +43,9 @@ export default function ExpenseListPage() {
           request('/api/expenses', ExpenseResponseSchema.array()),
           request('/api/properties', PropertyResponseSchema.array()),
         ]);
-        const propNameMap = new Map<string, string>(
-          (propsRes.data || []).map((p) => [p.id, p.name])
-        );
+        const propPairs = (propsRes.data || []).map((p) => [p.id, p.name] as const);
+        const propNameMap = new Map<string, string>(propPairs);
+        setPropertyOptions(propPairs.map(([id, name]) => ({ id, name })));
         const expenseSummaries: ExpenseSummary[] = (expRes.data || []).map((e) => ({
           id: e.id,
           property_id: e.property_id,
@@ -117,7 +118,7 @@ export default function ExpenseListPage() {
               className="rounded border px-3 py-1 text-sm"
             >
               <option value="">すべての物件</option>
-              {mockProperties.map((property) => (
+              {propertyOptions.map((property) => (
                 <option key={property.id} value={property.id}>
                   {property.name}
                 </option>
