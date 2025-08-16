@@ -100,6 +100,23 @@ async function getUserId(request: Request): Promise<string | null> {
 }
 
 // GET /api/rent-rolls - レントロール一覧取得
+/**
+ * @swagger
+ * /api/rent-rolls:
+ *   get:
+ *     tags: [RentRolls]
+ *     summary: レントロール一覧を取得
+ *     parameters:
+ *       - in: query
+ *         name: property_id
+ *         schema: { type: string, format: uuid }
+ *       - in: query
+ *         name: occupancy_status
+ *         schema: { type: string, enum: [occupied, vacant, reserved] }
+ *     responses:
+ *       200:
+ *         description: 成功
+ */
 export async function GET(request: NextRequest) {
   return withPerformanceMonitoring(async () => {
     try {
@@ -187,6 +204,22 @@ export async function GET(request: NextRequest) {
 }
 
 // POST /api/rent-rolls - レントロール作成
+/**
+ * @swagger
+ * /api/rent-rolls:
+ *   post:
+ *     tags: [RentRolls]
+ *     summary: レントロールを作成
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateRentRoll'
+ *     responses:
+ *       201:
+ *         description: 作成成功
+ */
 export async function POST(request: NextRequest) {
   return withPerformanceMonitoring(async () => {
     try {
