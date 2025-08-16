@@ -8,7 +8,9 @@ import { Search } from 'lucide-react';
 
 import MainLayout from '../../components/layout/MainLayout';
 import ExpenseTable from '../../components/expenses/ExpenseTable';
-import { mockExpenses, mockProperties } from '../../data/mockData';
+import { request } from '@/lib/api/client';
+import { ExpenseResponseSchema } from '@/lib/api/schemas/expense';
+import { PropertyResponseSchema } from '@/lib/api/schemas/property';
 
 type ExpenseSummary = {
   id: string;
@@ -33,19 +35,34 @@ export default function ExpenseListPage() {
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
 
   useEffect(() => {
-    // 支出データに物件名を追加
-    const expenseSummaries: ExpenseSummary[] = mockExpenses.map((expense) => {
-      const property = mockProperties.find((p) => p.id === expense.property_id);
-      return {
-        ...expense,
-        category: expense.category as string,
-        vendor: expense.vendor || '',
-        description: expense.description || '',
-        property_name: property?.name || '不明な物件',
-      };
-    });
-
-    setExpenses(expenseSummaries);
+    let mounted = true;
+    (async () => {
+      try {
+        const [expRes, propsRes] = await Promise.all([
+          request('/api/expenses', ExpenseResponseSchema.array()),
+          request('/api/properties', PropertyResponseSchema.array()),
+        ]);
+        const propNameMap = new Map<string, string>(
+          (propsRes.data || []).map((p) => [p.id, p.name])
+        );
+        const expenseSummaries: ExpenseSummary[] = (expRes.data || []).map((e) => ({
+          id: e.id,
+          property_id: e.property_id,
+          category: e.category,
+          amount: e.amount,
+          expense_date: new Date(e.expense_date),
+          vendor: e.vendor || '',
+          description: e.description || '',
+          property_name: propNameMap.get(e.property_id) || '不明な物件',
+        }));
+        if (mounted) setExpenses(expenseSummaries);
+      } catch (e) {
+        console.warn('Failed to load expenses/properties', e);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const handleSort = (field: SortField) => {

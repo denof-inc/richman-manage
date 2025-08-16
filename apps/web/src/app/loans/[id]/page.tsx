@@ -7,6 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Edit, History } from 'lucide-react';
 import MainLayout from '../../../components/layout/MainLayout';
+import { request } from '@/lib/api/client';
+import { LoanResponseSchema } from '@/lib/api/schemas/loan';
+import { LoanRepaymentResponseSchema } from '@/lib/api/schemas/loan-repayment';
 
 interface LoanDetail {
   id: string;
@@ -48,30 +51,48 @@ export default function LoanDetailPage() {
 
   useEffect(() => {
     if (!id) return;
-    fetch(`/api/loans/${id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setLoan(data);
-      });
-
-    fetch(`/api/loans/${id}/repayments`)
-      .then((res) => res.json())
-      .then((data) => setRepayments(data))
-      .catch(() => {
-        // モックデータ
-        setRepayments([
-          { date: '2024-12-01', amount: 150000, principal: 100000, interest: 50000 },
-          { date: '2024-11-01', amount: 150000, principal: 99000, interest: 51000 },
-          { date: '2024-10-01', amount: 150000, principal: 98000, interest: 52000 },
+    (async () => {
+      try {
+        const [{ data: loanData }, { data: repaymentsData }] = await Promise.all([
+          request(`/api/loans/${id}`, LoanResponseSchema),
+          request(`/api/loans/${id}/repayments`, LoanRepaymentResponseSchema.array()),
         ]);
-      });
+        // Map API loan to UI LoanDetail
+        setLoan({
+          id: loanData.id,
+          name: loanData.lender_name,
+          property: '',
+          lender: loanData.lender_name,
+          loanAmount: loanData.principal_amount,
+          remainingBalance: loanData.current_balance,
+          interestRate: loanData.interest_rate,
+          interestType: 'fixed',
+          repaymentType: 'principal_and_interest',
+          termYears: Math.floor((loanData.loan_term_months ?? 0) / 12),
+          startDate: loanData.created_at,
+          endDate: loanData.updated_at,
+          monthlyPayment: loanData.monthly_payment,
+        });
 
-    // 金利変動履歴
-    setInterestChanges([
-      { date: '2024-07-01', oldRate: 2.7, newRate: 2.9, reason: '市場金利上昇に伴う変動' },
-      { date: '2024-04-01', oldRate: 2.5, newRate: 2.7, reason: '定期見直し' },
-      { date: '2024-01-01', oldRate: 2.3, newRate: 2.5, reason: '日銀政策変更に伴う調整' },
-    ]);
+        setRepayments(
+          (repaymentsData || []).map((r) => ({
+            date: r.payment_date,
+            amount: r.amount,
+            principal: r.principal_amount,
+            interest: r.interest_amount,
+          }))
+        );
+      } catch (e) {
+        console.warn('Failed to load loan detail/repayments', e);
+      }
+
+      // 金利変動履歴（TODO: API化）
+      setInterestChanges([
+        { date: '2024-07-01', oldRate: 2.7, newRate: 2.9, reason: '市場金利上昇に伴う変動' },
+        { date: '2024-04-01', oldRate: 2.5, newRate: 2.7, reason: '定期見直し' },
+        { date: '2024-01-01', oldRate: 2.3, newRate: 2.5, reason: '日銀政策変更に伴う調整' },
+      ]);
+    })();
   }, [id]);
 
   if (!loan) {

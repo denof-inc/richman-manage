@@ -7,30 +7,75 @@ import { Button } from '@/components/ui/button';
 import { ArrowUpIcon, ArrowDownIcon, DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
 
 import MainLayout from '../components/layout/MainLayout';
-import {
-  mockProperties,
-  getPropertyUnits,
-  getPropertyLoans,
-  getPropertyExpenses,
-} from '../data/mockData';
-import { formatCurrency, formatDateShort, calculatePropertySummary } from '@/lib/utils';
-import type { PropertySummary, RecentTransaction } from '@/types';
+import { formatCurrency, formatDateShort } from '@/lib/utils';
+import { request } from '@/lib/api/client';
+import { PropertyResponseSchema } from '@/lib/api/schemas/property';
+import { RentRollResponseSchema } from '@/lib/api/schemas/rent-roll';
+import { ExpenseResponseSchema } from '@/lib/api/schemas/expense';
+import { LoanResponseSchema } from '@/lib/api/schemas/loan';
+import type { RecentTransaction } from '@/types';
 
 export default function HomePage() {
-  const [properties, setProperties] = useState<PropertySummary[]>([]);
+  const [properties, setProperties] = useState<
+    {
+      id: string;
+      name: string;
+      actual_rent: number;
+      monthly_repayment: number;
+      net_cf: number;
+    }[]
+  >([]);
   const [recentTransactions, setRecentTransactions] = useState<RecentTransaction[]>([]);
 
   useEffect(() => {
-    // 統一データから物件サマリーを生成
-    const propertySummaries: PropertySummary[] = mockProperties.map((property) => {
-      const units = getPropertyUnits(property.id);
-      const loans = getPropertyLoans(property.id);
-      const expenses = getPropertyExpenses(property.id);
-
-      return calculatePropertySummary(property, units, loans, expenses);
-    });
-
-    setProperties(propertySummaries);
+    (async () => {
+      try {
+        const [propsRes, rentRes, expRes, loanRes] = await Promise.all([
+          request('/api/properties', PropertyResponseSchema.array()),
+          request('/api/rent-rolls', RentRollResponseSchema.array()),
+          request('/api/expenses', ExpenseResponseSchema.array()),
+          request('/api/loans', LoanResponseSchema.array()),
+        ]);
+        const rentByProperty = new Map<string, { actual: number }>();
+        (rentRes.data || []).forEach((r) => {
+          const k = r.property_id;
+          const cur = rentByProperty.get(k) || { actual: 0 };
+          if (r.occupancy_status === 'occupied') cur.actual += r.monthly_rent || 0;
+          rentByProperty.set(k, cur);
+        });
+        const repayByProperty = new Map<string, number>();
+        (loanRes.data || []).forEach((l) => {
+          repayByProperty.set(
+            l.property_id,
+            (repayByProperty.get(l.property_id) || 0) + (l.monthly_payment || 0)
+          );
+        });
+        const monthlyExpByProperty = new Map<string, number>();
+        (expRes.data || []).forEach((e) => {
+          if (e.is_recurring && e.recurring_frequency === 'monthly') {
+            monthlyExpByProperty.set(
+              e.property_id,
+              (monthlyExpByProperty.get(e.property_id) || 0) + (e.amount || 0)
+            );
+          }
+        });
+        const cards = (propsRes.data || []).map((p) => {
+          const actual = rentByProperty.get(p.id)?.actual || 0;
+          const repay = repayByProperty.get(p.id) || 0;
+          const mexp = monthlyExpByProperty.get(p.id) || 0;
+          return {
+            id: p.id,
+            name: p.name,
+            actual_rent: actual,
+            monthly_repayment: repay,
+            net_cf: actual - repay - mexp,
+          };
+        });
+        setProperties(cards);
+      } catch (e) {
+        console.warn('Failed to load dashboard data', e);
+      }
+    })();
 
     // モック取引データを生成
     const mockTransactions: RecentTransaction[] = [

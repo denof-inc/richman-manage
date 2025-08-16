@@ -1,28 +1,16 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
 import MainLayout from '../../components/layout/MainLayout';
 import LoanTable from '../../components/loans/LoanTable';
-
-type Loan = {
-  id: string;
-  name: string;
-  property_name: string;
-  lender: string;
-  loanAmount: number;
-  remainingBalance: number;
-  interestRate: number;
-  interestType: 'fixed' | 'variable';
-  repaymentType: 'principal_and_interest' | 'principal_equal';
-  termYears: number;
-  startDate: string;
-  monthlyPayment: number;
-  nextDue: string;
-};
+import { request } from '@/lib/api/client';
+import { LoanResponseSchema } from '@/lib/api/schemas/loan';
+import { PropertyResponseSchema } from '@/lib/api/schemas/property';
+import { toLoanListViewModel, type LoanListViewModel } from '@/lib/mappers/loan';
 
 type SortField =
   | 'lender'
@@ -35,21 +23,40 @@ type SortDirection = 'asc' | 'desc';
 
 export default function LoanListPage() {
   const router = useRouter();
-  const [loans, setLoans] = useState<Loan[]>([]);
+  const [loans, setLoans] = useState<LoanListViewModel[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState<SortField>('lender');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [filterProperty, setFilterProperty] = useState<string>('');
 
   useEffect(() => {
-    fetch('/api/loans')
-      .then((res) => res.json())
-      .then((data) => {
-        setLoans(data);
-      });
+    let mounted = true;
+    (async () => {
+      try {
+        const [loansRes, propsRes] = await Promise.all([
+          request('/api/loans', LoanResponseSchema.array()),
+          request('/api/properties', PropertyResponseSchema.array()),
+        ]);
+        const propNameMap = new Map<string, string>(
+          (propsRes.data || []).map((p) => [p.id as string, p.name as string])
+        );
+        const view = (loansRes.data || []).map((l) =>
+          toLoanListViewModel(l, propNameMap.get(l.property_id))
+        );
+        if (mounted) setLoans(view);
+      } catch (e) {
+        console.warn('Failed to load loans/properties', e);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const properties = Array.from(new Set(loans.map((loan) => loan.property_name)));
+  const properties = useMemo(
+    () => Array.from(new Set(loans.map((loan) => loan.property))).filter(Boolean),
+    [loans]
+  );
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -60,28 +67,29 @@ export default function LoanListPage() {
     }
   };
 
-  const filteredAndSortedLoans = loans
-    .filter((loan) => {
-      const matchesSearch =
-        loan.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        loan.property_name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesProperty = filterProperty ? loan.property_name === filterProperty : true;
-      return matchesSearch && matchesProperty;
-    })
-    .sort((a, b) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
-
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return sortDirection === 'asc'
-          ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue);
-      } else {
-        return sortDirection === 'asc'
-          ? (aValue as number) - (bValue as number)
-          : (bValue as number) - (aValue as number);
-      }
-    });
+  const filteredAndSortedLoans = useMemo(() => {
+    return loans
+      .filter((loan) => {
+        const matchesSearch =
+          loan.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          loan.property.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesProperty = filterProperty ? loan.property === filterProperty : true;
+        return matchesSearch && matchesProperty;
+      })
+      .sort((a, b) => {
+        const aValue = a[sortField];
+        const bValue = b[sortField];
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return sortDirection === 'asc'
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        } else {
+          return sortDirection === 'asc'
+            ? (aValue as number) - (bValue as number)
+            : (bValue as number) - (aValue as number);
+        }
+      });
+  }, [loans, searchTerm, filterProperty, sortField, sortDirection]);
 
   const handleAddLoan = () => {
     router.push('/loans/new');
@@ -128,10 +136,7 @@ export default function LoanListPage() {
         <Card>
           <CardContent className="p-0">
             <LoanTable
-              loans={filteredAndSortedLoans.map((loan) => ({
-                ...loan,
-                property: loan.property_name, // LoanTableコンポーネントがpropertyフィールドを期待
-              }))}
+              loans={filteredAndSortedLoans}
               sortField={sortField}
               sortDirection={sortDirection}
               onSort={handleSort}

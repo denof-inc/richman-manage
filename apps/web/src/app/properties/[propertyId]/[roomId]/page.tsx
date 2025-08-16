@@ -7,7 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Home, Calendar, DollarSign, User, Edit } from 'lucide-react';
 import MainLayout from '@/components/layout/MainLayout';
-import { mockUnits, mockProperties } from '@/data/mockData';
+import { request } from '@/lib/api/client';
+import { RentRollResponseSchema } from '@/lib/api/schemas/rent-roll';
+import { PropertyResponseSchema } from '@/lib/api/schemas/property';
 
 type UnitType = 'residence' | 'tenant' | 'parking' | 'vending' | 'solar';
 type UnitStatus = 'occupied' | 'vacant';
@@ -112,29 +114,38 @@ export default function RoomDetailPage() {
   ]);
 
   useEffect(() => {
-    // 統一データから該当のユニットを検索
-    const foundUnit = mockUnits.find((u) => u.id === roomId);
-    if (foundUnit) {
-      const property = mockProperties.find((p) => p.id === foundUnit.property_id);
-
-      setUnit({
-        id: foundUnit.id,
-        property_id: foundUnit.property_id,
-        property_name: property?.name || '',
-        unit_number: foundUnit.unit_number,
-        unit_type: foundUnit.unit_type,
-        status: foundUnit.status,
-        area: foundUnit.area ?? null,
-        bedrooms: foundUnit.bedrooms ?? null,
-        bathrooms: foundUnit.bathrooms ?? null,
-        rent_amount: foundUnit.rent_amount || 0,
-        deposit_amount: foundUnit.deposit_amount || 0,
-        current_tenant_name: foundUnit.current_tenant_name ?? null,
-        lease_start_date: foundUnit.lease_start_date ?? null,
-        lease_end_date: foundUnit.lease_end_date ?? null,
-      });
-    }
-  }, [roomId]);
+    let mounted = true;
+    (async () => {
+      try {
+        const [{ data: u }, { data: p }] = await Promise.all([
+          request(`/api/rent-rolls/${roomId}`, RentRollResponseSchema),
+          request(`/api/properties/${propertyId}`, PropertyResponseSchema),
+        ]);
+        const mapped: RentRollUnit = {
+          id: u.id,
+          property_id: u.property_id,
+          property_name: p.name,
+          unit_number: u.room_number,
+          unit_type: 'residence',
+          status: (u.occupancy_status as UnitStatus) || 'vacant',
+          area: null,
+          bedrooms: null,
+          bathrooms: null,
+          rent_amount: u.monthly_rent || 0,
+          deposit_amount: u.security_deposit || 0,
+          current_tenant_name: u.tenant_name || null,
+          lease_start_date: u.lease_start_date || null,
+          lease_end_date: u.lease_end_date || null,
+        };
+        if (mounted) setUnit(mapped);
+      } catch {
+        // no-op fallback, unit remains null
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [roomId, propertyId]);
 
   if (!unit) {
     return (

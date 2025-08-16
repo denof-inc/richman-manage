@@ -3,7 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import MainLayout from '../../components/layout/MainLayout';
 import RentRollTable from '../../components/rentroll/RentRollTable';
-import { mockUnits, mockProperties } from '../../data/mockData';
+import { request } from '@/lib/api/client';
+import { RentRollResponseSchema } from '@/lib/api/schemas/rent-roll';
+import { PropertyResponseSchema } from '@/lib/api/schemas/property';
 
 type UnitType = 'residence' | 'tenant' | 'parking' | 'vending' | 'solar';
 type UnitStatus = 'occupied' | 'vacant';
@@ -29,29 +31,40 @@ export default function RentRollPage() {
   const [units, setUnits] = useState<RentRollUnit[]>([]);
 
   useEffect(() => {
-    // 統一データからレントロールデータを生成
-    const rentRollUnits: RentRollUnit[] = mockUnits.map((unit) => {
-      const property = mockProperties.find((p) => p.id === unit.property_id);
-
-      return {
-        id: unit.id,
-        property_id: unit.property_id,
-        property_name: property?.name || '',
-        unit_number: unit.unit_number,
-        unit_type: unit.unit_type,
-        status: unit.status,
-        area: unit.area || null,
-        bedrooms: unit.bedrooms || null,
-        bathrooms: unit.bathrooms || null,
-        rent_amount: unit.rent_amount || 0,
-        deposit_amount: unit.deposit_amount || 0,
-        current_tenant_name: unit.current_tenant_name || null,
-        lease_start_date: unit.lease_start_date || null,
-        lease_end_date: unit.lease_end_date || null,
-      };
-    });
-
-    setUnits(rentRollUnits);
+    let mounted = true;
+    (async () => {
+      try {
+        const [rrRes, propsRes] = await Promise.all([
+          request('/api/rent-rolls', RentRollResponseSchema.array()),
+          request('/api/properties', PropertyResponseSchema.array()),
+        ]);
+        const propNameMap = new Map<string, string>(
+          (propsRes.data || []).map((p) => [p.id, p.name])
+        );
+        const rentRollUnits: RentRollUnit[] = (rrRes.data || []).map((unit) => ({
+          id: unit.id,
+          property_id: unit.property_id,
+          property_name: propNameMap.get(unit.property_id) || '',
+          unit_number: unit.room_number,
+          unit_type: 'residence',
+          status: (unit.occupancy_status as UnitStatus) || 'vacant',
+          area: null,
+          bedrooms: null,
+          bathrooms: null,
+          rent_amount: unit.monthly_rent || 0,
+          deposit_amount: unit.security_deposit || 0,
+          current_tenant_name: unit.tenant_name || null,
+          lease_start_date: unit.lease_start_date || null,
+          lease_end_date: unit.lease_end_date || null,
+        }));
+        if (mounted) setUnits(rentRollUnits);
+      } catch (e) {
+        console.warn('Failed to load rent-roll/properties', e);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   return (
