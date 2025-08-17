@@ -83,12 +83,13 @@ describe('APIセキュリティ検証', () => {
           url: '/api/loans',
           body: {
             property_id: 'test',
-            loan_name: 'Test',
-            lender: 'Test',
-            loan_amount: 100000,
+            lender_name: 'Test',
+            loan_type: 'mortgage',
+            principal_amount: 100000,
+            current_balance: 100000,
             interest_rate: 1.0,
-            loan_start_date: '2024-01-01',
             loan_term_months: 120,
+            monthly_payment: 1000,
           },
         },
       ];

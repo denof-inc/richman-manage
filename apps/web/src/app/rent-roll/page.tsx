@@ -1,5 +1,5 @@
 'use client';
-
+export const dynamic = 'force-dynamic';
 import React, { useCallback, useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/toast-context';
 import MainLayout from '../../components/layout/MainLayout';

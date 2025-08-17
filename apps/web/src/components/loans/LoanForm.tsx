@@ -24,7 +24,7 @@ type LoanFormProps = {
   mode: Mode;
   defaultValues?: Partial<LoanFormValues>;
   properties: PropertyOption[];
-  onSubmit: (values: CreateLoanInput | UpdateLoanInput) => Promise<void>;
+  onSubmit: (values: CreateLoanInput | Partial<UpdateLoanInput>) => Promise<void>;
   onDelete?: () => Promise<void>;
   submitting?: boolean;
   serverError?: string | null;

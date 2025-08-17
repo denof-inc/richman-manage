@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 export default function AuthCodeError() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-8">

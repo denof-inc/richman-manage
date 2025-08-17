@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import AuthLayout from '../../components/layout/AuthLayout';
 import AuthForm from '../../components/AuthForm';
 

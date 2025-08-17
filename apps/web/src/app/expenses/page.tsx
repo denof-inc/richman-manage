@@ -1,5 +1,8 @@
 'use client';
 
+// ProtectedRouteを使用するページは動的レンダリングが必要
+export const dynamic = 'force-dynamic';
+
 import React, { useCallback, useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/toast-context';
 import { useRouter } from 'next/navigation';

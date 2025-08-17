@@ -1,5 +1,8 @@
 'use client';
 
+// ProtectedRouteを使用するページは動的レンダリングが必要
+export const dynamic = 'force-dynamic';
+
 import React, { useEffect, useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -7,7 +10,11 @@ import LoanForm from '@/components/loans/LoanForm';
 import { useRouter } from 'next/navigation';
 import { request } from '@/lib/api/client';
 import { PropertyResponseSchema } from '@/lib/api/schemas/property';
-import { CreateLoanSchema, type CreateLoanInput } from '@/lib/api/schemas/loan';
+import {
+  CreateLoanSchema,
+  type CreateLoanInput,
+  type UpdateLoanInput,
+} from '@/lib/api/schemas/loan';
 
 export default function LoanNewPage() {
   const router = useRouter();
@@ -33,12 +40,12 @@ export default function LoanNewPage() {
     };
   }, []);
 
-  const handleCreate = async (values: CreateLoanInput) => {
+  const handleCreate = async (values: CreateLoanInput | Partial<UpdateLoanInput>) => {
     setSubmitting(true);
     setServerError(null);
     try {
       // バリデーション（冪等）
-      CreateLoanSchema.parse(values);
+      CreateLoanSchema.parse(values as CreateLoanInput);
       const res = await fetch('/api/loans', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
