@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
+import { useToast } from '@/components/ui/toast-context';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,7 @@ type SortDirection = 'asc' | 'desc';
 
 export default function ExpenseListPage() {
   const router = useRouter();
+  const { showError } = useToast();
   const [expenses, setExpenses] = useState<ExpenseSummary[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState<SortField>('expense_date');
@@ -35,36 +37,32 @@ export default function ExpenseListPage() {
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [propertyOptions, setPropertyOptions] = useState<{ id: string; name: string }[]>([]);
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const [expRes, propsRes] = await Promise.all([
-          request('/api/expenses', ExpenseResponseSchema.array()),
-          request('/api/properties', PropertyResponseSchema.array()),
-        ]);
-        const propPairs = (propsRes.data || []).map((p) => [p.id, p.name] as const);
-        const propNameMap = new Map<string, string>(propPairs);
-        setPropertyOptions(propPairs.map(([id, name]) => ({ id, name })));
-        const expenseSummaries: ExpenseSummary[] = (expRes.data || []).map((e) => ({
-          id: e.id,
-          property_id: e.property_id,
-          category: e.category,
-          amount: e.amount,
-          expense_date: new Date(e.expense_date),
-          vendor: e.vendor || '',
-          description: e.description || '',
-          property_name: propNameMap.get(e.property_id) || '不明な物件',
-        }));
-        if (mounted) setExpenses(expenseSummaries);
-      } catch (e) {
-        console.warn('Failed to load expenses/properties', e);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
+  const load = useCallback(async () => {
+    const [expRes, propsRes] = await Promise.all([
+      request('/api/expenses', ExpenseResponseSchema.array()),
+      request('/api/properties', PropertyResponseSchema.array()),
+    ]);
+    const propPairs = (propsRes.data || []).map((p) => [p.id, p.name] as const);
+    const propNameMap = new Map<string, string>(propPairs);
+    setPropertyOptions(propPairs.map(([id, name]) => ({ id, name })));
+    const expenseSummaries: ExpenseSummary[] = (expRes.data || []).map((e) => ({
+      id: e.id,
+      property_id: e.property_id,
+      category: e.category,
+      amount: e.amount,
+      expense_date: new Date(e.expense_date),
+      vendor: e.vendor || '',
+      description: e.description || '',
+      property_name: propNameMap.get(e.property_id) || '不明な物件',
+    }));
+    setExpenses(expenseSummaries);
   }, []);
+
+  useEffect(() => {
+    load().catch(() =>
+      showError('支出データの取得に失敗しました', { label: '再試行', onAction: () => load() })
+    );
+  }, [load, showError]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
