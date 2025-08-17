@@ -2,14 +2,17 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Menu, X, User } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Menu, X, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import FontSizeSelector from '../ui/FontSizeSelector';
+import { useAuth } from '@/contexts/AuthContext';
 
-export default function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
+export default function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user, loading, signOut } = useAuth();
 
   const navItems = [
     { name: '物件一覧', href: '/properties' },
@@ -21,6 +24,17 @@ export default function Header({ isLoggedIn = false }: { isLoggedIn?: boolean })
   const isActive = (path: string) => {
     return pathname === path || pathname?.startsWith(`${path}/`);
   };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      router.push('/login');
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
+  };
+
+  const isLoggedIn = !!user;
 
   return (
     <header className="fixed left-0 right-0 top-0 z-40 flex h-14 items-center justify-between bg-white px-6 shadow md:relative md:z-auto">
@@ -67,17 +81,34 @@ export default function Header({ isLoggedIn = false }: { isLoggedIn?: boolean })
           </div>
         ) : (
           <>
-            {/* マイページボタン */}
-            <Link href="/profile">
+            {/* ユーザー情報表示 */}
+            <div className="hidden items-center space-x-3 sm:flex">
+              <span className="text-sm text-gray-600">{user?.email || 'ユーザー'}</span>
               <Button
                 variant="outline"
                 size="sm"
+                onClick={handleSignOut}
+                disabled={loading}
                 className="min-h-[44px] px-3"
-                aria-label="マイページ"
+                aria-label="ログアウト"
               >
-                <User size={20} className="text-gray-600" />
+                <LogOut size={16} className="text-gray-600" />
               </Button>
-            </Link>
+            </div>
+
+            {/* モバイル用ユーザーアイコン */}
+            <div className="flex items-center space-x-2 sm:hidden">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSignOut}
+                disabled={loading}
+                className="min-h-[44px] px-3"
+                aria-label="ログアウト"
+              >
+                <LogOut size={16} className="text-gray-600" />
+              </Button>
+            </div>
           </>
         )}
 

@@ -42,29 +42,62 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
         });
 
         if (error) {
-          if (error.message === 'Invalid login credentials') {
-            throw new Error('メールアドレスまたはパスワードが正しくありません');
+          // Supabaseエラーメッセージの日本語化
+          switch (error.message) {
+            case 'Invalid login credentials':
+              setError('メールアドレスまたはパスワードが正しくありません');
+              break;
+            case 'Email not confirmed':
+              setError('メールアドレスが確認されていません。確認メールをご確認ください');
+              break;
+            case 'Too many requests':
+              setError('ログイン試行回数が上限に達しました。しばらく待ってから再度お試しください');
+              break;
+            case 'User not found':
+              setError('このメールアドレスは登録されていません');
+              break;
+            default:
+              setError(`ログインに失敗しました: ${error.message}`);
           }
-          throw error;
+          return;
         }
 
-        // ログイン成功後にダッシュボードへリダイレクト
-        router.push('/');
-        router.refresh();
+        // ログイン成功メッセージを表示
+        setMessage('ログインしました。ダッシュボードに移動しています...');
+
+        // 少し遅延してからリダイレクト（ユーザーに成功を伝えるため）
+        setTimeout(() => {
+          router.push('/');
+          router.refresh();
+        }, 1000);
       } else {
         const { error, data: authData } = await supabase.auth.signUp({
           email: data.email,
           password: data.password,
           options: {
-            emailRedirectTo: `${window.location.origin}/auth/confirm`,
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
           },
         });
 
         if (error) {
-          if (error.message.includes('already registered')) {
-            throw new Error('このメールアドレスは既に登録されています');
+          // Supabaseエラーメッセージの日本語化
+          switch (error.message) {
+            case 'User already registered':
+              setError('このメールアドレスは既に登録されています');
+              break;
+            case 'Password should be at least 6 characters':
+              setError('パスワードは6文字以上で入力してください');
+              break;
+            case 'Unable to validate email address: invalid format':
+              setError('メールアドレスの形式が正しくありません');
+              break;
+            case 'Signup is disabled':
+              setError('現在新規登録は無効になっています');
+              break;
+            default:
+              setError(`新規登録に失敗しました: ${error.message}`);
           }
-          throw error;
+          return;
         }
 
         if (authData?.user?.identities?.length === 0) {
@@ -78,10 +111,11 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
         }
       }
     } catch (e: unknown) {
+      console.error('Unexpected auth error:', e);
       if (e instanceof Error) {
-        setError(e.message);
+        setError(`予期しないエラーが発生しました: ${e.message}`);
       } else {
-        setError('認証エラーが発生しました');
+        setError('予期しないエラーが発生しました。しばらく待ってから再度お試しください。');
       }
     } finally {
       setLoading(false);

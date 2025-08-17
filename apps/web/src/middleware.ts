@@ -37,8 +37,21 @@ export async function middleware(request: NextRequest) {
 
   // 認証チェック（APIルート以外）
   if (!skipAuthPaths.some((path) => pathname.startsWith(path))) {
-    // トークンの存在確認（簡易チェック）
-    const token = request.cookies.get('sb-access-token')?.value;
+    // Supabaseプロジェクト固有のクッキーパターンを確認
+    const supabaseProjectId = process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1]?.split('.')[0];
+    const projectCookieName = `sb-${supabaseProjectId}-auth-token`;
+
+    // 複数のクッキーパターンを確認
+    const projectToken = request.cookies.get(projectCookieName)?.value;
+    const genericToken = request.cookies.get('sb-access-token')?.value;
+
+    // 全てのSupabaseクッキーをスキャン（フォールバック）
+    const allCookies = Array.from(request.cookies.getAll());
+    const supabaseAuthCookie = allCookies.find(
+      (cookie) => cookie.name.includes('-auth-token') && !cookie.name.includes('-code-verifier')
+    );
+
+    const token = projectToken || genericToken || supabaseAuthCookie?.value;
 
     // 認証不要ページの処理
     if (publicPaths.includes(pathname)) {

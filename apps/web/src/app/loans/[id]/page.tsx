@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Edit, History } from 'lucide-react';
 import MainLayout from '../../../components/layout/MainLayout';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { request } from '@/lib/api/client';
 import { LoanResponseSchema } from '@/lib/api/schemas/loan';
 import { LoanRepaymentResponseSchema } from '@/lib/api/schemas/loan-repayment';
@@ -126,98 +127,148 @@ export default function LoanDetailPage() {
   };
 
   return (
-    <MainLayout>
-      <div className="container mx-auto px-4 py-8">
-        {/* ヘッダー */}
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button variant="outline" size="sm" onClick={handleBack} className="p-2">
-              <ArrowLeft className="h-4 w-4" />
+    <ProtectedRoute>
+      <MainLayout>
+        <div className="container mx-auto px-4 py-8">
+          {/* ヘッダー */}
+          <div className="mb-6 flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Button variant="outline" size="sm" onClick={handleBack} className="p-2">
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <h1 className="text-2xl font-bold text-primary">{loan.name}</h1>
+            </div>
+            <Button onClick={handleEdit} variant="outline" size="sm">
+              <Edit className="mr-2 h-4 w-4" />
+              編集
             </Button>
-            <h1 className="text-2xl font-bold text-primary">{loan.name}</h1>
           </div>
-          <Button onClick={handleEdit} variant="outline" size="sm">
-            <Edit className="mr-2 h-4 w-4" />
-            編集
-          </Button>
-        </div>
 
-        {/* ローン概要 */}
-        <div className="mb-6 grid gap-4 md:grid-cols-2">
+          {/* ローン概要 */}
+          <div className="mb-6 grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>ローン情報</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-text-muted">物件</span>
+                    <span className="font-medium">{loan.property}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-text-muted">金融機関</span>
+                    <span className="font-medium">{loan.lender}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-text-muted">借入期間</span>
+                    <span className="font-medium">
+                      {loan.startDate && formatDate(loan.startDate)} 〜{' '}
+                      {loan.endDate && formatDate(loan.endDate)}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>返済状況</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-text-muted">借入額</span>
+                    <span className="font-medium">{formatCurrency(loan.loanAmount)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-text-muted">残債</span>
+                    <span className="text-xl font-bold">
+                      {formatCurrency(loan.remainingBalance)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-text-muted">現在金利</span>
+                    <span className="font-medium">
+                      {loan.interestRate}% ({loan.interestType === 'fixed' ? '固定' : '変動'})
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-text-muted">返済方式</span>
+                    <span className="font-medium">
+                      {loan.repaymentType === 'principal_and_interest' ? '元利均等' : '元金均等'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-text-muted">月額返済</span>
+                    <span className="font-medium text-red-600">
+                      {formatCurrency(loan.monthlyPayment || 0)}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* 金利変動履歴 */}
+          {loan.interestType === 'variable' && (
+            <Card className="mb-6">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center">
+                    <History className="mr-2 h-5 w-5" />
+                    金利変動履歴
+                  </CardTitle>
+                  <Button variant="outline" size="sm">
+                    金利変更を追加
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b border-border-default">
+                        <th className="p-3 text-left text-sm font-medium text-text-muted">
+                          変更日
+                        </th>
+                        <th className="p-3 text-right text-sm font-medium text-text-muted">
+                          変更前
+                        </th>
+                        <th className="p-3 text-right text-sm font-medium text-text-muted">
+                          変更後
+                        </th>
+                        <th className="p-3 text-left text-sm font-medium text-text-muted">
+                          変更理由
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {interestChanges.map((change, index) => (
+                        <tr key={index} className="border-b border-border-default">
+                          <td className="p-3">{formatDate(change.date)}</td>
+                          <td className="p-3 text-right">{change.oldRate}%</td>
+                          <td className="p-3 text-right font-medium">{change.newRate}%</td>
+                          <td className="p-3 text-sm text-gray-600">{change.reason}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* 返済履歴 */}
           <Card>
-            <CardHeader>
-              <CardTitle>ローン情報</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-text-muted">物件</span>
-                  <span className="font-medium">{loan.property}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-text-muted">金融機関</span>
-                  <span className="font-medium">{loan.lender}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-text-muted">借入期間</span>
-                  <span className="font-medium">
-                    {loan.startDate && formatDate(loan.startDate)} 〜{' '}
-                    {loan.endDate && formatDate(loan.endDate)}
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>返済状況</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-text-muted">借入額</span>
-                  <span className="font-medium">{formatCurrency(loan.loanAmount)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-text-muted">残債</span>
-                  <span className="text-xl font-bold">{formatCurrency(loan.remainingBalance)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-text-muted">現在金利</span>
-                  <span className="font-medium">
-                    {loan.interestRate}% ({loan.interestType === 'fixed' ? '固定' : '変動'})
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-text-muted">返済方式</span>
-                  <span className="font-medium">
-                    {loan.repaymentType === 'principal_and_interest' ? '元利均等' : '元金均等'}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-text-muted">月額返済</span>
-                  <span className="font-medium text-red-600">
-                    {formatCurrency(loan.monthlyPayment || 0)}
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* 金利変動履歴 */}
-        {loan.interestType === 'variable' && (
-          <Card className="mb-6">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center">
-                  <History className="mr-2 h-5 w-5" />
-                  金利変動履歴
-                </CardTitle>
-                <Button variant="outline" size="sm">
-                  金利変更を追加
-                </Button>
+                <CardTitle>返済履歴</CardTitle>
+                <select className="rounded border px-3 py-1 text-sm">
+                  <option>すべての年</option>
+                  <option>2024年</option>
+                  <option>2023年</option>
+                </select>
               </div>
             </CardHeader>
             <CardContent className="p-0">
@@ -225,21 +276,25 @@ export default function LoanDetailPage() {
                 <table className="w-full border-collapse">
                   <thead>
                     <tr className="border-b border-border-default">
-                      <th className="p-3 text-left text-sm font-medium text-text-muted">変更日</th>
-                      <th className="p-3 text-right text-sm font-medium text-text-muted">変更前</th>
-                      <th className="p-3 text-right text-sm font-medium text-text-muted">変更後</th>
-                      <th className="p-3 text-left text-sm font-medium text-text-muted">
-                        変更理由
-                      </th>
+                      <th className="p-3 text-left text-sm font-medium text-text-muted">返済日</th>
+                      <th className="p-3 text-right text-sm font-medium text-text-muted">元金</th>
+                      <th className="p-3 text-right text-sm font-medium text-text-muted">利息</th>
+                      <th className="p-3 text-right text-sm font-medium text-text-muted">返済額</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {interestChanges.map((change, index) => (
+                    {repayments.map((repayment, index) => (
                       <tr key={index} className="border-b border-border-default">
-                        <td className="p-3">{formatDate(change.date)}</td>
-                        <td className="p-3 text-right">{change.oldRate}%</td>
-                        <td className="p-3 text-right font-medium">{change.newRate}%</td>
-                        <td className="p-3 text-sm text-gray-600">{change.reason}</td>
+                        <td className="p-3">{formatDate(repayment.date)}</td>
+                        <td className="p-3 text-right">
+                          {formatCurrency(repayment.principal || 0)}
+                        </td>
+                        <td className="p-3 text-right">
+                          {formatCurrency(repayment.interest || 0)}
+                        </td>
+                        <td className="p-3 text-right font-medium">
+                          {formatCurrency(repayment.amount)}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -247,48 +302,8 @@ export default function LoanDetailPage() {
               </div>
             </CardContent>
           </Card>
-        )}
-
-        {/* 返済履歴 */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>返済履歴</CardTitle>
-              <select className="rounded border px-3 py-1 text-sm">
-                <option>すべての年</option>
-                <option>2024年</option>
-                <option>2023年</option>
-              </select>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="border-b border-border-default">
-                    <th className="p-3 text-left text-sm font-medium text-text-muted">返済日</th>
-                    <th className="p-3 text-right text-sm font-medium text-text-muted">元金</th>
-                    <th className="p-3 text-right text-sm font-medium text-text-muted">利息</th>
-                    <th className="p-3 text-right text-sm font-medium text-text-muted">返済額</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {repayments.map((repayment, index) => (
-                    <tr key={index} className="border-b border-border-default">
-                      <td className="p-3">{formatDate(repayment.date)}</td>
-                      <td className="p-3 text-right">{formatCurrency(repayment.principal || 0)}</td>
-                      <td className="p-3 text-right">{formatCurrency(repayment.interest || 0)}</td>
-                      <td className="p-3 text-right font-medium">
-                        {formatCurrency(repayment.amount)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </MainLayout>
+        </div>
+      </MainLayout>
+    </ProtectedRoute>
   );
 }
