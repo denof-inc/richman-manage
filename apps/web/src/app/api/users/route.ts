@@ -223,7 +223,12 @@ export async function POST(request: NextRequest) {
       }
 
       // リクエストボディをパース
-      const body = await request.json();
+      let body;
+      try {
+        body = await request.json();
+      } catch {
+        body = {};
+      }
       const validatedData = CreateUserSchema.parse(body);
 
       // Supabase Authでユーザー作成

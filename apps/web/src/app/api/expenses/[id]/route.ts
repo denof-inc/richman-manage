@@ -195,7 +195,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       }
 
       // リクエストボディをパース
-      const body = await request.json();
+      let body;
+      try {
+        body = await request.json();
+      } catch {
+        body = {};
+      }
       const validatedData = UpdateExpenseSchema.parse(body);
 
       // 支出を更新

@@ -113,7 +113,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     // リクエストボディをパース
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      body = {};
+    }
     const validatedData = UpdateUserSchema.parse(body);
 
     // roleの変更は管理者のみ

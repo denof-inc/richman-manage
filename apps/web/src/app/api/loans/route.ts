@@ -219,7 +219,12 @@ export async function POST(request: NextRequest) {
       }
 
       // リクエストボディをパース
-      const body = await request.json();
+      let body;
+      try {
+        body = await request.json();
+      } catch {
+        body = {};
+      }
       const validatedData = CreateLoanSchema.parse(body);
 
       // 物件の所有権確認
