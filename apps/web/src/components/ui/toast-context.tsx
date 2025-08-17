@@ -64,6 +64,13 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
 export function useToast() {
   const ctx = useContext(ToastContext);
-  if (!ctx) throw new Error('useToast must be used within ToastProvider');
-  return ctx;
+  if (ctx) return ctx;
+  // テストやProvider未適用環境ではNo-Op実装を返す
+  const noop = () => void 0;
+  return {
+    toasts: [],
+    show: noop,
+    dismiss: noop,
+    showError: () => void 0,
+  } satisfies ToastContextType;
 }
