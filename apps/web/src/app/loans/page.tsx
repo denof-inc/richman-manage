@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useToast } from '@/components/ui/toast-context';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,35 +24,32 @@ type SortDirection = 'asc' | 'desc';
 
 export default function LoanListPage() {
   const router = useRouter();
+  const { showError } = useToast();
   const [loans, setLoans] = useState<LoanListViewModel[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState<SortField>('lender');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [filterProperty, setFilterProperty] = useState<string>('');
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const [loansRes, propsRes] = await Promise.all([
-          request('/api/loans', LoanResponseSchema.array()),
-          request('/api/properties', PropertyResponseSchema.array()),
-        ]);
-        const propNameMap = new Map<string, string>(
-          (propsRes.data || []).map((p) => [p.id as string, p.name as string])
-        );
-        const view = (loansRes.data || []).map((l) =>
-          toLoanListViewModel(l, propNameMap.get(l.property_id))
-        );
-        if (mounted) setLoans(view);
-      } catch (e) {
-        console.warn('Failed to load loans/properties', e);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
+  const load = useCallback(async () => {
+    const [loansRes, propsRes] = await Promise.all([
+      request('/api/loans', LoanResponseSchema.array()),
+      request('/api/properties', PropertyResponseSchema.array()),
+    ]);
+    const propNameMap = new Map<string, string>(
+      (propsRes.data || []).map((p) => [p.id as string, p.name as string])
+    );
+    const view = (loansRes.data || []).map((l) =>
+      toLoanListViewModel(l, propNameMap.get(l.property_id))
+    );
+    setLoans(view);
   }, []);
+
+  useEffect(() => {
+    load().catch(() =>
+      showError('データの取得に失敗しました', { label: '再試行', onAction: () => load() })
+    );
+  }, [load, showError]);
 
   const properties = useMemo(
     () => Array.from(new Set(loans.map((loan) => loan.property))).filter(Boolean),

@@ -64,6 +64,9 @@ const sanitizeErrorMessage = (message: string): string => {
     .replace(/mongodb:\/\/[^@]+@/gi, 'mongodb://***@');
 };
 
+const hasSupabaseCode = (e: unknown): e is { code: string; message: string } =>
+  typeof e === 'object' && e !== null && 'code' in (e as Record<string, unknown>);
+
 // 統一エラーハンドリング（Edge Runtime対応）
 const handleApiError = (error: unknown, context: string) => {
   const errorInfo = {
@@ -73,15 +76,21 @@ const handleApiError = (error: unknown, context: string) => {
     stack: error instanceof Error ? error.stack : undefined,
   };
 
-  console.error('API Error:', JSON.stringify(errorInfo));
+  if (error instanceof z.ZodError) {
+    console.warn('API Validation:', JSON.stringify(errorInfo));
+  } else if (hasSupabaseCode(error)) {
+    console.warn('API ClientError:', JSON.stringify(errorInfo));
+  } else {
+    console.error('API Error:', JSON.stringify(errorInfo));
+  }
 
   if (error instanceof z.ZodError) {
     const messages = error.errors.map((e) => e.message).join(', ');
     return ApiResponse.validationError(messages, error.errors);
   }
 
-  if (error && typeof error === 'object' && 'code' in error) {
-    const supabaseError = error as { code: string; message: string };
+  if (hasSupabaseCode(error)) {
+    const supabaseError = error;
     if (supabaseError.code === 'PGRST116') {
       return ApiResponse.notFound('リソースが見つかりません');
     }
