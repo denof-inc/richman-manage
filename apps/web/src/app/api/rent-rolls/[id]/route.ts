@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { ApiResponse } from '@/lib/api/response';
 import { UpdateRentRollSchema, RentRollResponseSchema } from '@/lib/api/schemas/rent-roll';
+import { mapRentRollDbToDto } from '@/lib/mappers/rentRolls';
 import { mapRentRollDtoToDbForUpdate } from '@/lib/mappers/rentRolls';
 import { z } from 'zod';
 
@@ -130,10 +131,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         return ApiResponse.notFound('レントロールが見つかりません');
       }
 
-      // レスポンス形式に変換（property情報を除外）
+      // レスポンス形式に変換（property情報を除外）+ DB→DTO正規化
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { property, ...rentRollData } = rentRoll;
-      const rentRollResponse = RentRollResponseSchema.parse(rentRollData);
+      const { property, ...rentRollData } = rentRoll as Record<string, unknown>;
+      const normalized = mapRentRollDbToDto(rentRollData);
+      const rentRollResponse = RentRollResponseSchema.parse(normalized);
 
       return ApiResponse.success(rentRollResponse);
     } catch (error) {

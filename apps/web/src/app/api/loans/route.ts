@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { ApiResponse } from '@/lib/api/response';
 import { CreateLoanSchema, LoanQuerySchema, LoanResponseSchema } from '@/lib/api/schemas/loan';
+import { mapLoanDbToDto } from '@/lib/mappers/loans';
 import { mapLoanDtoToDbForCreate } from '@/lib/mappers/loans';
 import { z } from 'zod';
 import { getCache } from '@/lib/cache/redis-cache';
@@ -173,12 +174,13 @@ export async function GET(request: NextRequest) {
         throw error;
       }
 
-      // レスポンス形式に変換（property情報を除外）
+      // レスポンス形式に変換（property情報を除外）+ DB→DTO正規化
       const loans =
         data?.map((loan) => {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { property, ...loanData } = loan;
-          return LoanResponseSchema.parse(loanData);
+          const { property, ...loanData } = loan as Record<string, unknown>;
+          const normalized = mapLoanDbToDto(loanData);
+          return LoanResponseSchema.parse(normalized);
         }) || [];
 
       // ページネーションメタデータを計算

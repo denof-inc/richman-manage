@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { ApiResponse } from '@/lib/api/response';
 import { UpdateLoanSchema, LoanResponseSchema } from '@/lib/api/schemas/loan';
+import { mapLoanDbToDto } from '@/lib/mappers/loans';
 import { mapLoanDtoToDbForUpdate } from '@/lib/mappers/loans';
 import { z } from 'zod';
 
@@ -115,10 +116,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         return ApiResponse.notFound('借入が見つかりません');
       }
 
-      // レスポンス形式に変換（property情報を除外）
+      // レスポンス形式に変換（property情報を除外）+ DB→DTO正規化
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { property, ...loanData } = loan;
-      const loanResponse = LoanResponseSchema.parse(loanData);
+      const { property, ...loanData } = loan as Record<string, unknown>;
+      const normalized = mapLoanDbToDto(loanData);
+      const loanResponse = LoanResponseSchema.parse(normalized);
 
       return ApiResponse.success(loanResponse);
     } catch (error) {

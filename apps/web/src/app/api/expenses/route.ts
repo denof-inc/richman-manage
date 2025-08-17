@@ -6,6 +6,7 @@ import {
   ExpenseQuerySchema,
   ExpenseResponseSchema,
 } from '@/lib/api/schemas/expense';
+import { mapExpenseDbToDto } from '@/lib/mappers/expenses';
 import { mapExpenseDtoToDbForCreate } from '@/lib/mappers/expenses';
 import { z } from 'zod';
 import { getCache } from '@/lib/cache/redis-cache';
@@ -204,12 +205,13 @@ export async function GET(request: NextRequest) {
         throw error;
       }
 
-      // レスポンス形式に変換（property情報を除外）
+      // レスポンス形式に変換（property情報を除外）+ DB→DTO正規化
       const expenses =
         data?.map((expense) => {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { property, ...expenseData } = expense;
-          return ExpenseResponseSchema.parse(expenseData);
+          const { property, ...expenseData } = expense as Record<string, unknown>;
+          const normalized = mapExpenseDbToDto(expenseData);
+          return ExpenseResponseSchema.parse(normalized);
         }) || [];
 
       // ページネーションメタデータを計算
