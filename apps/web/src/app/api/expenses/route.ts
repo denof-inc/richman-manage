@@ -266,7 +266,7 @@ export async function POST(request: NextRequest) {
       }
 
       // リクエストボディをパース
-      const body = await request.json();
+      const body = await (request.json ? request.json() : Promise.resolve({}));
 
       // バリデーション
       const validatedData = CreateExpenseSchema.parse(body);

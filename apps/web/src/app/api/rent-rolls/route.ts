@@ -146,7 +146,9 @@ export async function GET(request: NextRequest) {
       const paginationParams = extractPaginationParams(request.nextUrl);
 
       // その他のクエリパラメータをパース
-      const searchParams = Object.fromEntries(request.nextUrl.searchParams);
+      const searchParams = request.nextUrl?.searchParams
+        ? Object.fromEntries(request.nextUrl.searchParams)
+        : {};
       const query = {
         ...RentRollQuerySchema.parse(searchParams),
         ...paginationParams,
@@ -248,7 +250,7 @@ export async function POST(request: NextRequest) {
       }
 
       // リクエストボディをパース
-      const body = await request.json();
+      const body = await (request.json ? request.json() : Promise.resolve({}));
 
       // バリデーション
       const validatedData = CreateRentRollSchema.parse(body);

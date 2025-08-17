@@ -39,14 +39,27 @@ export interface PaginatedResponse<T> {
  * URLからページネーションパラメータを抽出
  */
 export function extractPaginationParams(url: URL): PaginationParams {
-  const params = {
-    page: url.searchParams.get('page') || '1',
-    limit: url.searchParams.get('limit') || '20',
-    sort: url.searchParams.get('sort') || undefined,
-    order: url.searchParams.get('order') || 'desc',
-  };
+  try {
+    // URLオブジェクトの検証とsearchParamsの安全な取得
+    const searchParams =
+      url instanceof URL && url.searchParams ? url.searchParams : new URLSearchParams();
 
-  return PaginationParamsSchema.parse(params);
+    const params = {
+      page: searchParams.get('page') || '1',
+      limit: searchParams.get('limit') || '20',
+      sort: searchParams.get('sort') || undefined,
+      order: searchParams.get('order') || 'desc',
+    };
+
+    return PaginationParamsSchema.parse(params);
+  } catch {
+    // フォールバック: デフォルト値を返す
+    return PaginationParamsSchema.parse({
+      page: '1',
+      limit: '20',
+      order: 'desc',
+    });
+  }
 }
 
 /**

@@ -39,7 +39,7 @@ describe('middleware', () => {
     if (hasToken) {
       req.cookies.get = jest.fn((name: string) => {
         if (name === 'sb-access-token') {
-          return { value: 'test-token' };
+          return { name: 'sb-access-token', value: 'test-token' };
         }
         return undefined;
       });
