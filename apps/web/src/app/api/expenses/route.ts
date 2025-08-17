@@ -6,6 +6,7 @@ import {
   ExpenseQuerySchema,
   ExpenseResponseSchema,
 } from '@/lib/api/schemas/expense';
+import { mapExpenseDtoToDbForCreate } from '@/lib/mappers/expenses';
 import { z } from 'zod';
 import { getCache } from '@/lib/cache/redis-cache';
 import { extractPaginationParams, calculatePaginationMeta } from '@/lib/api/pagination';
@@ -277,24 +278,23 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      // DTO→DB 変換（軽量適用）。既存スキーマ互換の安全キーのみ送信。
+      const mapped = mapExpenseDtoToDbForCreate(validatedData);
+      const safeInsert = {
+        property_id: mapped.property_id,
+        expense_date: mapped.expense_date,
+        category: mapped.category,
+        amount: mapped.amount,
+        vendor: mapped.vendor ?? null,
+        description: mapped.description ?? null,
+        receipt_url: mapped.receipt_url ?? null,
+        is_recurring: mapped.is_recurring,
+        recurring_frequency: mapped.recurring_frequency ?? null,
+      };
+
       // データベースに支出情報を保存
       const { data: newExpense, error: dbError } = await withPerformanceMonitoring(
-        async () =>
-          await supabase
-            .from('expenses')
-            .insert({
-              property_id: validatedData.property_id,
-              expense_date: validatedData.expense_date,
-              category: validatedData.category,
-              amount: validatedData.amount,
-              vendor: validatedData.vendor || null,
-              description: validatedData.description || null,
-              receipt_url: validatedData.receipt_url || null,
-              is_recurring: validatedData.is_recurring,
-              recurring_frequency: validatedData.recurring_frequency || null,
-            })
-            .select()
-            .single(),
+        async () => await supabase.from('expenses').insert(safeInsert).select().single(),
         'expenses.database.insert'
       );
 

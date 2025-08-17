@@ -13,7 +13,7 @@ export const CreateRentRollSchema = z.object({
   property_id: z.string().uuid('有効な物件IDを指定してください'),
   room_number: z.string().min(1, '部屋番号を入力してください'),
   tenant_name: z.string().nullable().optional(),
-  monthly_rent: z.number().min(0, '家賃は0円以上で入力してください'),
+  monthly_rent: z.number().min(0, '家賃は0円以上で入力してください').nullable().optional(),
   occupancy_status: OccupancyStatusSchema,
   lease_start_date: z.string().datetime().nullable().optional(),
   lease_end_date: z.string().datetime().nullable().optional(),

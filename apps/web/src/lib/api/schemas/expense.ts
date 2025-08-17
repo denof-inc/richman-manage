@@ -20,11 +20,11 @@ export const CreateExpenseSchema = z.object({
   expense_date: z.string().datetime('有効な日付を指定してください'),
   category: ExpenseCategorySchema,
   amount: z.number().min(0, '金額は0円以上で入力してください'),
-  vendor: z.string().min(1, '支払先を入力してください').optional(),
-  description: z.string().optional(),
-  receipt_url: z.string().url('有効なURLを指定してください').optional(),
+  vendor: z.string().min(1, '支払先を入力してください').nullable().optional(),
+  description: z.string().nullable().optional(),
+  receipt_url: z.string().url('有効なURLを指定してください').nullable().optional(),
   is_recurring: z.boolean().default(false),
-  recurring_frequency: z.enum(['monthly', 'quarterly', 'annually']).optional(),
+  recurring_frequency: z.enum(['monthly', 'quarterly', 'annually']).nullable().optional(),
 });
 
 /**
