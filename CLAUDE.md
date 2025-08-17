@@ -18,7 +18,7 @@
 
 第2確認項目： 品質基準妥協禁止 - テストカバレッジ80%以上を維持し、基準を下げる回避は絶対禁止
 
-第3確認項目： ローカル品質チェック必須 - コミット・プッシュ前に必ず`pnpm run quality:check`実行
+第3確認項目： ローカル品質チェック必須 - コミット・プッシュ前に必ず`npm run quality:check`実行
 
 第4確認項目： 同一エラー3回で根本原因分析 - 同じ失敗を繰り返さず根本原因を特定
 
@@ -202,7 +202,7 @@ apps/web/
 2. **ローカル品質チェック必須**: コミット・プッシュ前に必ず実行
 
    ```bash
-   pnpm run quality:check  # lint + type-check + format:check + test:ci
+   npm run quality:check  # lint + type-check + format:check + test:ci
    ```
 
    - 全てパスしてからコミットすること
@@ -412,7 +412,7 @@ Claude は **Gemini CLI** を随時呼び出しながら、複数ターンにわ
 ### 必須テスト
 
 1. **ユニットテスト**:
-   - フレームワーク: Vitest
+   - フレームワーク: Jest
    - カバレッジ目標: 80%以上
    - 対象: ビジネスロジック、ユーティリティ関数
 

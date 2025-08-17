@@ -7,6 +7,12 @@ import { rateLimiter } from '@/lib/security/rate-limiter';
 // APIルートのパスパターン
 const API_PATHS = ['/api/'];
 
+// 認証不要なパス
+const publicPaths = ['/login', '/signup', '/forgot-password'];
+
+// 認証チェックをスキップするパス
+const skipAuthPaths = ['/api/', '/_next/', '/favicon.ico'];
+
 /**
  * ミドルウェア設定
  */
@@ -28,6 +34,29 @@ export const config = {
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // 認証チェック（APIルート以外）
+  if (!skipAuthPaths.some((path) => pathname.startsWith(path))) {
+    // トークンの存在確認（簡易チェック）
+    const token = request.cookies.get('sb-access-token')?.value;
+
+    // 認証不要ページの処理
+    if (publicPaths.includes(pathname)) {
+      // 認証済みユーザーがログイン関連ページにアクセスした場合はダッシュボードへ
+      if (token) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/';
+        return NextResponse.redirect(url);
+      }
+    } else if (pathname !== '/') {
+      // 認証が必要なページで未認証の場合はログインページへ
+      if (!token) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/login';
+        return NextResponse.redirect(url);
+      }
+    }
+  }
 
   // APIルートの場合
   if (API_PATHS.some((path) => pathname.startsWith(path))) {
