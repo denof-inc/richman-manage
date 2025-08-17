@@ -6,6 +6,7 @@ import {
   RentRollQuerySchema,
   RentRollResponseSchema,
 } from '@/lib/api/schemas/rent-roll';
+import { mapRentRollDtoToDbForCreate } from '@/lib/mappers/rentRolls';
 import { z } from 'zod';
 import { getCache } from '@/lib/cache/redis-cache';
 import { extractPaginationParams, calculatePaginationMeta } from '@/lib/api/pagination';
@@ -275,25 +276,24 @@ export async function POST(request: NextRequest) {
         return ApiResponse.conflict('この部屋番号は既に登録されています');
       }
 
+      // DTO→DB 変換（軽量適用）。既存スキーマ互換の安全キーのみ送信。
+      const mapped = mapRentRollDtoToDbForCreate(validatedData);
+      const safeInsert = {
+        property_id: mapped.property_id,
+        room_number: mapped.room_number,
+        tenant_name: mapped.tenant_name,
+        monthly_rent: mapped.monthly_rent,
+        occupancy_status: validatedData.occupancy_status,
+        lease_start_date: mapped.lease_start_date,
+        lease_end_date: mapped.lease_end_date,
+        security_deposit: validatedData.security_deposit ?? null,
+        key_money: validatedData.key_money ?? null,
+        notes: mapped.notes,
+      } as const;
+
       // データベースにレントロール情報を保存
       const { data: newRentRoll, error: dbError } = await withPerformanceMonitoring(
-        async () =>
-          await supabase
-            .from('rent_rolls')
-            .insert({
-              property_id: validatedData.property_id,
-              room_number: validatedData.room_number,
-              tenant_name: validatedData.tenant_name || null,
-              monthly_rent: validatedData.monthly_rent,
-              occupancy_status: validatedData.occupancy_status,
-              lease_start_date: validatedData.lease_start_date || null,
-              lease_end_date: validatedData.lease_end_date || null,
-              security_deposit: validatedData.security_deposit || null,
-              key_money: validatedData.key_money || null,
-              notes: validatedData.notes || null,
-            })
-            .select()
-            .single(),
+        async () => await supabase.from('rent_rolls').insert(safeInsert).select().single(),
         'rent-rolls.database.insert'
       );
 

@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { ApiResponse } from '@/lib/api/response';
 import { UpdateLoanSchema, LoanResponseSchema } from '@/lib/api/schemas/loan';
+import { mapLoanDtoToDbForUpdate } from '@/lib/mappers/loans';
 import { z } from 'zod';
 
 // パフォーマンス監視ユーティリティ（Edge Runtime対応）
@@ -162,18 +163,21 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       const body = await request.json();
       const validatedData = UpdateLoanSchema.parse(body);
 
+      // DTO→DB 変換（軽量適用）。既存スキーマ互換の安全キーのみ送信。
+      const mapped = mapLoanDtoToDbForUpdate(validatedData);
+      const safeUpdate = {
+        lender_name: mapped.lender_name,
+        loan_type: mapped.loan_type,
+        current_balance: mapped.current_balance,
+        interest_rate: mapped.interest_rate, // 既存スキーマ互換
+        monthly_payment: mapped.monthly_payment,
+        updated_at: mapped.updated_at,
+      };
+
       // 借入を更新
       const { data: updatedLoan, error: updateError } = await withPerformanceMonitoring(
         async () =>
-          await supabase
-            .from('loans')
-            .update({
-              ...validatedData,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', loanId)
-            .select()
-            .single(),
+          await supabase.from('loans').update(safeUpdate).eq('id', loanId).select().single(),
         'loans.database.update'
       );
 

@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { ApiResponse } from '@/lib/api/response';
 import { UpdateRentRollSchema, RentRollResponseSchema } from '@/lib/api/schemas/rent-roll';
+import { mapRentRollDtoToDbForUpdate } from '@/lib/mappers/rentRolls';
 import { z } from 'zod';
 
 // パフォーマンス監視ユーティリティ（Edge Runtime対応）
@@ -206,15 +207,27 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         updateData.lease_end_date = null;
       }
 
+      // DTO→DB 変換（軽量適用）。既存スキーマ互換の安全キーのみ送信。
+      const mapped = mapRentRollDtoToDbForUpdate(updateData);
+      const safeUpdate = {
+        room_number: mapped.room_number,
+        tenant_name: mapped.tenant_name,
+        monthly_rent: mapped.monthly_rent,
+        occupancy_status: updateData.occupancy_status,
+        lease_start_date: mapped.lease_start_date,
+        lease_end_date: mapped.lease_end_date,
+        security_deposit: updateData.security_deposit ?? null,
+        key_money: updateData.key_money ?? null,
+        notes: mapped.notes,
+        updated_at: mapped.updated_at,
+      };
+
       // レントロールを更新
       const { data: updatedRentRoll, error: updateError } = await withPerformanceMonitoring(
         async () =>
           await supabase
             .from('rent_rolls')
-            .update({
-              ...updateData,
-              updated_at: new Date().toISOString(),
-            })
+            .update(safeUpdate)
             .eq('id', rentRollId)
             .select()
             .single(),

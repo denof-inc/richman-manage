@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { ApiResponse } from '@/lib/api/response';
 import { CreateLoanSchema, LoanQuerySchema, LoanResponseSchema } from '@/lib/api/schemas/loan';
+import { mapLoanDtoToDbForCreate } from '@/lib/mappers/loans';
 import { z } from 'zod';
 import { getCache } from '@/lib/cache/redis-cache';
 import { extractPaginationParams, calculatePaginationMeta } from '@/lib/api/pagination';
@@ -226,23 +227,22 @@ export async function POST(request: NextRequest) {
         return ApiResponse.forbidden('この物件に対する借入を作成する権限がありません');
       }
 
+      // DTO→DB 変換（軽量適用）。既存スキーマ互換の安全キーのみ送信。
+      const mapped = mapLoanDtoToDbForCreate(validatedData);
+      const safeInsert = {
+        property_id: mapped.property_id,
+        lender_name: mapped.lender_name,
+        loan_type: mapped.loan_type,
+        principal_amount: mapped.principal_amount,
+        current_balance: mapped.current_balance,
+        interest_rate: mapped.interest_rate, // 既存スキーマ互換
+        loan_term_months: mapped.loan_term_months,
+        monthly_payment: mapped.monthly_payment,
+      };
+
       // データベースに借入情報を保存
       const { data: newLoan, error: dbError } = await withPerformanceMonitoring(
-        async () =>
-          await supabase
-            .from('loans')
-            .insert({
-              property_id: validatedData.property_id,
-              lender_name: validatedData.lender_name,
-              loan_type: validatedData.loan_type,
-              principal_amount: validatedData.principal_amount,
-              current_balance: validatedData.current_balance,
-              interest_rate: validatedData.interest_rate,
-              loan_term_months: validatedData.loan_term_months,
-              monthly_payment: validatedData.monthly_payment,
-            })
-            .select()
-            .single(),
+        async () => await supabase.from('loans').insert(safeInsert).select().single(),
         'loans.database.insert'
       );
 
