@@ -6,6 +6,7 @@ import {
   RentRollQuerySchema,
   RentRollResponseSchema,
 } from '@/lib/api/schemas/rent-roll';
+import { mapRentRollDbToDto } from '@/lib/mappers/rentRolls';
 import { mapRentRollDtoToDbForCreate } from '@/lib/mappers/rentRolls';
 import { z } from 'zod';
 import { getCache } from '@/lib/cache/redis-cache';
@@ -186,12 +187,13 @@ export async function GET(request: NextRequest) {
         throw error;
       }
 
-      // レスポンス形式に変換（property情報を除外）
+      // レスポンス形式に変換（property情報を除外）+ DB→DTO正規化
       const rentRolls =
         data?.map((rentRoll) => {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { property, ...rentRollData } = rentRoll;
-          return RentRollResponseSchema.parse(rentRollData);
+          const { property, ...rentRollData } = rentRoll as Record<string, unknown>;
+          const normalized = mapRentRollDbToDto(rentRollData);
+          return RentRollResponseSchema.parse(normalized);
         }) || [];
 
       // ページネーションメタデータを計算
