@@ -5,14 +5,13 @@ import ToastViewport from '@/components/ui/toast';
 
 interface MainLayoutProps {
   children: React.ReactNode;
-  isLoggedIn?: boolean;
 }
 
-export default function MainLayout({ children, isLoggedIn = true }: MainLayoutProps) {
+export default function MainLayout({ children }: MainLayoutProps) {
   return (
     <ToastProvider>
       <div className="flex min-h-screen flex-col">
-        <Header isLoggedIn={isLoggedIn} />
+        <Header />
         <main className="flex-grow pt-14 md:pt-0">{children}</main>
       </div>
       <ToastViewport />

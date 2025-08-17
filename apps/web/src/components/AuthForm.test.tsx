@@ -59,6 +59,7 @@ describe('AuthForm', () => {
     });
 
     it('ログイン成功時にダッシュボードへリダイレクトする', async () => {
+      jest.useFakeTimers();
       mockSignInWithPassword.mockResolvedValue({ error: null });
 
       render(<AuthForm mode="login" />);
@@ -71,14 +72,26 @@ describe('AuthForm', () => {
       fireEvent.change(passwordInput, { target: { value: 'password123' } });
       fireEvent.click(submitButton);
 
+      // ログイン処理とメッセージ表示の確認
       await waitFor(() => {
         expect(mockSignInWithPassword).toHaveBeenCalledWith({
           email: 'test@example.com',
           password: 'password123',
         });
+        expect(
+          screen.getByText('ログインしました。ダッシュボードに移動しています...')
+        ).toBeInTheDocument();
+      });
+
+      // setTimeout(1000ms)をスキップしてリダイレクト実行
+      jest.advanceTimersByTime(1000);
+
+      await waitFor(() => {
         expect(mockPush).toHaveBeenCalledWith('/');
         expect(mockRefresh).toHaveBeenCalled();
       });
+
+      jest.useRealTimers();
     });
 
     it('ログイン失敗時にエラーメッセージが表示される', async () => {
@@ -136,7 +149,7 @@ describe('AuthForm', () => {
           email: 'newuser@example.com',
           password: 'password123',
           options: {
-            emailRedirectTo: expect.stringContaining('/auth/confirm'),
+            emailRedirectTo: expect.stringContaining('/auth/callback'),
           },
         });
         expect(screen.getByText(/確認メールを送信しました/)).toBeInTheDocument();

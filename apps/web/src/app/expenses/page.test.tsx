@@ -26,6 +26,15 @@ jest.mock('../../data/mockData', () => ({
   getPropertyExpenses: jest.fn(() => []),
 }));
 
+// AuthContextのモック
+jest.mock('../../contexts/AuthContext', () => ({
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  useAuth: () => ({
+    user: { id: 'test-user', email: 'test@example.com' },
+    loading: false,
+  }),
+}));
+
 describe('ExpenseListPage', () => {
   test('支出一覧画面が表示される', () => {
     render(<ExpenseListPage />);

@@ -11,6 +11,7 @@ jest.mock('next/server', () => ({
     },
     cookies: {
       get: jest.fn(() => undefined),
+      getAll: jest.fn(() => []),
     },
     headers: new Map(),
   })),
@@ -43,6 +44,9 @@ describe('middleware', () => {
         }
         return undefined;
       });
+      req.cookies.getAll = jest.fn(() => [{ name: 'sb-access-token', value: 'test-token' }]);
+    } else {
+      req.cookies.getAll = jest.fn(() => []);
     }
     return req;
   };

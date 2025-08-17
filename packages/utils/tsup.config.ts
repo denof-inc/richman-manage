@@ -10,4 +10,14 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   external: ['fsevents'],
+  noExternal: [],
+  platform: 'neutral',
+  target: 'node14',
+  esbuildOptions(options) {
+    options.platform = 'neutral';
+    options.external = options.external || [];
+    if (Array.isArray(options.external)) {
+      options.external.push('fsevents');
+    }
+  },
 });

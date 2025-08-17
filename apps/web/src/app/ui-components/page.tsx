@@ -1,10 +1,13 @@
+// MainLayoutでHeader(useAuth)を使用するページは動的レンダリングが必要
+export const dynamic = 'force-dynamic';
+
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import MainLayout from '../../components/layout/MainLayout';
 
 export default function UIComponentsPage() {
   return (
-    <MainLayout isLoggedIn={false}>
+    <MainLayout>
       <div className="min-h-screen bg-background p-8">
         <div className="mx-auto max-w-4xl space-y-8">
           <div className="mb-12 text-center">

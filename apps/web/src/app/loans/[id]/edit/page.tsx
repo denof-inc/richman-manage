@@ -1,7 +1,8 @@
 'use client';
-
+export const dynamic = 'force-dynamic';
 import React, { useEffect, useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import LoanForm, { type LoanFormValues } from '@/components/loans/LoanForm';
 import { useParams, useRouter } from 'next/navigation';
 import { request } from '@/lib/api/client';
@@ -99,23 +100,25 @@ export default function LoanEditPage() {
   };
 
   return (
-    <MainLayout>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="mb-6 text-2xl font-bold text-primary">借入の編集</h1>
-        {defaults ? (
-          <LoanForm
-            mode="edit"
-            defaultValues={defaults}
-            properties={properties}
-            onSubmit={handleUpdate}
-            onDelete={handleDelete}
-            submitting={submitting}
-            serverError={serverError}
-          />
-        ) : (
-          <div className="text-muted-foreground text-sm">読み込み中...</div>
-        )}
-      </div>
-    </MainLayout>
+    <ProtectedRoute>
+      <MainLayout>
+        <div className="container mx-auto px-4 py-8">
+          <h1 className="mb-6 text-2xl font-bold text-primary">借入の編集</h1>
+          {defaults ? (
+            <LoanForm
+              mode="edit"
+              defaultValues={defaults}
+              properties={properties}
+              onSubmit={handleUpdate}
+              onDelete={handleDelete}
+              submitting={submitting}
+              serverError={serverError}
+            />
+          ) : (
+            <div className="text-muted-foreground text-sm">読み込み中...</div>
+          )}
+        </div>
+      </MainLayout>
+    </ProtectedRoute>
   );
 }

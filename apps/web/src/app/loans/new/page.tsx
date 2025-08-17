@@ -1,12 +1,20 @@
 'use client';
 
+// ProtectedRouteを使用するページは動的レンダリングが必要
+export const dynamic = 'force-dynamic';
+
 import React, { useEffect, useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import LoanForm from '@/components/loans/LoanForm';
 import { useRouter } from 'next/navigation';
 import { request } from '@/lib/api/client';
 import { PropertyResponseSchema } from '@/lib/api/schemas/property';
-import { CreateLoanSchema, type CreateLoanInput } from '@/lib/api/schemas/loan';
+import {
+  CreateLoanSchema,
+  type CreateLoanInput,
+  type UpdateLoanInput,
+} from '@/lib/api/schemas/loan';
 
 export default function LoanNewPage() {
   const router = useRouter();
@@ -32,12 +40,12 @@ export default function LoanNewPage() {
     };
   }, []);
 
-  const handleCreate = async (values: CreateLoanInput) => {
+  const handleCreate = async (values: CreateLoanInput | Partial<UpdateLoanInput>) => {
     setSubmitting(true);
     setServerError(null);
     try {
       // バリデーション（冪等）
-      CreateLoanSchema.parse(values);
+      CreateLoanSchema.parse(values as CreateLoanInput);
       const res = await fetch('/api/loans', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -60,17 +68,19 @@ export default function LoanNewPage() {
   };
 
   return (
-    <MainLayout>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="mb-6 text-2xl font-bold text-primary">借入の新規作成</h1>
-        <LoanForm
-          mode="create"
-          properties={properties}
-          onSubmit={handleCreate}
-          submitting={submitting}
-          serverError={serverError}
-        />
-      </div>
-    </MainLayout>
+    <ProtectedRoute>
+      <MainLayout>
+        <div className="container mx-auto px-4 py-8">
+          <h1 className="mb-6 text-2xl font-bold text-primary">借入の新規作成</h1>
+          <LoanForm
+            mode="create"
+            properties={properties}
+            onSubmit={handleCreate}
+            submitting={submitting}
+            serverError={serverError}
+          />
+        </div>
+      </MainLayout>
+    </ProtectedRoute>
   );
 }

@@ -15,7 +15,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   // Header.tsxが無いので現状は従来のセンタリングレイアウトを維持
   return (
     <div className="flex min-h-screen flex-col">
-      <Header isLoggedIn={false} />
+      <Header />
       <main className="flex flex-1 flex-col items-center justify-center bg-background px-4 py-8">
         {children}
       </main>

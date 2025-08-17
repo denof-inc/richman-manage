@@ -1,8 +1,9 @@
 'use client';
-
+export const dynamic = 'force-dynamic';
 import React, { useCallback, useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/toast-context';
 import MainLayout from '../../components/layout/MainLayout';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import RentRollTable from '../../components/rentroll/RentRollTable';
 import { request } from '@/lib/api/client';
 import { RentRollResponseSchema } from '@/lib/api/schemas/rent-roll';
@@ -64,15 +65,17 @@ export default function RentRollPage() {
   }, [load, showError]);
 
   return (
-    <MainLayout>
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-primary">レントロール</h1>
-          <p className="mt-2 text-text-muted">全物件の入居状況と家賃情報を管理</p>
-        </div>
+    <ProtectedRoute>
+      <MainLayout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-primary">レントロール</h1>
+            <p className="mt-2 text-text-muted">全物件の入居状況と家賃情報を管理</p>
+          </div>
 
-        <RentRollTable units={units} />
-      </div>
-    </MainLayout>
+          <RentRollTable units={units} />
+        </div>
+      </MainLayout>
+    </ProtectedRoute>
   );
 }
