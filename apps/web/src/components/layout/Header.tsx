@@ -2,17 +2,16 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { Menu, X, LogOut } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { Menu, X, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import FontSizeSelector from '../ui/FontSizeSelector';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Header() {
   const pathname = usePathname();
-  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user, loading, signOut } = useAuth();
+  const { user } = useAuth();
 
   const navItems = [
     { name: '物件一覧', href: '/properties' },
@@ -23,15 +22,6 @@ export default function Header() {
 
   const isActive = (path: string) => {
     return pathname === path || pathname?.startsWith(`${path}/`);
-  };
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      router.push('/login');
-    } catch (error) {
-      console.error('Sign out error:', error);
-    }
   };
 
   const isLoggedIn = !!user;
@@ -84,30 +74,20 @@ export default function Header() {
             {/* ユーザー情報表示 */}
             <div className="hidden items-center space-x-3 sm:flex">
               <span className="text-sm text-gray-600">{user?.email || 'ユーザー'}</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSignOut}
-                disabled={loading}
-                className="min-h-[44px] px-3"
-                aria-label="ログアウト"
-              >
-                <LogOut size={16} className="text-gray-600" />
-              </Button>
+              <Link href="/settings">
+                <Button variant="outline" size="sm" className="min-h-[44px] px-3" aria-label="設定">
+                  <Settings size={16} className="text-gray-600" />
+                </Button>
+              </Link>
             </div>
 
             {/* モバイル用ユーザーアイコン */}
             <div className="flex items-center space-x-2 sm:hidden">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSignOut}
-                disabled={loading}
-                className="min-h-[44px] px-3"
-                aria-label="ログアウト"
-              >
-                <LogOut size={16} className="text-gray-600" />
-              </Button>
+              <Link href="/settings">
+                <Button variant="outline" size="sm" className="min-h-[44px] px-3" aria-label="設定">
+                  <Settings size={16} className="text-gray-600" />
+                </Button>
+              </Link>
             </div>
           </>
         )}
