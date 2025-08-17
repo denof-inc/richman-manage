@@ -207,7 +207,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       }
 
       // リクエストボディをパース
-      const body = await (request.json ? request.json() : Promise.resolve({}));
+      let body;
+      try {
+        body = await request.json();
+      } catch {
+        body = {};
+      }
       const validatedData = UpdateRentRollSchema.parse(body);
 
       // 入居状況が空室に変更される場合、入居者関連情報をクリア

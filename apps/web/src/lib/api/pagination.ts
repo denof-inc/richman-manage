@@ -41,8 +41,7 @@ export interface PaginatedResponse<T> {
 export function extractPaginationParams(url: URL): PaginationParams {
   try {
     // URLオブジェクトの検証とsearchParamsの安全な取得
-    const searchParams =
-      url instanceof URL && url.searchParams ? url.searchParams : new URLSearchParams();
+    const searchParams = url.searchParams || new URLSearchParams();
 
     const params = {
       page: searchParams.get('page') || '1',

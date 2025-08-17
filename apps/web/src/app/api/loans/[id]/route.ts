@@ -171,7 +171,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       }
 
       // リクエストボディをパース
-      const body = await (request.json ? request.json() : Promise.resolve({}));
+      let body;
+      try {
+        body = await request.json();
+      } catch {
+        body = {};
+      }
       const validatedData = UpdateLoanSchema.parse(body);
 
       // DTO→DB 変換（軽量適用）。既存スキーマ互換の安全キーのみ送信。

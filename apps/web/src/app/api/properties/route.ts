@@ -211,7 +211,12 @@ export async function POST(request: NextRequest) {
       }
 
       // リクエストボディをパース
-      const body = await (request.json ? request.json() : Promise.resolve({}));
+      let body;
+      try {
+        body = await request.json();
+      } catch {
+        body = {};
+      }
       const validatedData = CreatePropertySchema.parse(body);
 
       // データベースに物件情報を保存
