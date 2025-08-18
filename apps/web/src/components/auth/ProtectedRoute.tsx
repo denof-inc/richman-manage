@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -12,23 +12,12 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children, fallback }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user && !redirecting) {
-      setRedirecting(true);
+    if (!loading && !user) {
       router.replace('/login');
-
-      // フォールバック: 2秒後に強制リダイレクト
-      const fallbackTimer = setTimeout(() => {
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login';
-        }
-      }, 2000);
-
-      return () => clearTimeout(fallbackTimer);
     }
-  }, [user, loading, router, redirecting]);
+  }, [user, loading, router]);
 
   // ローディング中
   if (loading) {
