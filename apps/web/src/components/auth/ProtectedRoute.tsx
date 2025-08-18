@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -12,23 +12,48 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children, fallback }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.replace('/login');
-    }
-  }, [user, loading, router]);
+    if (!loading && !user && !redirecting) {
+      setRedirecting(true);
 
-  // ローディング中または未認証時のリダイレクト処理中
-  if (loading || (!loading && !user)) {
+      // 通常のNext.jsルーター使用
+      router.replace('/login');
+
+      // フォールバック: 2秒後に強制リダイレクト
+      const fallbackTimer = setTimeout(() => {
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
+      }, 2000);
+
+      return () => clearTimeout(fallbackTimer);
+    }
+  }, [user, loading, router, redirecting]);
+
+  // ローディング中
+  if (loading) {
     return (
       fallback || (
         <div className="flex min-h-screen items-center justify-center">
           <div className="text-center">
             <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
-            <p className="text-gray-600">
-              {loading ? '認証情報を確認しています...' : 'ログイン画面に移動しています...'}
-            </p>
+            <p className="text-gray-600">認証情報を確認しています...</p>
+          </div>
+        </div>
+      )
+    );
+  }
+
+  // 未認証時のリダイレクト処理中
+  if (!user) {
+    return (
+      fallback || (
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="text-center">
+            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+            <p className="text-gray-600">ログイン画面に移動しています...</p>
           </div>
         </div>
       )
