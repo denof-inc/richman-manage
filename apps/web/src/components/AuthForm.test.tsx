@@ -194,7 +194,10 @@ describe('AuthForm', () => {
       fireEvent.click(submitButton);
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: '送信中...' })).toBeDisabled();
+        // LoadingButtonコンポーネントではローディング中はloadingTextが表示される
+        const loadingButton = screen.getByRole('button');
+        expect(loadingButton).toBeDisabled();
+        expect(loadingButton).toHaveTextContent('送信中...');
       });
     });
 
