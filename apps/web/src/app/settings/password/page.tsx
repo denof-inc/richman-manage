@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import SettingsLayout from '@/components/layout/SettingsLayout';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import LoadingButton from '@/components/ui/LoadingButton';
 
 export default function PasswordSettingsPage() {
   const { toast } = useToast();
@@ -122,9 +122,14 @@ export default function PasswordSettingsPage() {
               />
             </div>
 
-            <Button onClick={handleChangePassword} disabled={isUpdatingPassword} className="w-full">
-              {isUpdatingPassword ? 'パスワード変更中...' : 'パスワードを変更'}
-            </Button>
+            <LoadingButton
+              onClick={handleChangePassword}
+              loading={isUpdatingPassword}
+              loadingText="パスワード変更中..."
+              className="w-full"
+            >
+              パスワードを変更
+            </LoadingButton>
           </CardContent>
         </Card>
 

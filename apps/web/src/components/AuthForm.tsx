@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { createBrowserClient } from '@/lib/auth/client';
+import LoadingButton from '@/components/ui/LoadingButton';
 
 const schema = z.object({
   email: z.string().email('有効なメールアドレスを入力してください'),
@@ -180,13 +181,9 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
         </div>
       )}
 
-      <button
-        type="submit"
-        className="w-full rounded-md bg-primary py-2 font-semibold text-white transition hover:bg-primary-light disabled:pointer-events-none disabled:opacity-50"
-        disabled={loading}
-      >
-        {loading ? '送信中...' : mode === 'login' ? 'ログイン' : '新規登録'}
-      </button>
+      <LoadingButton type="submit" loading={loading} loadingText="送信中..." className="w-full">
+        {mode === 'login' ? 'ログイン' : '新規登録'}
+      </LoadingButton>
 
       <div className="mt-4 text-center text-sm">
         {mode === 'login' ? (

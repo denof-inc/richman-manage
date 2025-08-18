@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import SettingsLayout from '@/components/layout/SettingsLayout';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import LoadingButton from '@/components/ui/LoadingButton';
+import LoadingOverlay from '@/components/ui/LoadingOverlay';
 
 export default function ProfileSettingsPage() {
   const { user } = useAuth();
@@ -16,6 +17,7 @@ export default function ProfileSettingsPage() {
   // ユーザー名変更用
   const [displayName, setDisplayName] = useState(user?.user_metadata?.display_name || '');
   const [isUpdatingName, setIsUpdatingName] = useState(false);
+  const [isLoading] = useState(false);
 
   // ユーザー名更新
   const handleUpdateDisplayName = async () => {
@@ -50,77 +52,83 @@ export default function ProfileSettingsPage() {
 
   return (
     <SettingsLayout>
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900">プロフィール</h2>
-          <p className="mt-1 text-sm text-gray-600">表示名とアカウント情報を管理できます</p>
-        </div>
+      <LoadingOverlay loading={isLoading} text="データを読み込み中...">
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">プロフィール</h2>
+            <p className="mt-1 text-sm text-gray-600">表示名とアカウント情報を管理できます</p>
+          </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>基本情報</CardTitle>
-            <CardDescription>アカウントの基本情報を確認・変更できます</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">メールアドレス</Label>
-              <Input
-                id="email"
-                type="email"
-                value={user?.email || ''}
-                disabled
-                className="bg-gray-50"
-              />
-              <p className="text-sm text-gray-500">
-                メールアドレスの変更はサポートまでご連絡ください
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="displayName">表示名</Label>
-              <div className="flex gap-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>基本情報</CardTitle>
+              <CardDescription>アカウントの基本情報を確認・変更できます</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">メールアドレス</Label>
                 <Input
-                  id="displayName"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="表示名を入力"
+                  id="email"
+                  type="email"
+                  value={user?.email || ''}
+                  disabled
+                  className="bg-gray-50"
                 />
-                <Button onClick={handleUpdateDisplayName} disabled={isUpdatingName}>
-                  {isUpdatingName ? '更新中...' : '更新'}
-                </Button>
+                <p className="text-sm text-gray-500">
+                  メールアドレスの変更はサポートまでご連絡ください
+                </p>
               </div>
-              <p className="text-sm text-gray-500">この名前はアプリ内で表示される名前です</p>
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>アカウント情報</CardTitle>
-            <CardDescription>アカウントの詳細情報</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-sm font-medium text-gray-500">アカウント作成日</Label>
-                <p className="text-sm text-gray-900">
-                  {user?.created_at
-                    ? new Date(user.created_at).toLocaleDateString('ja-JP')
-                    : '不明'}
-                </p>
+              <div className="space-y-2">
+                <Label htmlFor="displayName">表示名</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="displayName"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="表示名を入力"
+                  />
+                  <LoadingButton
+                    onClick={handleUpdateDisplayName}
+                    loading={isUpdatingName}
+                    loadingText="更新中..."
+                  >
+                    更新
+                  </LoadingButton>
+                </div>
+                <p className="text-sm text-gray-500">この名前はアプリ内で表示される名前です</p>
               </div>
-              <div>
-                <Label className="text-sm font-medium text-gray-500">最終ログイン</Label>
-                <p className="text-sm text-gray-900">
-                  {user?.last_sign_in_at
-                    ? new Date(user.last_sign_in_at).toLocaleDateString('ja-JP')
-                    : '不明'}
-                </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>アカウント情報</CardTitle>
+              <CardDescription>アカウントの詳細情報</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">アカウント作成日</Label>
+                  <p className="text-sm text-gray-900">
+                    {user?.created_at
+                      ? new Date(user.created_at).toLocaleDateString('ja-JP')
+                      : '不明'}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">最終ログイン</Label>
+                  <p className="text-sm text-gray-900">
+                    {user?.last_sign_in_at
+                      ? new Date(user.last_sign_in_at).toLocaleDateString('ja-JP')
+                      : '不明'}
+                  </p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
+      </LoadingOverlay>
     </SettingsLayout>
   );
 }
