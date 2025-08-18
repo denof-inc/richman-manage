@@ -17,8 +17,6 @@ export default function ProtectedRoute({ children, fallback }: ProtectedRoutePro
   useEffect(() => {
     if (!loading && !user && !redirecting) {
       setRedirecting(true);
-
-      // 通常のNext.jsルーター使用
       router.replace('/login');
 
       // フォールバック: 2秒後に強制リダイレクト
