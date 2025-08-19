@@ -8,6 +8,7 @@ import { ArrowUpIcon, ArrowDownIcon, DollarSign, TrendingUp, TrendingDown } from
 
 import MainLayout from '../components/layout/MainLayout';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { useAuth } from '@/contexts/AuthContext';
 import { formatCurrency, formatDateShort } from '@/lib/utils';
 import { request } from '@/lib/api/client';
 import { PropertyResponseSchema } from '@/lib/api/schemas/property';
@@ -17,6 +18,7 @@ import { LoanResponseSchema } from '@/lib/api/schemas/loan';
 import type { RecentTransaction } from '@/types';
 
 export default function HomePage() {
+  const { user, loading } = useAuth();
   const [properties, setProperties] = useState<
     {
       id: string;
@@ -29,6 +31,10 @@ export default function HomePage() {
   const [recentTransactions, setRecentTransactions] = useState<RecentTransaction[]>([]);
 
   useEffect(() => {
+    // 認証チェック: ローディング中または未認証の場合はAPI呼び出しを行わない
+    if (loading || !user) {
+      return;
+    }
     (async () => {
       try {
         const [propsRes, rentRes, expRes, loanRes] = await Promise.all([
@@ -122,7 +128,7 @@ export default function HomePage() {
       },
     ];
     setRecentTransactions(mockTransactions);
-  }, []);
+  }, [user, loading]);
 
   // KPI計算
   const totalIncome = properties.reduce((sum, property) => sum + property.actual_rent, 0);

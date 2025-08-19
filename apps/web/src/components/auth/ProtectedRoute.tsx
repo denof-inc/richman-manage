@@ -33,9 +33,18 @@ export default function ProtectedRoute({ children, fallback }: ProtectedRoutePro
     );
   }
 
-  // 未認証の場合は何も表示しない（リダイレクト処理中）
+  // 未認証時のリダイレクト処理中
   if (!user) {
-    return null;
+    return (
+      fallback || (
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="text-center">
+            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+            <p className="text-gray-600">ログイン画面に移動しています...</p>
+          </div>
+        </div>
+      )
+    );
   }
 
   // 認証済みの場合は子コンポーネントを表示

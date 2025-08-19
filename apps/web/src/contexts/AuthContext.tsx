@@ -25,13 +25,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           data: { session },
           error,
         } = await supabase.auth.getSession();
+
         if (error) {
-          console.error('Error getting session:', error);
+          setUser(null);
         } else {
           setUser(session?.user ?? null);
         }
-      } catch (error) {
-        console.error('Unexpected error getting session:', error);
+      } catch {
+        setUser(null);
       } finally {
         setLoading(false);
       }
@@ -57,11 +58,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       const { error } = await supabase.auth.signOut();
       if (error) {
-        console.error('Error signing out:', error);
         throw error;
       }
     } catch (error) {
-      console.error('Unexpected error during sign out:', error);
       throw error;
     } finally {
       setLoading(false);
