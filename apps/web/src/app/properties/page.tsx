@@ -9,6 +9,7 @@ import { Search } from 'lucide-react';
 import MainLayout from '../../components/layout/MainLayout';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import PropertyTable from '../../components/properties/PropertyTable';
+import LoadingOverlay from '@/components/ui/LoadingOverlay';
 import { request } from '@/lib/api/client';
 import { PropertyResponseSchema } from '@/lib/api/schemas/property';
 import { RentRollResponseSchema } from '@/lib/api/schemas/rent-roll';
@@ -32,6 +33,7 @@ type SortDirection = 'asc' | 'desc';
 export default function PropertyListPage() {
   const router = useRouter();
   const [properties, setProperties] = useState<PropertySummary[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -40,6 +42,7 @@ export default function PropertyListPage() {
   useEffect(() => {
     let mounted = true;
     (async () => {
+      setLoading(true);
       try {
         const [propsRes, rentRes, expRes, loanRes] = await Promise.all([
           request('/api/properties', PropertyResponseSchema.array()),
@@ -97,6 +100,8 @@ export default function PropertyListPage() {
         if (mounted) setProperties(summaries);
       } catch (e) {
         console.warn('Failed to load property summaries', e);
+      } finally {
+        if (mounted) setLoading(false);
       }
     })();
     return () => {
@@ -142,49 +147,51 @@ export default function PropertyListPage() {
   return (
     <ProtectedRoute>
       <MainLayout>
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-6 flex flex-col items-start justify-between md:flex-row md:items-center">
-            <h1 className="mb-4 text-2xl font-bold text-primary md:mb-0">物件一覧</h1>
-            <div className="flex items-center space-x-4">
-              <select
-                value={selectedOwnerId || ''}
-                onChange={(e) => setSelectedOwnerId(e.target.value || null)}
-                className="rounded border px-3 py-1 text-sm"
-              >
-                <option value="">すべての所有者</option>
-                {/* 所有者選択は現APIに未実装のため、一旦全件のみ */}
-              </select>
-              <Button onClick={handleAddProperty} className="bg-primary hover:bg-primary/90">
-                + 物件を追加
-              </Button>
+        <LoadingOverlay loading={loading} text="物件データを読み込み中...">
+          <div className="container mx-auto px-4 py-8">
+            <div className="mb-6 flex flex-col items-start justify-between md:flex-row md:items-center">
+              <h1 className="mb-4 text-2xl font-bold text-primary md:mb-0">物件一覧</h1>
+              <div className="flex items-center space-x-4">
+                <select
+                  value={selectedOwnerId || ''}
+                  onChange={(e) => setSelectedOwnerId(e.target.value || null)}
+                  className="rounded border px-3 py-1 text-sm"
+                >
+                  <option value="">すべての所有者</option>
+                  {/* 所有者選択は現APIに未実装のため、一旦全件のみ */}
+                </select>
+                <Button onClick={handleAddProperty} className="bg-primary hover:bg-primary/90">
+                  + 物件を追加
+                </Button>
+              </div>
             </div>
-          </div>
 
-          <div className="relative mb-6">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 transform text-gray-400"
-              size={18}
-            />
-            <input
-              type="text"
-              placeholder="物件名や住所で検索..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded border border-border-default px-3 py-2 pl-10 text-sm"
-            />
-          </div>
-
-          <Card>
-            <CardContent className="p-0">
-              <PropertyTable
-                properties={filteredAndSortedProperties}
-                sortField={sortField}
-                sortDirection={sortDirection}
-                onSort={handleSort}
+            <div className="relative mb-6">
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 transform text-gray-400"
+                size={18}
               />
-            </CardContent>
-          </Card>
-        </div>
+              <input
+                type="text"
+                placeholder="物件名や住所で検索..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full rounded border border-border-default px-3 py-2 pl-10 text-sm"
+              />
+            </div>
+
+            <Card>
+              <CardContent className="p-0">
+                <PropertyTable
+                  properties={filteredAndSortedProperties}
+                  sortField={sortField}
+                  sortDirection={sortDirection}
+                  onSort={handleSort}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        </LoadingOverlay>
       </MainLayout>
     </ProtectedRoute>
   );

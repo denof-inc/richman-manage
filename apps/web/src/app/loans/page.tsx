@@ -9,6 +9,7 @@ import { Search } from 'lucide-react';
 import MainLayout from '../../components/layout/MainLayout';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import LoanTable from '../../components/loans/LoanTable';
+import LoadingOverlay from '@/components/ui/LoadingOverlay';
 import { request } from '@/lib/api/client';
 import { LoanResponseSchema } from '@/lib/api/schemas/loan';
 import { PropertyResponseSchema } from '@/lib/api/schemas/property';
@@ -27,23 +28,29 @@ export default function LoanListPage() {
   const router = useRouter();
   const { showError } = useToast();
   const [loans, setLoans] = useState<LoanListViewModel[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState<SortField>('lender');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [filterProperty, setFilterProperty] = useState<string>('');
 
   const load = useCallback(async () => {
-    const [loansRes, propsRes] = await Promise.all([
-      request('/api/loans', LoanResponseSchema.array()),
-      request('/api/properties', PropertyResponseSchema.array()),
-    ]);
-    const propNameMap = new Map<string, string>(
-      (propsRes.data || []).map((p) => [p.id as string, p.name as string])
-    );
-    const view = (loansRes.data || []).map((l) =>
-      toLoanListViewModel(l, propNameMap.get(l.property_id))
-    );
-    setLoans(view);
+    setLoading(true);
+    try {
+      const [loansRes, propsRes] = await Promise.all([
+        request('/api/loans', LoanResponseSchema.array()),
+        request('/api/properties', PropertyResponseSchema.array()),
+      ]);
+      const propNameMap = new Map<string, string>(
+        (propsRes.data || []).map((p) => [p.id as string, p.name as string])
+      );
+      const view = (loansRes.data || []).map((l) =>
+        toLoanListViewModel(l, propNameMap.get(l.property_id))
+      );
+      setLoans(view);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -97,53 +104,55 @@ export default function LoanListPage() {
   return (
     <ProtectedRoute>
       <MainLayout>
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-6 flex flex-col items-start justify-between md:flex-row md:items-center">
-            <h1 className="mb-4 text-2xl font-bold text-primary md:mb-0">借入一覧</h1>
-            <div className="flex items-center space-x-4">
-              <select
-                value={filterProperty}
-                onChange={(e) => setFilterProperty(e.target.value)}
-                className="rounded border px-3 py-1 text-sm"
-              >
-                <option value="">すべての物件</option>
-                {properties.map((prop) => (
-                  <option key={prop} value={prop}>
-                    {prop}
-                  </option>
-                ))}
-              </select>
-              <Button onClick={handleAddLoan} className="bg-primary hover:bg-primary/90">
-                + 借入を追加
-              </Button>
+        <LoadingOverlay loading={loading} text="借入データを読み込み中...">
+          <div className="container mx-auto px-4 py-8">
+            <div className="mb-6 flex flex-col items-start justify-between md:flex-row md:items-center">
+              <h1 className="mb-4 text-2xl font-bold text-primary md:mb-0">借入一覧</h1>
+              <div className="flex items-center space-x-4">
+                <select
+                  value={filterProperty}
+                  onChange={(e) => setFilterProperty(e.target.value)}
+                  className="rounded border px-3 py-1 text-sm"
+                >
+                  <option value="">すべての物件</option>
+                  {properties.map((prop) => (
+                    <option key={prop} value={prop}>
+                      {prop}
+                    </option>
+                  ))}
+                </select>
+                <Button onClick={handleAddLoan} className="bg-primary hover:bg-primary/90">
+                  + 借入を追加
+                </Button>
+              </div>
             </div>
-          </div>
 
-          <div className="relative mb-6">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 transform text-gray-400"
-              size={18}
-            />
-            <input
-              type="text"
-              placeholder="ローン名や物件名で検索..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded border border-border-default px-3 py-2 pl-10 text-sm"
-            />
-          </div>
-
-          <Card>
-            <CardContent className="p-0">
-              <LoanTable
-                loans={filteredAndSortedLoans}
-                sortField={sortField}
-                sortDirection={sortDirection}
-                onSort={handleSort}
+            <div className="relative mb-6">
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 transform text-gray-400"
+                size={18}
               />
-            </CardContent>
-          </Card>
-        </div>
+              <input
+                type="text"
+                placeholder="ローン名や物件名で検索..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full rounded border border-border-default px-3 py-2 pl-10 text-sm"
+              />
+            </div>
+
+            <Card>
+              <CardContent className="p-0">
+                <LoanTable
+                  loans={filteredAndSortedLoans}
+                  sortField={sortField}
+                  sortDirection={sortDirection}
+                  onSort={handleSort}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        </LoadingOverlay>
       </MainLayout>
     </ProtectedRoute>
   );
