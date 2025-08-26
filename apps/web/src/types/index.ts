@@ -193,6 +193,38 @@ export interface RecentTransaction {
 // フォント設定関連
 export type FontSize = 'small' | 'medium' | 'large' | 'extra-large';
 
+// キャッシュフロー関連
+export type CashFlowPeriod = 'monthly' | 'quarterly' | 'yearly';
+
+export interface CashFlowData {
+  period: string; // "2024-01" 形式
+  income: {
+    rent: number;
+    other: number;
+  };
+  expenses: {
+    loan_principal: number;
+    loan_interest: number;
+    management_fee: number;
+    property_tax: number;
+    repair_cost: number;
+    utility: number;
+    insurance: number;
+    other_expenses: number;
+  };
+  operating_profit: number;
+  pre_tax_profit: number;
+  post_tax_profit: number;
+  cumulative_cash_flow: number;
+}
+
+export interface CashFlowFilter {
+  period_type: CashFlowPeriod;
+  start_date: string;
+  end_date: string;
+  property_ids?: string[];
+}
+
 // フィルター関連
 export interface PropertyFilter {
   search?: string;
