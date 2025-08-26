@@ -14,7 +14,7 @@ interface NewHeaderProps {
 }
 
 export default function NewHeader({ onMobileMenuToggle, isMobileMenuOpen }: NewHeaderProps = {}) {
-  const { user, signOut } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const { toast } = useToast();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -64,7 +64,10 @@ export default function NewHeader({ onMobileMenuToggle, isMobileMenuOpen }: NewH
 
         {/* Right: Help + Settings (Logged in) or Login buttons (Logged out) + Mobile menu */}
         <div className="flex items-center space-x-4">
-          {!isLoggedIn ? (
+          {loading ? (
+            // 認証チェック中: 何も表示しない（またはスケルトン）
+            <div className="h-8 w-24"></div>
+          ) : !isLoggedIn ? (
             // 未ログイン時: ログインボタン
             <div className="flex items-center space-x-2">
               <Link href="/login">
