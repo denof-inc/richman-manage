@@ -36,8 +36,8 @@ const mainNavItems = [
 
 const analyticsNavItems = [
   {
-    name: 'レポート',
-    href: '/reports',
+    name: 'キャッシュフロー分析',
+    href: '/cashflow',
     icon: BarChart3,
   },
 ];
