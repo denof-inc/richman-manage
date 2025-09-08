@@ -5,32 +5,27 @@
 
 ## 2. データモデル
 
-### properties テーブル
+### properties テーブル（実装準拠）
 ```typescript
 interface Property {
-  id: string;                    // UUID
-  owner_id: string;             // 所有者ID
-  name: string;                 // 物件名
-  address: string;              // 住所
-  type: PropertyType;           // 物件種別
-  size: number;                 // 延床面積(㎡)
-  rooms: number;                // 部屋数
-  year_built: number;           // 築年
-  acquisition_date: Date;       // 取得日
-  acquisition_price: number;    // 取得価格
-  current_value: number;        // 現在価値
-  potential_rent: number;       // 満室想定家賃
-  actual_rent: number;          // 実際の家賃
-  monthly_repayment: number;    // 月次返済額
-  net_cf: number;              // ネットキャッシュフロー
-  notes?: string;              // 備考
-  created_at: Date;
-  updated_at: Date;
-  deleted_at?: Date;
+  id: string;                 // UUID
+  user_id: string;            // ユーザーID
+  name: string;               // 物件名
+  address: string;            // 住所
+  property_type: PropertyType;// 物件種別
+  purchase_price: number;     // 取得価格
+  purchase_date: string;      // 取得日（YYYY-MM-DD）
+  current_valuation: number | null; // 現在評価額
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
 }
 
-type PropertyType = 'apartment' | 'mansion' | 'office' | 'store' | 'other';
+// 現行実装の列挙（フロント側）
+type PropertyType = 'apartment' | 'house' | 'commercial' | 'land' | 'other';
 ```
+
+注: DBスキーマ側は将来拡張として 'office' 'industrial' 'mixed_use' 等を含む上位集合を想定。クライアントの型は後続で順次拡張予定。
 
 ## 3. API仕様
 
@@ -38,20 +33,23 @@ type PropertyType = 'apartment' | 'mansion' | 'office' | 'store' | 'other';
 ```
 GET /api/properties
 Query Parameters:
-  - owner_id?: string
-  - sort?: 'name' | 'net_cf' | 'created_at'
-  - order?: 'asc' | 'desc'
-  - limit?: number
-  - offset?: number
+  - page?: number (default: 1)
+  - limit?: number (default: 10, max: 100)
+  - search?: string
+  - property_type?: PropertyType
+  - sort?: 'created_at' | 'updated_at' | 'name' | 'purchase_date' | 'purchase_price' (default: 'created_at')
+  - order?: 'asc' | 'desc' (default: 'desc')
 
 Response:
 {
   success: true,
   data: Property[],
-  pagination: {
-    total: number,
+  error: null,
+  meta: {
+    page: number,
     limit: number,
-    offset: number
+    total: number,
+    totalPages: number
   }
 }
 ```
@@ -128,7 +126,7 @@ Response:
 - 収支サマリー（実際家賃 - 返済額 = CF）
 - 入居率バッジ
 
-### 4.2 物件詳細画面（/properties/[id]）
+### 4.2 物件詳細画面（/properties/[propertyId]）
 
 #### レイアウト
 - ヘッダー: 物件名 + 編集ボタン
@@ -155,21 +153,18 @@ Response:
 - 借入: 関連ローン一覧
 - 支出: 最近の支出履歴
 
-### 4.3 物件新規/編集画面（/properties/new, /properties/[id]/edit）
+### 4.3 物件新規/編集画面（/properties/new, /properties/[propertyId]/edit）
 
 #### フォーム項目
 - 基本情報セクション
   - 物件名*
   - 住所*
-  - 物件種別*
-  - 延床面積
-  - 部屋数
-  - 築年
+- 物件種別*
 - 取得情報セクション
   - 取得日*
   - 取得価格*
   - 現在価値
-- 収支情報セクション（自動計算）
+- 収支情報セクション（自動計算・派生指標）
   - 満室想定家賃（レントロールから集計）
   - 実際の家賃（レントロールから集計）
   - 月次返済額（借入から集計）
@@ -233,4 +228,3 @@ const occupancyRate = (occupiedUnits / totalUnits) * 100;
 - 収支自動計算の精度
 - 権限チェック
 - パフォーマンス（100物件での表示速度）
-
