@@ -1,7 +1,16 @@
 import { z } from 'zod';
 
 // 物件タイプの定義
-export const PropertyTypeSchema = z.enum(['apartment', 'house', 'commercial', 'land', 'other']);
+export const PropertyTypeSchema = z.enum([
+  'apartment',
+  'office',
+  'house',
+  'land',
+  'commercial',
+  'industrial',
+  'mixed_use',
+  'other',
+]);
 
 // 物件作成用スキーマ
 export const CreatePropertySchema = z.object({

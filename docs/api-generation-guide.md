@@ -9,8 +9,7 @@
 ### 1.1 必要なパッケージのインストール
 
 ```bash
-npm install --save-dev @apidevtools/swagger-parser swagger-ui-react
-npm install next-swagger-doc
+npm install next-swagger-doc --workspace apps/web
 ```
 
 ### 1.2 API Routeへのアノテーション追加
@@ -84,34 +83,31 @@ export async function GET(request: NextRequest) {
 ### 1.3 Swagger設定ファイル
 
 ```typescript
-// lib/swagger.ts
+// apps/web/src/lib/swagger.ts
 import { createSwaggerSpec } from 'next-swagger-doc';
 
 export const getApiDocs = async () => {
   const spec = createSwaggerSpec({
-    apiFolder: 'app/api',
+    apiFolder: 'src/app/api',
     definition: {
       openapi: '3.0.0',
       info: {
         title: 'RichmanManage API',
         version: '1.0.0',
-        description: '不動産投資管理システムのAPI仕様書',
+        description: '不動産投資管理システムのAPI仕様',
       },
       servers: [
         {
-          url: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000',
-          description: 'API Server',
+          url: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
+          description: 'Local dev',
         },
       ],
       components: {
         securitySchemes: {
-          bearerAuth: {
-            type: 'http',
-            scheme: 'bearer',
-            bearerFormat: 'JWT',
-          },
+          bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
         },
       },
+      security: [{ bearerAuth: [] }],
     },
   });
   return spec;
@@ -120,27 +116,54 @@ export const getApiDocs = async () => {
 
 ### 1.4 Swagger UIページの作成
 
-```typescript
-// app/api-docs/page.tsx
+実装ではCDN版のSwagger UIを`public`に配置したHTMLで表示し、`/api-docs`（JSON）を読み込みます。Next.jsのページはそのHTMLをiframeで表示します。
+
+```tsx
+// apps/web/src/app/docs/api/page.tsx
 'use client';
-
-import { useEffect, useState } from 'react';
-import SwaggerUI from 'swagger-ui-react';
-import 'swagger-ui-react/swagger-ui.css';
-
+export const dynamic = 'force-dynamic';
 export default function ApiDocsPage() {
-  const [spec, setSpec] = useState(null);
-
-  useEffect(() => {
-    fetch('/api/openapi')
-      .then((res) => res.json())
-      .then(setSpec);
-  }, []);
-
-  if (!spec) return <div>Loading...</div>;
-
-  return <SwaggerUI spec={spec} />;
+  return (
+    <div style={{ height: '100vh' }}>
+      <iframe
+        src="/swagger/index.html"
+        title="API Docs"
+        style={{ width: '100%', height: '100%', border: 'none' }}
+      />
+    </div>
+  );
 }
+```
+
+```html
+<!-- apps/web/public/swagger/index.html -->
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RichmanManage API Docs</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css" />
+    <style>
+      html, body { height: 100%; margin: 0; }
+      #swagger-ui { height: 100vh; }
+    </style>
+  </head>
+  <body>
+    <div id="swagger-ui"></div>
+    <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
+    <script>
+      window.onload = () => {
+        window.ui = SwaggerUIBundle({
+          url: '/api-docs',
+          dom_id: '#swagger-ui',
+          presets: [SwaggerUIBundle.presets.apis],
+          layout: 'BaseLayout',
+        });
+      };
+    </script>
+  </body>
+  </html>
 ```
 
 ## 2. DBドキュメントの自動生成
@@ -264,4 +287,3 @@ jobs:
 - 生成されたファイルは`.gitignore`に追加しない（レビュー可能にするため）
 - 生成ファイルは`docs/generated/`配下に配置
 - 手動編集が必要な概念的な説明は別ファイルで管理
-

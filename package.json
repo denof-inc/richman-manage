@@ -14,8 +14,10 @@
     "lint:fix": "turbo run lint -- --fix",
     "lint:check": "turbo run lint",
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "fix": "npm run format && npm run lint:fix && npm run lint:check",
     "test": "turbo run test",
+    "typecheck": "npm --workspace apps/web run typecheck",
     "prepare": "husky install"
   },
   "repository": {

@@ -13,7 +13,7 @@
 - 各月のキャッシュフロー自動集計
 - 銀行提出用 PDF 出力（リッチマンとの連携を想定）
 
-詳細仕様は [`docs/mvp-spec.md`](./docs/mvp-spec.md) を参照してください。
+詳細仕様は [`docs/requirements-and-screens.md`](./docs/requirements-and-screens.md) を参照してください。
 
 ## 📊 実装状況
 
@@ -41,7 +41,7 @@
 
 ## 🛠️ 開発環境
 
-- **フレームワーク**：Next.js 15.1 (App Router)
+- **フレームワーク**：Next.js 15.3.1 (App Router)
 - **言語**：TypeScript 5.x
 - **スタイリング**：Tailwind CSS + shadcn/ui
 - **バックエンド / DB**：Supabase (PostgreSQL + Auth + Storage)
@@ -49,8 +49,8 @@
 - **フォーム管理**：React Hook Form + Zod
 - **デプロイ**：Vercel
 - **CI/CD**：GitHub Actions (Lint + Test + Type Check)
-- **パッケージマネージャー**：pnpm
-- **テスト**：Vitest (Unit) + Playwright (E2E)
+- **パッケージマネージャー**：npm（Monorepo Workspaces）
+- **テスト**：Jest (Unit) + Playwright (E2E)
 
 ---
 
@@ -61,20 +61,20 @@
 git clone git@github.com:denof-inc/richman-manage.git
 cd richman-manage
 
-# 依存関係のインストール（pnpm推奨）
-pnpm install  # もしくは npm install
+# 依存関係のインストール（npm標準）
+npm install
 
 # 環境変数の設定
 cp .env.example .env.local
 # .env.localを編集してSupabase接続情報を設定（詳細は下記参照）
 
-# 開発サーバーの起動
-npm run dev        # http://localhost:3000 でアクセス（apps/web）
+# 開発サーバーの起動（フロントエンド）
+npm --workspace apps/web run dev   # 例: http://localhost:3000
 
 # その他のコマンド
-npm run build      # プロダクションビルド
+npm run build      # プロダクションビルド（turbo）
 npm run lint       # ESLintチェック
-npm run test       # テスト
+npm run test       # テスト（turbo 経由）
 ```
 
 ## 📁 プロジェクト構造
@@ -99,7 +99,7 @@ richman-manage/                 # モノレポルート
 │       │   └── data/          # モックデータ・定数
 │       ├── e2e/               # E2Eテスト（Playwright）
 │       ├── public/            # 静的ファイル
-│       └── mocks/         # テストモック
+│       └── mocks/             # テストモック
 ├── packages/                  # 共通パッケージ（将来拡張用）
 ├── docs/                      # 設計・仕様書
 │   ├── features/              # 機能別詳細設計
@@ -128,7 +128,7 @@ richman-manage/                 # モノレポルート
 - **テストカバレッジ**: 80%以上を維持
 - **TypeScript**: any型の使用は原則禁止
 - **ESLint/Prettier**: 0エラー・0警告を維持
-- **コミット前チェック**: `pnpm run quality:check`を必ず実行
+- **コミット前チェック**: `npm run lint:check` を実行
 
 ### 開発ワークフロー
 1. Issueの作成・アサイン
@@ -213,16 +213,11 @@ curl -X POST -H "x-seed-token: $DEV_SEED_TOKEN" "http://localhost:<port>/api/dev
 
 ### よくある問題と解決方法
 
-#### 1. pnpm: command not found
+#### 1. 依存関係の不整合
 ```bash
-# Node.js 16.14以降が必要
-npm install -g pnpm
-```
-
-#### 2. TypeScriptエラーが解決しない
-```bash
-# 依存関係の再インストール
-pnpm install --force
+# クリーンインストール
+rm -rf node_modules package-lock.json
+npm install
 
 # TypeScript言語サーバーの再起動（VSCode）
 Cmd/Ctrl + Shift + P → "TypeScript: Restart TS Server"
@@ -235,11 +230,8 @@ Cmd/Ctrl + Shift + P → "TypeScript: Restart TS Server"
 
 #### 4. テストが失敗する
 ```bash
-# テストデータベースのリセット
-pnpm run test:db:reset
-
 # キャッシュのクリア
-pnpm run test -- --clearCache
+npm run test --workspaces -- --clearCache
 ```
 
 ### サポート
