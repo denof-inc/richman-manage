@@ -201,8 +201,19 @@ describe('API統合テスト', () => {
         }),
       };
 
+      // 所有者の既定取得をモック
+      const mockOwnerQuery = {
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: { id: '11111111-1111-1111-1111-111111111111' }, error: null }),
+      };
+
       mockSupabaseClient.from
         .mockReturnValueOnce(mockPropertyCheck)
+        .mockReturnValueOnce(mockOwnerQuery)
         .mockReturnValueOnce(mockLoanInsert);
 
       const loanRequest = new NextRequest('http://localhost:3000/api/loans', {

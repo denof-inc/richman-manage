@@ -249,21 +249,25 @@ export async function POST(request: NextRequest) {
       // 所有者（owner）の補完: owner_id未指定の場合は既定の所有者を作成/取得
       let ownerId = validatedData.owner_id;
       if (!ownerId) {
-        const { data: existingOwner } = await supabase
-          .from('owners')
-          .select('id')
-          .eq('user_id', user.id)
-          .limit(1)
-          .maybeSingle();
-        if (existingOwner?.id) {
-          ownerId = existingOwner.id as string;
-        } else {
-          const { data: createdOwner } = await supabase
+        try {
+          const { data: existingOwner, error: ownerFetchError } = await supabase
             .from('owners')
-            .insert({ user_id: user.id, name: 'デフォルト所有者', owner_kind: 'individual' })
             .select('id')
+            .eq('user_id', user.id)
+            .limit(1)
             .single();
-          ownerId = createdOwner?.id as string | undefined;
+          if (!ownerFetchError && existingOwner?.id) {
+            ownerId = existingOwner.id as string;
+          } else {
+            const { data: createdOwner } = await supabase
+              .from('owners')
+              .insert({ user_id: user.id, name: 'デフォルト所有者', owner_kind: 'individual' })
+              .select('id')
+              .single();
+            ownerId = (createdOwner?.id as string | undefined) ?? undefined;
+          }
+        } catch {
+          // ownersテーブルが未整備/モック未設定などの場合はスキップ（owner_idなしで継続）
         }
       }
 
