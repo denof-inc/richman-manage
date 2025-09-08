@@ -190,9 +190,7 @@ export async function GET(request: NextRequest) {
       // レスポンス形式に変換（property情報を除外）+ DB→DTO正規化
       const loans =
         data?.map((row) => {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { property, owner, ...loanData } = row as Record<string, unknown>;
-          const normalized = mapLoanDbToDto(loanData);
+          const normalized = mapLoanDbToDto(row as Record<string, unknown>);
           return LoanResponseSchema.parse(normalized);
         }) || [];
 

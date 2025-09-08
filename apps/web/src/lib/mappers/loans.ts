@@ -93,8 +93,26 @@ export function mapLoanDbToDto(
     (typeof input.current_interest_rate === 'number' ? input.current_interest_rate : undefined) ??
     (typeof input.initial_interest_rate === 'number' ? input.initial_interest_rate : undefined) ??
     0;
+
+  // 明示的に必要なプロパティのみを返却し、不要なネスト（property/owner等）を排除
+  const out: Record<string, unknown> = {
+    id: (input as Record<string, unknown>).id,
+    property_id: (input as Record<string, unknown>).property_id ?? null,
+    owner_id: (input as Record<string, unknown>).owner_id ?? null,
+    lender_name: (input as Record<string, unknown>).lender_name,
+    branch_name: (input as Record<string, unknown>).branch_name ?? null,
+    principal_amount: (input as Record<string, unknown>).principal_amount,
+    current_balance: (input as Record<string, unknown>).current_balance,
+    loan_term_months: (input as Record<string, unknown>).loan_term_months,
+    monthly_payment: (input as Record<string, unknown>).monthly_payment,
+    notes: (input as Record<string, unknown>).notes ?? null,
+    created_at: (input as Record<string, unknown>).created_at,
+    updated_at: (input as Record<string, unknown>).updated_at,
+    deleted_at: (input as Record<string, unknown>).deleted_at ?? null,
+  };
+
   return {
-    ...input,
+    ...out,
     loan_type: uiType,
     interest_rate: rate,
   };
