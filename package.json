@@ -17,7 +17,7 @@
     "format:check": "prettier --check .",
     "fix": "npm run format && npm run lint:fix && npm run lint:check",
     "test": "turbo run test",
-    "typecheck": "turbo run typecheck",
+    "typecheck": "npm --workspace apps/web run typecheck",
     "prepare": "husky install"
   },
   "repository": {
