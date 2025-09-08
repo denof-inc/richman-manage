@@ -116,6 +116,11 @@ const handleApiError = (error: unknown, context: string) => {
  *       - in: query
  *         name: search
  *         schema: { type: string }
+ *       - in: query
+ *         name: property_type
+ *         schema:
+ *           type: string
+ *           enum: [apartment, office, house, land, commercial, industrial, mixed_use, other]
  *     responses:
  *       200:
  *         description: 成功

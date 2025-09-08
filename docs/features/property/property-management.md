@@ -21,11 +21,19 @@ interface Property {
   deleted_at: string | null;
 }
 
-// 現行実装の列挙（フロント側）
-type PropertyType = 'apartment' | 'house' | 'commercial' | 'land' | 'other';
+// 物件種別（実装/DB準拠）
+type PropertyType =
+  | 'apartment'
+  | 'office'
+  | 'house'
+  | 'land'
+  | 'commercial'
+  | 'industrial'
+  | 'mixed_use'
+  | 'other';
 ```
 
-注: DBスキーマ側は将来拡張として 'office' 'industrial' 'mixed_use' 等を含む上位集合を想定。クライアントの型は後続で順次拡張予定。
+（補足）DB/実装どちらも同一列挙に統一済み。
 
 ## 3. API仕様
 
