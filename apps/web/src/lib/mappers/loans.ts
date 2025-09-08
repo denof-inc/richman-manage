@@ -18,8 +18,10 @@ const dbToUiLoanType: Record<string, LoanType> = {
 };
 
 type DbLoanInsert = {
-  property_id: string;
+  property_id: string | null;
+  owner_id?: string | null;
   lender_name: string;
+  branch_name?: string | null;
   loan_type: string;
   principal_amount: number;
   current_balance: number;
@@ -29,6 +31,7 @@ type DbLoanInsert = {
   current_interest_rate?: number;
   loan_term_months: number;
   monthly_payment: number;
+  notes?: string | null;
 };
 
 type DbLoanUpdate = Partial<Omit<DbLoanInsert, 'property_id' | 'principal_amount'>> & {
@@ -39,8 +42,10 @@ type DbLoanUpdate = Partial<Omit<DbLoanInsert, 'property_id' | 'principal_amount
 // 呼び出し側で最終的に存在カラムのみを選択して利用する想定。
 export function mapLoanDtoToDbForCreate(input: CreateLoanInput): DbLoanInsert {
   const mapped: DbLoanInsert = {
-    property_id: input.property_id,
+    property_id: input.property_id ?? null,
+    owner_id: input.owner_id ?? null,
     lender_name: input.lender_name,
+    branch_name: input.branch_name ?? null,
     loan_type: uiToDbLoanType[input.loan_type] ?? 'other',
     principal_amount: input.principal_amount,
     current_balance: input.current_balance,
@@ -49,6 +54,7 @@ export function mapLoanDtoToDbForCreate(input: CreateLoanInput): DbLoanInsert {
     current_interest_rate: input.interest_rate, // 新スキーマ互換（存在時）
     loan_term_months: input.loan_term_months,
     monthly_payment: input.monthly_payment,
+    notes: input.notes ?? null,
   };
   return mapped;
 }
@@ -56,7 +62,9 @@ export function mapLoanDtoToDbForCreate(input: CreateLoanInput): DbLoanInsert {
 export function mapLoanDtoToDbForUpdate(input: Partial<UpdateLoanInput>): DbLoanUpdate {
   const out: DbLoanUpdate = {};
   if (input.lender_name !== undefined) out.lender_name = input.lender_name;
+  if (input.branch_name !== undefined) out.branch_name = input.branch_name;
   if (input.loan_type !== undefined) out.loan_type = uiToDbLoanType[input.loan_type] ?? 'other';
+  if (input.owner_id !== undefined) out.owner_id = input.owner_id;
   if (input.current_balance !== undefined) out.current_balance = input.current_balance;
   if (input.interest_rate !== undefined) {
     out.interest_rate = input.interest_rate; // 既存スキーマ互換
@@ -64,6 +72,7 @@ export function mapLoanDtoToDbForUpdate(input: Partial<UpdateLoanInput>): DbLoan
     out.current_interest_rate = input.interest_rate; // 新スキーマ互換
   }
   if (input.monthly_payment !== undefined) out.monthly_payment = input.monthly_payment;
+  if (input.notes !== undefined) out.notes = input.notes;
   out.updated_at = new Date().toISOString();
   return out;
 }
