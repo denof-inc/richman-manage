@@ -7,7 +7,12 @@ import LoanForm, { type LoanFormValues } from '@/components/loans/LoanForm';
 import { useParams, useRouter } from 'next/navigation';
 import { request } from '@/lib/api/client';
 import { PropertyResponseSchema } from '@/lib/api/schemas/property';
-import { LoanResponseSchema, type UpdateLoanInput } from '@/lib/api/schemas/loan';
+import {
+  LoanResponseSchema,
+  type UpdateLoanInput,
+  type LoanResponse,
+} from '@/lib/api/schemas/loan';
+import { OwnerResponseSchema } from '@/lib/api/schemas/owner';
 
 export default function LoanEditPage() {
   const params = useParams<{ id: string }>();
@@ -16,6 +21,7 @@ export default function LoanEditPage() {
 
   const [properties, setProperties] = useState<{ id: string; name: string }[]>([]);
   const [defaults, setDefaults] = useState<Partial<LoanFormValues> | null>(null);
+  const [owners, setOwners] = useState<{ id: string; name: string }[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -23,24 +29,35 @@ export default function LoanEditPage() {
     let mounted = true;
     (async () => {
       try {
-        const [propsRes, loanRes] = await Promise.all([
+        const [propsRes, ownersRes, loanRes] = await Promise.all([
           request('/api/properties', PropertyResponseSchema.array()),
+          request('/api/owners', OwnerResponseSchema.array()),
           request(`/api/loans/${loanId}`, LoanResponseSchema),
         ]);
         if (!mounted) return;
         setProperties(
           (propsRes.data || []).map((p) => ({ id: p.id as string, name: p.name as string }))
         );
-        const loan = loanRes.data;
+        const loan = loanRes.data as LoanResponse & {
+          owner_id?: string | null;
+          branch_name?: string | null;
+          notes?: string | null;
+        };
+        setOwners(
+          (ownersRes.data || []).map((o) => ({ id: o.id as string, name: o.name as string }))
+        );
         setDefaults({
           property_id: loan.property_id ?? undefined,
+          owner_id: loan.owner_id ?? undefined,
           lender_name: loan.lender_name,
+          branch_name: loan.branch_name ?? undefined,
           loan_type: loan.loan_type,
           principal_amount: loan.principal_amount,
           current_balance: loan.current_balance,
           interest_rate: loan.interest_rate,
           loan_term_months: loan.loan_term_months,
           monthly_payment: loan.monthly_payment,
+          notes: loan.notes ?? undefined,
         });
       } catch (e) {
         console.warn('Failed to load loan/properties', e);
@@ -109,6 +126,7 @@ export default function LoanEditPage() {
               mode="edit"
               defaultValues={defaults}
               properties={properties}
+              owners={owners}
               onSubmit={handleUpdate}
               onDelete={handleDelete}
               submitting={submitting}
