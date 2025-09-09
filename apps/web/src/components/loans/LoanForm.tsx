@@ -19,11 +19,13 @@ type Mode = 'create' | 'edit';
 export type LoanFormValues = z.infer<typeof CreateLoanSchema>;
 
 type PropertyOption = { id: string; name: string };
+type OwnerOption = { id: string; name: string };
 
 type LoanFormProps = {
   mode: Mode;
   defaultValues?: Partial<LoanFormValues>;
   properties: PropertyOption[];
+  owners?: OwnerOption[];
   onSubmit: (values: CreateLoanInput | Partial<UpdateLoanInput>) => Promise<void>;
   onDelete?: () => Promise<void>;
   submitting?: boolean;
@@ -34,6 +36,7 @@ export default function LoanForm({
   mode,
   defaultValues,
   properties,
+  owners,
   onSubmit,
   onDelete,
   submitting,
@@ -47,16 +50,21 @@ export default function LoanForm({
     formState: { errors },
   } = useForm<LoanFormValues>({
     resolver: zodResolver(schema as unknown as z.ZodTypeAny),
-    defaultValues: {
-      property_id: defaultValues?.property_id ?? '',
-      lender_name: defaultValues?.lender_name ?? '',
-      loan_type: (defaultValues?.loan_type as LoanFormValues['loan_type']) ?? 'mortgage',
-      principal_amount: defaultValues?.principal_amount ?? ('' as unknown as number),
-      current_balance: defaultValues?.current_balance ?? ('' as unknown as number),
-      interest_rate: defaultValues?.interest_rate ?? ('' as unknown as number),
-      loan_term_months: defaultValues?.loan_term_months ?? ('' as unknown as number),
-      monthly_payment: defaultValues?.monthly_payment ?? ('' as unknown as number),
-    },
+    defaultValues: (() => {
+      const dv = (defaultValues || {}) as Partial<LoanFormValues> & { owner_id?: string };
+      return {
+        property_id: dv.property_id ?? '',
+        lender_name: dv.lender_name ?? '',
+        branch_name: (dv as Partial<LoanFormValues>).branch_name ?? ('' as unknown as string),
+        loan_type: (dv.loan_type as LoanFormValues['loan_type']) ?? 'mortgage',
+        principal_amount: dv.principal_amount ?? ('' as unknown as number),
+        current_balance: dv.current_balance ?? ('' as unknown as number),
+        interest_rate: dv.interest_rate ?? ('' as unknown as number),
+        loan_term_months: dv.loan_term_months ?? ('' as unknown as number),
+        monthly_payment: dv.monthly_payment ?? ('' as unknown as number),
+        notes: (dv as Partial<LoanFormValues>).notes ?? ('' as unknown as string),
+      } as LoanFormValues;
+    })(),
   });
 
   const onValid = async (values: LoanFormValues) => {
@@ -110,6 +118,26 @@ export default function LoanForm({
         </div>
       )}
 
+      {owners && owners.length > 0 && (
+        <div>
+          <label className="mb-1 block text-sm font-medium">借入主体（所有者）</label>
+          <select
+            className="w-full rounded border px-3 py-2"
+            {...register('owner_id')}
+            defaultValue={
+              (defaultValues as Partial<LoanFormValues> & { owner_id?: string })?.owner_id ?? ''
+            }
+          >
+            <option value="">選択してください</option>
+            {owners.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
           <label className="mb-1 block text-sm font-medium">金融機関名</label>
@@ -117,6 +145,11 @@ export default function LoanForm({
           {errors.lender_name && (
             <p className="mt-1 text-xs text-red-600">{errors.lender_name.message as string}</p>
           )}
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm font-medium">支店名</label>
+          <input className="w-full rounded border px-3 py-2" {...register('branch_name')} />
         </div>
 
         <div>
@@ -201,6 +234,11 @@ export default function LoanForm({
             <p className="mt-1 text-xs text-red-600">{errors.monthly_payment.message as string}</p>
           )}
         </div>
+      </div>
+
+      <div>
+        <label className="mb-1 block text-sm font-medium">メモ</label>
+        <textarea className="w-full rounded border px-3 py-2" rows={4} {...register('notes')} />
       </div>
 
       <div className="flex items-center gap-3">

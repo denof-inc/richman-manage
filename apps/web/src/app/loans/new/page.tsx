@@ -10,6 +10,7 @@ import LoanForm from '@/components/loans/LoanForm';
 import { useRouter } from 'next/navigation';
 import { request } from '@/lib/api/client';
 import { PropertyResponseSchema } from '@/lib/api/schemas/property';
+import { OwnerResponseSchema } from '@/lib/api/schemas/owner';
 import {
   CreateLoanSchema,
   type CreateLoanInput,
@@ -20,16 +21,23 @@ export default function LoanNewPage() {
   const router = useRouter();
   const [properties, setProperties] = useState<{ id: string; name: string }[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [owners, setOwners] = useState<{ id: string; name: string }[]>([]);
   const [serverError, setServerError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const res = await request('/api/properties', PropertyResponseSchema.array());
+        const [propsRes, ownersRes] = await Promise.all([
+          request('/api/properties', PropertyResponseSchema.array()),
+          request('/api/owners', OwnerResponseSchema.array()),
+        ]);
         if (!mounted) return;
         setProperties(
-          (res.data || []).map((p) => ({ id: p.id as string, name: p.name as string }))
+          (propsRes.data || []).map((p) => ({ id: p.id as string, name: p.name as string }))
+        );
+        setOwners(
+          (ownersRes.data || []).map((o) => ({ id: o.id as string, name: o.name as string }))
         );
       } catch (e) {
         console.warn('Failed to load properties', e);
@@ -75,6 +83,7 @@ export default function LoanNewPage() {
           <LoanForm
             mode="create"
             properties={properties}
+            owners={owners}
             onSubmit={handleCreate}
             submitting={submitting}
             serverError={serverError}
