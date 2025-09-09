@@ -106,13 +106,11 @@ const handleApiError = (error: unknown, context: string) => {
  *   get:
  *     tags: [Properties]
  *     summary: 物件一覧を取得
+ *     description: 認証ユーザーの物件をページネーション付きで返します。
+ *     operationId: getProperties
  *     parameters:
- *       - in: query
- *         name: page
- *         schema: { type: integer }
- *       - in: query
- *         name: limit
- *         schema: { type: integer }
+ *       - $ref: '#/components/parameters/PageParam'
+ *       - $ref: '#/components/parameters/LimitParam'
  *       - in: query
  *         name: search
  *         schema: { type: string }
@@ -124,6 +122,10 @@ const handleApiError = (error: unknown, context: string) => {
  *     responses:
  *       200:
  *         description: 成功
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       422:
+ *         $ref: '#/components/responses/ValidationError'
  */
 export async function GET(request: NextRequest) {
   return withPerformanceMonitoring(async () => {
