@@ -5,33 +5,27 @@
 
 ## 2. データモデル
 
-### loans テーブル
+### loans テーブル（最新版）
 ```typescript
 interface Loan {
-  id: string;                    // UUID
-  property_id: string;          // 物件ID
-  name: string;                 // ローン名称
-  lender: string;               // 借入先
-  loan_type: LoanType;          // ローン種別
-  principal: number;            // 借入元本
-  balance: number;              // 現在残高
-  interest_rate: number;        // 現在金利(%)
-  interest_type: InterestType;  // 金利タイプ
-  loan_term: number;            // 借入期間（月数）
-  start_date: Date;             // 借入開始日
-  end_date: Date;               // 借入終了予定日
-  monthly_payment: number;      // 月次返済額
-  payment_day: number;          // 返済日（1-31）
-  next_due_date: Date;          // 次回返済日
-  prepayment_penalty?: number;  // 繰上返済手数料
-  notes?: string;               // 備考
+  id: string;                     // UUID
+  property_id?: string | null;    // 物件ID（任意: 運転資金など非紐付け可）
+  owner_id?: string | null;       // 借入主体（所有者）
+  lender_name: string;            // 借入先（金融機関名）
+  branch_name?: string | null;    // 支店名
+  loan_type: LoanType;            // ローン種別
+  principal_amount: number;       // 借入元本
+  current_balance: number;        // 現在残高
+  interest_rate: number;          // 現在金利(%)
+  loan_term_months: number;       // 借入期間（月数）
+  monthly_payment: number;        // 支払月額（元金+利息）
+  notes?: string | null;          // 備考
   created_at: Date;
   updated_at: Date;
   deleted_at?: Date;
 }
 
-type LoanType = 'apartment_loan' | 'prop_loan' | 'business_loan' | 'other';
-type InterestType = 'fixed' | 'variable' | 'fixed_period';
+type LoanType = 'mortgage' | 'business' | 'personal' | 'other';
 ```
 
 ### loan_interest_changes テーブル
@@ -74,23 +68,13 @@ type RepaymentStatus = 'scheduled' | 'paid' | 'delayed' | 'skipped';
 GET /api/loans
 Query Parameters:
   - property_id?: string
+  - owner_id?: string
   - loan_type?: LoanType
-  - include_property?: boolean
 
 Response:
 {
   success: true,
-  data: {
-    loans: Array<{
-      loan: Loan,
-      property: Property
-    }>,
-    summary: {
-      total_balance: number,
-      total_monthly_payment: number,
-      average_interest_rate: number
-    }
-  }
+  data: Loan[]
 }
 ```
 
@@ -219,9 +203,11 @@ Response:
 - 一覧表示
 
 #### 表示項目
-| ローン名 | 物件名 | 借入先 | 残高 | 金利 | 月次返済 | 次回返済日 | アクション |
-|----------|--------|--------|------|------|----------|------------|------------|
-| 青山マンションローン | 青山マンション | ○○銀行 | ¥75,000,000 | 1.5% | ¥210,000 | 12/15 | 詳細 |
+| 借入先 | 物件 | 借入額 | 金利 | 期間 | 開始日 | 元金返済額 | 利息月額 | 支払月額 |
+|--------|------|--------|------|------|--------|------------|----------|----------|
+| ○○銀行 | 青山マンション | ¥80,000,000 | 1.5% | 35年 | 2024/01/01 | ¥xx | ¥yy | ¥210,000 |
+
+補足: 内訳は当面の表示ロジックとして「利息=残高×年利/12、元金=支払−利息」を使用（将来は返済予定表から厳密算出に置換）。
 
 ### 4.2 借入詳細画面（/loans/[id]）
 
@@ -412,4 +398,3 @@ async function checkRepaymentDelays() {
 - 繰上返済シミュレーション
 - 大量データでのパフォーマンス
 - 遅延チェックバッチの動作
-

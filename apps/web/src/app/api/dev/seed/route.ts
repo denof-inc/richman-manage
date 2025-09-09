@@ -56,26 +56,45 @@ export async function POST(request: NextRequest) {
       .single();
     if (propErr) throw propErr;
 
+    // 所有者（デフォルト）
+    let ownerId: string | undefined;
+    try {
+      const { data: owner } = await admin
+        .from('owners')
+        .insert({ user_id: userId, name: 'デフォルト所有者', owner_kind: 'individual' })
+        .select('id')
+        .single();
+      ownerId = owner?.id as string | undefined;
+    } catch {
+      // owners未整備でも続行
+    }
+
     const loansPayload = [
       {
         property_id: property.id,
+        owner_id: ownerId ?? null,
         lender_name: 'みずほ銀行',
+        branch_name: '渋谷支店',
         loan_type: 'mortgage',
         principal_amount: 40000000,
         current_balance: 35000000,
         interest_rate: 1.2,
         loan_term_months: 420,
         monthly_payment: 120000,
+        notes: '青山マンション取得時のメインローン',
       },
       {
         property_id: property.id,
+        owner_id: ownerId ?? null,
         lender_name: '三菱UFJ銀行',
+        branch_name: '青山支店',
         loan_type: 'business',
         principal_amount: 30000000,
         current_balance: 25000000,
         interest_rate: 2.1,
         loan_term_months: 240,
         monthly_payment: 180000,
+        notes: '運転資金用途のビジネスローン',
       },
     ];
     const { error: loanErr } = await admin.from('loans').insert(loansPayload);
