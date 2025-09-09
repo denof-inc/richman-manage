@@ -8,6 +8,7 @@ erDiagram
     Owner ||--o{ Property : owns
     Property ||--o{ Unit : contains
     Property ||--o{ Loan : secures
+    Owner ||--o{ Loan : borrows
     Property ||--o{ PropertyTax : applies
     Property ||--o{ Expense : incurs
     Unit ||--o{ UnitStatusHistory : tracks
@@ -38,10 +39,10 @@ erDiagram
         uuid id PK
         uuid user_id FK
         string name
-        enum type "individual|corporation"
-        jsonb tax_info
+        enum owner_kind "individual|corporation"
         timestamp created_at
         timestamp updated_at
+        timestamp deleted_at
     }
     
     users ||--o{ owners : "1:N"
@@ -105,21 +106,17 @@ erDiagram
 erDiagram
     loans {
         uuid id PK
-        uuid property_id FK
-        string name
-        string lender
+        uuid property_id FK NULL
+        uuid owner_id FK NULL
+        string lender_name
+        string branch_name NULL
         enum loan_type
-        decimal principal
-        decimal balance
+        decimal principal_amount
+        decimal current_balance
         decimal interest_rate
-        enum interest_type
-        integer loan_term
-        date start_date
-        date end_date
+        integer loan_term_months
         decimal monthly_payment
-        integer payment_day
-        date next_due_date
-        jsonb terms
+        text notes NULL
         timestamp created_at
         timestamp updated_at
         timestamp deleted_at
@@ -308,6 +305,7 @@ GROUP BY p.id, p.name;
 CREATE INDEX idx_properties_owner_id ON properties(owner_id);
 CREATE INDEX idx_units_property_id ON units(property_id);
 CREATE INDEX idx_loans_property_id ON loans(property_id);
+CREATE INDEX idx_loans_owner_id ON loans(owner_id);
 CREATE INDEX idx_expenses_property_id ON expenses(property_id);
 
 -- 検索用インデックス
@@ -478,4 +476,3 @@ FROM pg_stat_statements
 WHERE mean_time > 1000  -- 1秒以上
 ORDER BY mean_time DESC;
 ```
-
