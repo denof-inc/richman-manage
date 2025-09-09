@@ -109,25 +109,53 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         return ApiResponse.unauthorized();
       }
 
-      // 借入取得（物件の所有者チェック込み）
-      const { data: loan, error } = await withPerformanceMonitoring(
+      // 借入取得（ownersが未適用な環境にフォールバック対応）
+      let getRes = await withPerformanceMonitoring(
         async () =>
           await supabase
             .from('loans')
             .select('*, property:properties!left(user_id), owner:owners!left(user_id)')
             .eq('id', loanId)
-            .or(`property.user_id.eq.${user.id},owner.user_id.eq.${user.id}`)
+            .or(`properties.user_id.eq.${user.id},owners.user_id.eq.${user.id}`)
             .single(),
         'loans.database.getById'
       );
 
-      if (error || !loan) {
+      if (getRes.error) {
+        const msg = (getRes.error as { message?: string }).message || '';
+        const looksLikeOwnerJoinIssue =
+          /owners|relationship|foreign key|relation .* does not exist|failed to parse logic tree|syntax error/i.test(
+            msg
+          );
+        if (looksLikeOwnerJoinIssue) {
+          // Fallback: ユーザーの物件ID一覧でフィルタして取得
+          const { data: props, error: propErr } = await withPerformanceMonitoring(
+            async () => await supabase.from('properties').select('id').eq('user_id', user.id),
+            'properties.database.ids_for_loans_filter'
+          );
+
+          if (!propErr) {
+            const ids = (props || []).map((p: { id: string }) => p.id);
+            getRes = await withPerformanceMonitoring(async () => {
+              let q = supabase.from('loans').select('*').eq('id', loanId);
+              if (ids.length > 0) {
+                q = q.in('property_id', ids);
+              } else {
+                q = q.eq('id', '00000000-0000-0000-0000-000000000000');
+              }
+              return await q.single();
+            }, 'loans.database.getById.fallback_property_ids');
+          }
+        }
+      }
+
+      if (getRes.error || !getRes.data) {
         return ApiResponse.notFound('借入が見つかりません');
       }
 
       // レスポンス形式に変換（property情報を除外）+ DB→DTO正規化
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { property, owner, ...loanData } = loan as Record<string, unknown>;
+      const { property, owner, ...loanData } = getRes.data as Record<string, unknown>;
       const normalized = mapLoanDbToDto(loanData);
       const loanResponse = LoanResponseSchema.parse(normalized);
 
