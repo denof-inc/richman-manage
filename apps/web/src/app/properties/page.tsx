@@ -62,6 +62,7 @@ export default function PropertyListPage() {
 
         const monthlyRepaymentByProperty = new Map<string, number>();
         (loanRes.data || []).forEach((l) => {
+          if (!l.property_id) return;
           const key = l.property_id;
           monthlyRepaymentByProperty.set(
             key,

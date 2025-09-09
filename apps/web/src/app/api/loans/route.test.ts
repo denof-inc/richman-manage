@@ -143,6 +143,7 @@ describe('Loans API - GET /api/loans', () => {
       // データベースクエリをモック
       const mockQuery = {
         select: jest.fn().mockReturnThis(),
+        or: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
         order: jest.fn().mockReturnThis(),
         range: jest.fn().mockResolvedValue({
@@ -164,12 +165,11 @@ describe('Loans API - GET /api/loans', () => {
       expect(mockSupabaseClient.auth.getUser).toHaveBeenCalled();
       expect(mockSupabaseClient.from).toHaveBeenCalledWith('loans');
       expect(mockQuery.select).toHaveBeenCalledWith(
-        '*, property:properties!inner(id, user_id, name)',
+        '*, property:properties!left(id, user_id, name), owner:owners!left(id, user_id, name)',
         { count: 'exact' }
       );
-      expect(mockQuery.eq).toHaveBeenCalledWith(
-        'property.user_id',
-        '550e8400-e29b-41d4-a716-446655440000'
+      expect(mockQuery.or).toHaveBeenCalledWith(
+        expect.stringContaining('property.user_id.eq.550e8400-e29b-41d4-a716-446655440000')
       );
       expect(data.success).toBe(true);
       expect(data.data).toHaveLength(2);
@@ -206,6 +206,7 @@ describe('Loans API - GET /api/loans', () => {
       // データベースクエリをモック
       const mockQuery = {
         select: jest.fn().mockReturnThis(),
+        or: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
         order: jest.fn().mockReturnThis(),
         range: jest.fn().mockResolvedValue({
@@ -225,9 +226,8 @@ describe('Loans API - GET /api/loans', () => {
       await GET(request);
 
       // アサーション
-      expect(mockQuery.eq).toHaveBeenCalledWith(
-        'property.user_id',
-        '550e8400-e29b-41d4-a716-446655440000'
+      expect(mockQuery.or).toHaveBeenCalledWith(
+        expect.stringContaining('property.user_id.eq.550e8400-e29b-41d4-a716-446655440000')
       );
       expect(mockQuery.eq).toHaveBeenCalledWith(
         'property_id',
@@ -245,6 +245,7 @@ describe('Loans API - GET /api/loans', () => {
       // データベースクエリをモック
       const mockQuery = {
         select: jest.fn().mockReturnThis(),
+        or: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
         ilike: jest.fn().mockReturnThis(),
         order: jest.fn().mockReturnThis(),
@@ -304,6 +305,16 @@ describe('Loans API - GET /api/loans', () => {
         }),
       };
 
+      // 所有者の取得（既定所有者）
+      const mockOwnerQuery = {
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: { id: '11111111-1111-1111-1111-111111111111' }, error: null }),
+      };
+
       // データベース挿入をモック
       const mockInsert = {
         insert: jest.fn().mockReturnThis(),
@@ -317,6 +328,7 @@ describe('Loans API - GET /api/loans', () => {
       // fromを2回呼ぶ：1回目は物件確認、2回目は借入作成
       mockSupabaseClient.from
         .mockReturnValueOnce(mockPropertyQuery)
+        .mockReturnValueOnce(mockOwnerQuery)
         .mockReturnValueOnce(mockInsert);
 
       // リクエストを作成

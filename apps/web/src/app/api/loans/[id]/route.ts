@@ -114,9 +114,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         async () =>
           await supabase
             .from('loans')
-            .select('*, property:properties!inner(user_id)')
+            .select('*, property:properties!left(user_id), owner:owners!left(user_id)')
             .eq('id', loanId)
-            .eq('property.user_id', user.id)
+            .or(`property.user_id.eq.${user.id},owner.user_id.eq.${user.id}`)
             .single(),
         'loans.database.getById'
       );
@@ -127,7 +127,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
       // レスポンス形式に変換（property情報を除外）+ DB→DTO正規化
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { property, ...loanData } = loan as Record<string, unknown>;
+      const { property, owner, ...loanData } = loan as Record<string, unknown>;
       const normalized = mapLoanDbToDto(loanData);
       const loanResponse = LoanResponseSchema.parse(normalized);
 

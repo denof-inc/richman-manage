@@ -102,6 +102,7 @@ describe('Loan API - /api/loans/[id]', () => {
       // データベースクエリをモック
       const mockQuery = {
         select: jest.fn().mockReturnThis(),
+        or: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
         single: jest.fn().mockResolvedValue({
           data: mockLoan,
@@ -122,11 +123,12 @@ describe('Loan API - /api/loans/[id]', () => {
 
       // アサーション
       expect(mockSupabaseClient.from).toHaveBeenCalledWith('loans');
-      expect(mockQuery.select).toHaveBeenCalledWith('*, property:properties!inner(user_id)');
+      expect(mockQuery.select).toHaveBeenCalledWith(
+        '*, property:properties!left(user_id), owner:owners!left(user_id)'
+      );
       expect(mockQuery.eq).toHaveBeenCalledWith('id', '550e8400-e29b-41d4-a716-446655440201');
-      expect(mockQuery.eq).toHaveBeenCalledWith(
-        'property.user_id',
-        '550e8400-e29b-41d4-a716-446655440000'
+      expect(mockQuery.or).toHaveBeenCalledWith(
+        expect.stringContaining('property.user_id.eq.550e8400-e29b-41d4-a716-446655440000')
       );
       expect(data.success).toBe(true);
       expect(data.data.id).toBe(mockLoan.id);
@@ -142,6 +144,7 @@ describe('Loan API - /api/loans/[id]', () => {
       // データベースクエリをモック（データなし）
       const mockQuery = {
         select: jest.fn().mockReturnThis(),
+        or: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
         single: jest.fn().mockResolvedValue({
           data: null,

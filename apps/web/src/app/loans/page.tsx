@@ -34,29 +34,40 @@ export default function LoanListPage() {
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [filterProperty, setFilterProperty] = useState<string>('');
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
     try {
       const [loansRes, propsRes] = await Promise.all([
-        request('/api/loans', LoanResponseSchema.array()),
-        request('/api/properties', PropertyResponseSchema.array()),
+        request('/api/loans', LoanResponseSchema.array(), { init: { signal } }),
+        request('/api/properties', PropertyResponseSchema.array(), { init: { signal } }),
       ]);
       const propNameMap = new Map<string, string>(
         (propsRes.data || []).map((p) => [p.id as string, p.name as string])
       );
       const view = (loansRes.data || []).map((l) =>
-        toLoanListViewModel(l, propNameMap.get(l.property_id))
+        toLoanListViewModel(l, l.property_id ? propNameMap.get(l.property_id) : undefined)
       );
-      setLoans(view);
+      if (!signal?.aborted) setLoans(view);
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   }, []);
 
+  // StrictModeの二重実行での二重fetchを抑止
+  const didInit = React.useRef(false);
   useEffect(() => {
-    load().catch(() =>
-      showError('データの取得に失敗しました', { label: '再試行', onAction: () => load() })
+    if (didInit.current) return;
+    didInit.current = true;
+    const ac = new AbortController();
+    load(ac.signal).catch(() =>
+      showError('データの取得に失敗しました', {
+        label: '再試行',
+        onAction: () => load(),
+      })
     );
+    return () => {
+      ac.abort();
+    };
   }, [load, showError]);
 
   const properties = useMemo(

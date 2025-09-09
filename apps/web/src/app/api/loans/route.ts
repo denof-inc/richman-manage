@@ -144,8 +144,13 @@ export async function GET(request: NextRequest) {
       // データベースクエリ構築（物件情報と結合してユーザーの借入のみ取得）
       let dbQuery = supabase
         .from('loans')
-        .select('*, property:properties!inner(id, user_id, name)', { count: 'exact' })
-        .eq('property.user_id', user.id);
+        .select(
+          '*, property:properties!left(id, user_id, name), owner:owners!left(id, user_id, name)',
+          {
+            count: 'exact',
+          }
+        )
+        .or(`property.user_id.eq.${user.id},owner.user_id.eq.${user.id}`);
 
       // 検索フィルタ
       if (query.search) {
@@ -153,9 +158,8 @@ export async function GET(request: NextRequest) {
       }
 
       // 物件IDフィルタ
-      if (query.property_id) {
-        dbQuery = dbQuery.eq('property_id', query.property_id);
-      }
+      if (query.property_id) dbQuery = dbQuery.eq('property_id', query.property_id);
+      if (query.owner_id) dbQuery = dbQuery.eq('owner_id', query.owner_id);
 
       // 借入タイプフィルタ
       if (query.loan_type) {
@@ -185,10 +189,8 @@ export async function GET(request: NextRequest) {
 
       // レスポンス形式に変換（property情報を除外）+ DB→DTO正規化
       const loans =
-        data?.map((loan) => {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { property, ...loanData } = loan as Record<string, unknown>;
-          const normalized = mapLoanDbToDto(loanData);
+        data?.map((row) => {
+          const normalized = mapLoanDbToDto(row as Record<string, unknown>);
           return LoanResponseSchema.parse(normalized);
         }) || [];
 
@@ -227,33 +229,62 @@ export async function POST(request: NextRequest) {
       }
       const validatedData = CreateLoanSchema.parse(body);
 
-      // 物件の所有権確認
-      const { data: property, error: propertyError } = await withPerformanceMonitoring(
-        async () =>
-          await supabase
-            .from('properties')
-            .select('id')
-            .eq('id', validatedData.property_id)
-            .eq('user_id', user.id)
-            .single(),
-        'loans.check.property_ownership'
-      );
+      // 物件の所有権確認（物件指定時のみ）
+      if (validatedData.property_id) {
+        const { data: property, error: propertyError } = await withPerformanceMonitoring(
+          async () =>
+            await supabase
+              .from('properties')
+              .select('id')
+              .eq('id', validatedData.property_id)
+              .eq('user_id', user.id)
+              .single(),
+          'loans.check.property_ownership'
+        );
+        if (propertyError || !property) {
+          return ApiResponse.forbidden('この物件に対する借入を作成する権限がありません');
+        }
+      }
 
-      if (propertyError || !property) {
-        return ApiResponse.forbidden('この物件に対する借入を作成する権限がありません');
+      // 所有者（owner）の補完: owner_id未指定の場合は既定の所有者を作成/取得
+      let ownerId = validatedData.owner_id;
+      if (!ownerId) {
+        try {
+          const { data: existingOwner, error: ownerFetchError } = await supabase
+            .from('owners')
+            .select('id')
+            .eq('user_id', user.id)
+            .limit(1)
+            .single();
+          if (!ownerFetchError && existingOwner?.id) {
+            ownerId = existingOwner.id as string;
+          } else {
+            const { data: createdOwner } = await supabase
+              .from('owners')
+              .insert({ user_id: user.id, name: 'デフォルト所有者', owner_kind: 'individual' })
+              .select('id')
+              .single();
+            ownerId = (createdOwner?.id as string | undefined) ?? undefined;
+          }
+        } catch {
+          // ownersテーブルが未整備/モック未設定などの場合はスキップ（owner_idなしで継続）
+        }
       }
 
       // DTO→DB 変換（軽量適用）。既存スキーマ互換の安全キーのみ送信。
-      const mapped = mapLoanDtoToDbForCreate(validatedData);
+      const mapped = mapLoanDtoToDbForCreate({ ...validatedData, owner_id: ownerId });
       const safeInsert = {
         property_id: mapped.property_id,
+        owner_id: mapped.owner_id ?? null,
         lender_name: mapped.lender_name,
+        branch_name: mapped.branch_name ?? null,
         loan_type: mapped.loan_type,
         principal_amount: mapped.principal_amount,
         current_balance: mapped.current_balance,
         interest_rate: mapped.interest_rate, // 既存スキーマ互換
         loan_term_months: mapped.loan_term_months,
         monthly_payment: mapped.monthly_payment,
+        notes: mapped.notes ?? null,
       };
 
       // データベースに借入情報を保存

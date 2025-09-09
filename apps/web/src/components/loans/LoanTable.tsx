@@ -17,6 +17,8 @@ type Loan = {
   termYears: number;
   startDate: string;
   monthlyPayment: number;
+  monthlyPrincipal: number;
+  monthlyInterest: number;
 };
 
 type SortField =
@@ -90,11 +92,13 @@ export default function LoanTable({ loans, sortField, sortDirection, onSort }: L
               期間{renderSortIndicator('termYears')}
             </th>
             <th className="p-3 text-left text-sm font-medium text-text-muted">開始日</th>
+            <th className="p-3 text-right text-sm font-medium text-text-muted">元金返済額</th>
+            <th className="p-3 text-right text-sm font-medium text-text-muted">利息月額</th>
             <th
               className={`p-3 text-right text-sm font-medium text-text-muted ${onSort ? 'cursor-pointer' : ''}`}
               onClick={() => onSort?.('monthlyPayment')}
             >
-              月額返済{renderSortIndicator('monthlyPayment')}
+              支払月額{renderSortIndicator('monthlyPayment')}
             </th>
             <th
               className={`p-3 text-right text-sm font-medium text-text-muted ${onSort ? 'cursor-pointer' : ''}`}
@@ -123,6 +127,8 @@ export default function LoanTable({ loans, sortField, sortDirection, onSort }: L
                 </td>
                 <td className="p-3 text-right">{loan.termYears}年</td>
                 <td className="p-3">{formatDate(loan.startDate)}</td>
+                <td className="p-3 text-right">{formatCurrency(loan.monthlyPrincipal)}</td>
+                <td className="p-3 text-right">{formatCurrency(loan.monthlyInterest)}</td>
                 <td className="p-3 text-right text-red-600">
                   {formatCurrency(loan.monthlyPayment)}
                 </td>
