@@ -169,7 +169,9 @@ describe('Loans API - GET /api/loans', () => {
         { count: 'exact' }
       );
       expect(mockQuery.or).toHaveBeenCalledWith(
-        expect.stringContaining('property.user_id.eq.550e8400-e29b-41d4-a716-446655440000')
+        expect.stringMatching(
+          /(property|properties)\.user_id\.eq\.550e8400-e29b-41d4-a716-446655440000/
+        )
       );
       expect(data.success).toBe(true);
       expect(data.data).toHaveLength(2);
@@ -227,7 +229,9 @@ describe('Loans API - GET /api/loans', () => {
 
       // アサーション
       expect(mockQuery.or).toHaveBeenCalledWith(
-        expect.stringContaining('property.user_id.eq.550e8400-e29b-41d4-a716-446655440000')
+        expect.stringMatching(
+          /(property|properties)\.user_id\.eq\.550e8400-e29b-41d4-a716-446655440000/
+        )
       );
       expect(mockQuery.eq).toHaveBeenCalledWith(
         'property_id',

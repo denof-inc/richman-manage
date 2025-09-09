@@ -141,16 +141,20 @@ export async function GET(request: NextRequest) {
         ...paginationParams,
       };
 
-      // データベースクエリ構築（物件情報と結合してユーザーの借入のみ取得）
-      let dbQuery = supabase
-        .from('loans')
-        .select(
-          '*, property:properties!left(id, user_id, name), owner:owners!left(id, user_id, name)',
-          {
-            count: 'exact',
-          }
-        )
-        .or(`property.user_id.eq.${user.id},owner.user_id.eq.${user.id}`);
+      // データベースクエリ構築（owners 連携は未適用DBでも動くようフォールバック）
+      const buildQuery = (withOwnerJoin: boolean) => {
+        const selectColumns = withOwnerJoin
+          ? '*, property:properties!left(id, user_id, name), owner:owners!left(id, user_id, name)'
+          : '*, property:properties!left(id, user_id, name)';
+        let q = supabase.from('loans').select(selectColumns, { count: 'exact' });
+        // 所有者チェック（ownersがない環境ではproperties.user_idのみで制限）
+        q = withOwnerJoin
+          ? q.or(`properties.user_id.eq.${user.id},owners.user_id.eq.${user.id}`)
+          : q.eq('properties.user_id', user.id);
+        return q;
+      };
+
+      let dbQuery = buildQuery(true);
 
       // 検索フィルタ
       if (query.search) {
@@ -178,19 +182,62 @@ export async function GET(request: NextRequest) {
       const to = from + paginationParams.limit - 1;
 
       // クエリ実行（パフォーマンス監視付き）
-      const { data, error, count } = await withPerformanceMonitoring(
+      let { data, error, count } = await withPerformanceMonitoring(
         async () => await dbQuery.range(from, to),
         'loans.database.query'
       );
 
+      // ownersテーブル未適用などで結合に失敗した場合はフォールバック（property結合のみ）
       if (error) {
-        throw error;
+        const msg = (error as { message?: string }).message || '';
+        const looksLikeOwnerJoinIssue =
+          /owners|relationship|foreign key|relation .* does not exist|failed to parse logic tree|syntax error/i.test(
+            msg
+          );
+        if (looksLikeOwnerJoinIssue) {
+          const fallbackQuery = buildQuery(false);
+          const res = await withPerformanceMonitoring(
+            async () => await fallbackQuery.range(from, to),
+            'loans.database.query.fallback_without_owner'
+          );
+          data = res.data;
+          error = res.error;
+          count = res.count;
+
+          // さらに失敗する場合（リレーション名解決不可など）は property_id リストでフィルタ
+          if (error) {
+            const { data: props, error: propErr } = await withPerformanceMonitoring(
+              async () => await supabase.from('properties').select('id').eq('user_id', user.id),
+              'properties.database.ids_for_loans_filter'
+            );
+
+            if (!propErr) {
+              const ids = (props || []).map((p: { id: string }) => p.id);
+              let q = supabase.from('loans').select('*', { count: 'exact' });
+              if (ids.length > 0) {
+                q = q.in('property_id', ids);
+              } else {
+                // 空集合フィルタ（確実に0件返す）
+                q = q.eq('id', '00000000-0000-0000-0000-000000000000');
+              }
+              const res2 = await withPerformanceMonitoring(
+                async () => await q.range(from, to),
+                'loans.database.query.fallback_property_ids'
+              );
+              data = res2.data;
+              error = res2.error;
+              count = res2.count;
+            }
+          }
+        }
       }
+
+      if (error) throw error;
 
       // レスポンス形式に変換（property情報を除外）+ DB→DTO正規化
       const loans =
         data?.map((row) => {
-          const normalized = mapLoanDbToDto(row as Record<string, unknown>);
+          const normalized = mapLoanDbToDto(row as unknown as Record<string, unknown>);
           return LoanResponseSchema.parse(normalized);
         }) || [];
 

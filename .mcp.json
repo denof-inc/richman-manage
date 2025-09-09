@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "cipher": {
+      "command": "npx",
+      "args": ["-y", "@codeium/cipher-mcp-server"]
+    }
+  }
+}

@@ -128,7 +128,9 @@ describe('Loan API - /api/loans/[id]', () => {
       );
       expect(mockQuery.eq).toHaveBeenCalledWith('id', '550e8400-e29b-41d4-a716-446655440201');
       expect(mockQuery.or).toHaveBeenCalledWith(
-        expect.stringContaining('property.user_id.eq.550e8400-e29b-41d4-a716-446655440000')
+        expect.stringMatching(
+          /(property|properties)\.user_id\.eq\.550e8400-e29b-41d4-a716-446655440000/
+        )
       );
       expect(data.success).toBe(true);
       expect(data.data.id).toBe(mockLoan.id);
