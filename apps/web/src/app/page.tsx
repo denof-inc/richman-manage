@@ -55,6 +55,7 @@ export default function HomePage() {
         });
         const repayByProperty = new Map<string, number>();
         (loanRes.data || []).forEach((l) => {
+          if (!l.property_id) return;
           repayByProperty.set(
             l.property_id,
             (repayByProperty.get(l.property_id) || 0) + (l.monthly_payment || 0)

@@ -33,7 +33,7 @@ export default function LoanEditPage() {
         );
         const loan = loanRes.data;
         setDefaults({
-          property_id: loan.property_id,
+          property_id: loan.property_id ?? undefined,
           lender_name: loan.lender_name,
           loan_type: loan.loan_type,
           principal_amount: loan.principal_amount,
