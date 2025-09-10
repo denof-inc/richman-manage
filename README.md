@@ -61,7 +61,7 @@
 git clone git@github.com:denof-inc/richman-manage.git
 cd richman-manage
 
-# 依存関係のインストール（npm標準）
+# 依存関係のインストール（必ずモノレポ直下で実行）
 npm install
 
 # 環境変数の設定
@@ -215,13 +215,26 @@ curl -X POST -H "x-seed-token: $DEV_SEED_TOKEN" "http://localhost:<port>/api/dev
 
 #### 1. 依存関係の不整合
 ```bash
-# クリーンインストール
+# クリーンインストール（原則、モノレポ直下で実行）
 rm -rf node_modules package-lock.json
 npm install
 
 # TypeScript言語サーバーの再起動（VSCode）
 Cmd/Ctrl + Shift + P → "TypeScript: Restart TS Server"
 ```
+
+## 📦 パッケージ管理ポリシー（統一）
+
+- 依存導入は必ずモノレポ直下で行う（npm workspaces）。apps/* 直下での `npm install` は原則禁止。
+- Lockfile はルートの `package-lock.json` を唯一のSSOTとする。各ワークスペース下の lockfile はコミット禁止（.gitignore で拒否）。
+- Node/NPM バージョン: `node >= 18.18`, `npm >= 10`（enginesに準拠）。
+- 一時対応: Next 15 と UI パッケージの peer 競合により、`.npmrc` で `legacy-peer-deps=true` を設定。対応完了後に撤去する。
+- 基本コマンド:
+  - 依存導入: `npm install`
+  - 品質チェック（CLAUDE.md準拠）: `npm run quality:check`
+  - アプリ起動: `npm --workspace apps/web run dev`
+
+詳細は `docs/dev/package-management.md` 参照。
 
 #### 3. Supabase接続エラー
 - `.env.local`の設定値を再確認

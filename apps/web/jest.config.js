@@ -9,6 +9,7 @@ module.exports = {
     '@supabase/ssr': '<rootDir>/__mocks__/@supabase/ssr.js',
     'next/headers': '<rootDir>/__mocks__/next/headers.js',
     'next/server': '<rootDir>/__mocks__/next/server.js',
+    'zod-openapi': '<rootDir>/__mocks__/zod-openapi.ts',
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   moduleDirectories: ['node_modules', '../../node_modules'],

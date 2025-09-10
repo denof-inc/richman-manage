@@ -3,14 +3,19 @@
 export const dynamic = 'force-dynamic';
 
 import React from 'react';
+import { ApiReference } from '@scalar/nextjs-api-reference';
 
 export default function ApiDocsPage() {
   return (
     <div style={{ height: '100vh' }}>
-      <iframe
-        src="/swagger/index.html"
-        title="API Docs"
-        style={{ width: '100%', height: '100%', border: 'none' }}
+      <ApiReference
+        theme="default"
+        layout="modern"
+        configuration={{
+          spec: { url: '/api/openapi' },
+          hideDownloadButton: false,
+          withFonts: true,
+        }}
       />
     </div>
   );

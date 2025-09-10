@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev",
+    "dev": "turbo run dev --parallel",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint -- --fix",
     "lint:check": "turbo run lint",
@@ -17,8 +17,16 @@
     "format:check": "prettier --check .",
     "fix": "npm run format && npm run lint:fix && npm run lint:check",
     "test": "turbo run test",
-    "typecheck": "npm --workspace apps/web run typecheck",
-    "prepare": "husky install"
+    "quality:check": "npm run format:check && npm run lint:check && npm run typecheck && npm run test",
+    "openapi:emit": "curl -sS http://localhost:3000/api/openapi -o packages/generated/openapi.json",
+    "openapi:types": "openapi-typescript packages/generated/openapi.json -o packages/generated/schema.d.ts",
+    "openapi:lint": "redocly lint packages/generated/openapi.json || spectral lint packages/generated/openapi.json",
+    "openapi:diff": "redocly diff packages/generated/prev.json packages/generated/openapi.json || true",
+    "client:gen": "node scripts/generate-openapi-client.mjs",
+    "typecheck": "turbo run typecheck",
+    "dev:web": "npm --workspace apps/web run dev",
+    "build:web": "npm --workspace apps/web run build",
+    "prepare": "node -e \"try{require.resolve('husky');process.exit(0)}catch(e){process.exit(1)}\" && husky install || true"
   },
   "repository": {
     "type": "git",
@@ -35,6 +43,10 @@
     "url": "https://github.com/denof-inc/richman-manage/issues"
   },
   "packageManager": "npm@10.2.4",
+  "engines": {
+    "node": ">=18.18.0",
+    "npm": ">=10.0.0"
+  },
   "lint-staged": {
     "**/*.{js,ts,tsx,jsx}": [
       "npx prettier --write"
@@ -70,14 +82,13 @@
     "postcss": "^8.5.3",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
+    "lint-staged": "^15.2.0",
     "tailwindcss": "^3.3.3",
     "turbo": "^2.0.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "openapi-typescript": "^7.4.2",
+    "@redocly/cli": "^1.28.2",
+    "@stoplight/spectral-cli": "^6.11.1"
   },
-  "dependencies": {
-    "@hookform/resolvers": "^5.0.1",
-    "@supabase/supabase-js": "^2.49.4",
-    "react-hook-form": "^7.56.2",
-    "zod": "^3.24.3"
-  }
+  "dependencies": {}
 }
