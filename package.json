@@ -37,16 +37,16 @@
   "packageManager": "npm@10.2.4",
   "lint-staged": {
     "**/*.{js,ts,tsx,jsx}": [
-      "prettier --write"
+      "npx prettier --write"
     ],
     "apps/web/src/**/*.{ts,tsx,jsx}": [
-      "cd apps/web && eslint --fix --rule 'tailwindcss/classnames-order: error'"
+      "cd apps/web && npx eslint --fix --rule 'tailwindcss/classnames-order: error'"
     ],
     "packages/ui/src/**/*.{ts,tsx,jsx}": [
-      "cd packages/ui && eslint --fix --rule 'tailwindcss/classnames-order: error'"
+      "cd packages/ui && npx eslint --fix --rule 'tailwindcss/classnames-order: error'"
     ],
     "packages/utils/src/**/*.{ts,tsx,jsx}": [
-      "cd packages/utils && eslint --fix --rule 'tailwindcss/classnames-order: error'"
+      "cd packages/utils && npx eslint --fix --rule 'tailwindcss/classnames-order: error'"
     ]
   },
   "homepage": "https://github.com/denof-inc/richman-manage#readme",
