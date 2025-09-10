@@ -228,7 +228,7 @@ Cmd/Ctrl + Shift + P → "TypeScript: Restart TS Server"
 - 依存導入は必ずモノレポ直下で行う（npm workspaces）。apps/* 直下での `npm install` は原則禁止。
 - Lockfile はルートの `package-lock.json` を唯一のSSOTとする。各ワークスペース下の lockfile はコミット禁止（.gitignore で拒否）。
 - Node/NPM バージョン: `node >= 18.18`, `npm >= 10`（enginesに準拠）。
-- 一時対応: Next 15 と UI パッケージの peer 競合により、`.npmrc` で `legacy-peer-deps=true` を設定。対応完了後に撤去する。
+- peer競合の暫定回避は不要です（@scalar/nextjs-api-reference が Next 15 をサポート済み）。
 - 基本コマンド:
   - 依存導入: `npm install`
   - 品質チェック（CLAUDE.md準拠）: `npm run quality:check`

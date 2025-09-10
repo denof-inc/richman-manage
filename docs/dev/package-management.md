@@ -12,9 +12,9 @@
 - npm: `>= 10.0.0`
 （`package.json#engines` に明記 / `.npmrc` で `engine-strict` は未採用）
 
-## 一時設定（暫定）
-- Next 15 と UI ライブラリの peer 競合により、`.npmrc` に `legacy-peer-deps=true` を設定。
-- ライブラリが Next 15 を正式サポートした時点で撤去する（Issue管理）。
+## 一時設定（解消済み）
+- @scalar/nextjs-api-reference が Next.js 15 を正式サポート済み（0.8.x）。
+- そのため `.npmrc` の `legacy-peer-deps` は不要です（設定は削除済み）。
 
 ## ディレクトリ/lockfile ルール
 - `apps/*/node_modules` と `packages/*/node_modules` は .gitignore 済み。
@@ -39,8 +39,8 @@ A. 原則不可です。単体再現が必要な特別ケースを除き、モ�
 
 Q. 依存競合で `npm install` が失敗します。
 
-A. `.npmrc` による暫定設定（`legacy-peer-deps=true`）で回避しています。長期的には該当ライブラリの更新で解消します。
+A. 既知のpeer競合は解消済みです。最新の依存で `npm install` が通らない場合は個別事象のためIssue化してください。
 
 ---
 
-最終更新: 2025-09-10
+最終更新: 2025-09-10（peer競合解消を反映）
