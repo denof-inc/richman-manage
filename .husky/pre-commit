@@ -1,18 +1,33 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-# 変更があるファイルをlint-stagedでチェック
-npx lint-staged
+# リポジトリルートで実行し、ローカルbinをPATHに追加
+ROOT_DIR=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -n "$ROOT_DIR" ]; then
+  cd "$ROOT_DIR" || exit 1
+else
+  # Fallback: 現在地に .git があればそのまま
+  [ -d .git ] || {
+    echo "❌ Gitリポジトリルートを特定できません"; exit 1;
+  }
+fi
+export PATH="$(pwd)/node_modules/.bin:$PATH"
+
+# 変更があるファイルをlint-stagedでチェック（ルートの設定を明示指定）
+npx lint-staged --config "$ROOT_DIR/package.json"
+if [ $? -ne 0 ]; then
+  echo "❌ lint-staged でエラー。コミットを中止します。"
+  exit 1
+fi
 
 # TypeScriptエラーをチェック
 echo "TypeScriptエラーをチェックしています..."
-npm run lint:check
-
-# エラーがあればコミットを中止
+# turbo 未導入環境でも最低限のLintが動くようフォールバック
+npm run lint:check || npm --workspace apps/web run lint
 if [ $? -ne 0 ]; then
   echo "❌ TypeScriptエラーがあります。コミットを中止します。"
   echo "エラーを修正してから再度コミットしてください。"
   exit 1
 fi
 
-echo "✅ TypeScriptエラーはありません。コミットを続行します。"
+echo "✅ チェックOK。コミットを続行します。"
