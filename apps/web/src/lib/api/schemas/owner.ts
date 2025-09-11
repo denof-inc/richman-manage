@@ -1,5 +1,4 @@
 import { z } from 'zod';
-
 export const OwnerKindSchema = z.enum(['individual', 'corporation']);
 
 export const CreateOwnerSchema = z.object({

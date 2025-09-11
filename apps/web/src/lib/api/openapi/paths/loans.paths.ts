@@ -9,12 +9,8 @@ export const loansPaths = {
       operationId: 'listLoans',
       summary: '借入一覧を取得',
       parameters: [
-        { in: 'query', name: 'page', schema: { type: 'integer', minimum: 1, default: 1 } },
-        {
-          in: 'query',
-          name: 'limit',
-          schema: { type: 'integer', minimum: 1, maximum: 100, default: 20 },
-        },
+        { $ref: '#/components/parameters/PageParam' },
+        { $ref: '#/components/parameters/LimitParam' },
         { in: 'query', name: 'property_id', schema: { type: 'string', format: 'uuid' } },
       ],
       responses: {
@@ -22,7 +18,7 @@ export const loansPaths = {
           description: '成功',
           content: { 'application/json': { schema: z.array(LoanResponseSchema) } },
         },
-        401: { description: '認証エラー' },
+        401: { $ref: '#/components/responses/Unauthorized' },
       },
     },
     post: {
@@ -38,8 +34,8 @@ export const loansPaths = {
           description: '作成成功',
           content: { 'application/json': { schema: LoanResponseSchema } },
         },
-        401: { description: '認証エラー' },
-        422: { description: 'バリデーションエラー' },
+        401: { $ref: '#/components/responses/Unauthorized' },
+        422: { $ref: '#/components/responses/ValidationError' },
       },
     },
   },

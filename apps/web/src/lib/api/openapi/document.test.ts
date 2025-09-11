@@ -7,7 +7,11 @@ describe('OpenAPI (Zod-first)', () => {
   it('generates 3.1 doc with core components and paths', async () => {
     const spec = generateOpenAPIDoc() as unknown as {
       openapi: string;
-      components?: { securitySchemes?: Record<string, unknown> };
+      components?: {
+        securitySchemes?: Record<string, unknown>;
+        responses?: Record<string, unknown>;
+        parameters?: Record<string, unknown>;
+      };
       tags?: Array<{ name: string }>;
       paths?: Record<string, unknown>;
     };
@@ -17,5 +21,11 @@ describe('OpenAPI (Zod-first)', () => {
     expect(tagNames).toEqual(expect.arrayContaining(['Owners', 'Loans']));
     const paths = Object.keys(spec.paths ?? {});
     expect(paths).toEqual(expect.arrayContaining(['/api/owners', '/api/loans']));
+
+    // $refでの共通化（responses/parameters）が存在すること
+    expect(spec.components?.responses).toHaveProperty('Unauthorized');
+    expect(spec.components?.responses).toHaveProperty('ValidationError');
+    expect(spec.components?.parameters).toHaveProperty('PageParam');
+    expect(spec.components?.parameters).toHaveProperty('LimitParam');
   });
 });
