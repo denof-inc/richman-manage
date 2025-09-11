@@ -27,5 +27,15 @@ describe('OpenAPI (Zod-first)', () => {
     expect(spec.components?.responses).toHaveProperty('ValidationError');
     expect(spec.components?.parameters).toHaveProperty('PageParam');
     expect(spec.components?.parameters).toHaveProperty('LimitParam');
+
+    // loans detail endpoints
+    const loanDetail = (spec.paths as Record<string, unknown>)['/api/loans/{id}'] as
+      | Record<string, unknown>
+      | undefined;
+    expect(loanDetail).toBeTruthy();
+    const ops = loanDetail as { get?: unknown; put?: unknown; delete?: unknown };
+    expect(ops.get).toBeTruthy();
+    expect(ops.put).toBeTruthy();
+    expect(ops.delete).toBeTruthy();
   });
 });
