@@ -23,7 +23,7 @@ fi
 # TypeScriptエラーをチェック
 echo "TypeScriptエラーをチェックしています..."
 # turbo 未導入環境でも最低限のLintが動くようフォールバック
-npm run lint:check || npm --workspace apps/web run lint
+npm --workspaces=false run lint:check || npm --workspace apps/web run lint
 if [ $? -ne 0 ]; then
   echo "❌ TypeScriptエラーがあります。コミットを中止します。"
   echo "エラーを修正してから再度コミットしてください。"
