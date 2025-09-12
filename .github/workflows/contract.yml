@@ -1,0 +1,42 @@
+name: contract
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  openapi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies (root)
+        run: npm ci
+      - name: Start Next dev (apps/web)
+        run: npm --workspace apps/web run dev &
+      - name: Wait for dev server
+        run: | 
+          for i in {1..30}; do 
+            curl -sf http://localhost:3000/ >/dev/null 2>&1 && exit 0; 
+            sleep 1; 
+          done; 
+          echo "Dev server did not start in time"; exit 1
+      - name: Emit OpenAPI
+        run: npm run openapi:emit
+      - name: Lint OpenAPI
+        run: npm run openapi:lint
+      - name: Diff OpenAPI
+        run: npm run openapi:diff
+      - name: Generate Types
+        run: npm run openapi:types
+      - name: Generate Client
+        run: npm run client:gen
+      - name: Upload OpenAPI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi.json
+          path: packages/generated/openapi.json
+
