@@ -16,14 +16,16 @@ jobs:
       - name: Install dependencies (root)
         run: npm ci
       - name: Start Next dev (apps/web)
-        run: npm --workspace apps/web run dev &
-      - name: Wait for dev server
+        run: |
+          export PORT=3000
+          npm --workspace apps/web run dev &
+      - name: Wait for /api/openapi endpoint
         run: | 
-          for i in {1..30}; do 
-            curl -sf http://localhost:3000/ >/dev/null 2>&1 && exit 0; 
+          for i in {1..60}; do 
+            curl -sf http://localhost:3000/api/openapi >/dev/null 2>&1 && exit 0; 
             sleep 1; 
           done; 
-          echo "Dev server did not start in time"; exit 1
+          echo "OpenAPI endpoint did not respond in time"; exit 1
       - name: Emit OpenAPI
         run: npm run openapi:emit
       - name: Lint OpenAPI
@@ -39,4 +41,3 @@ jobs:
         with:
           name: openapi.json
           path: packages/generated/openapi.json
-
