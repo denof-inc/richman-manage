@@ -38,4 +38,42 @@ describe('OpenAPI (Zod-first)', () => {
     expect(ops.put).toBeTruthy();
     expect(ops.delete).toBeTruthy();
   });
+
+  it('ensures every operationId exists and is unique; and responses reuse components via $ref', () => {
+    type HttpMethod = 'get' | 'put' | 'post' | 'delete' | 'patch' | 'options' | 'head' | 'trace';
+    type ResponseObj = { $ref?: string; description?: string; content?: unknown };
+    type Operation = { operationId?: string; responses?: Record<string, ResponseObj> };
+    type PathItem = Partial<Record<HttpMethod, Operation>>;
+    type Spec = { paths?: Record<string, PathItem> };
+
+    const spec = generateOpenAPIDoc() as unknown as Spec;
+
+    const seen = new Set<string>();
+    const methods: ReadonlyArray<HttpMethod> = [
+      'get',
+      'put',
+      'post',
+      'delete',
+      'patch',
+      'options',
+      'head',
+      'trace',
+    ];
+    for (const item of Object.values(spec.paths ?? {})) {
+      for (const m of methods) {
+        const op = item[m];
+        if (!op) continue;
+        // operationId must exist and be unique
+        expect(op.operationId).toBeTruthy();
+        const id = op.operationId as string;
+        expect(seen.has(id)).toBe(false);
+        seen.add(id);
+
+        // at least one response should reuse components via $ref
+        const responses = op.responses ?? {};
+        const hasRef = Object.values(responses).some((r) => typeof r?.$ref === 'string');
+        expect(hasRef).toBe(true);
+      }
+    }
+  });
 });

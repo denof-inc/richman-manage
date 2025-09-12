@@ -19,6 +19,7 @@ export const loansPaths = {
           content: { 'application/json': { schema: z.array(LoanResponseSchema) } },
         },
         401: { $ref: '#/components/responses/Unauthorized' },
+        400: { $ref: '#/components/responses/BadRequest' },
       },
     },
     post: {
@@ -36,6 +37,7 @@ export const loansPaths = {
         },
         401: { $ref: '#/components/responses/Unauthorized' },
         422: { $ref: '#/components/responses/ValidationError' },
+        400: { $ref: '#/components/responses/BadRequest' },
       },
     },
   },
@@ -54,6 +56,7 @@ export const loansPaths = {
         },
         401: { $ref: '#/components/responses/Unauthorized' },
         404: { $ref: '#/components/responses/NotFound' },
+        400: { $ref: '#/components/responses/BadRequest' },
       },
     },
     put: {
@@ -75,6 +78,7 @@ export const loansPaths = {
         401: { $ref: '#/components/responses/Unauthorized' },
         404: { $ref: '#/components/responses/NotFound' },
         422: { $ref: '#/components/responses/ValidationError' },
+        400: { $ref: '#/components/responses/BadRequest' },
       },
     },
     delete: {
@@ -95,6 +99,7 @@ export const loansPaths = {
         },
         401: { $ref: '#/components/responses/Unauthorized' },
         404: { $ref: '#/components/responses/NotFound' },
+        400: { $ref: '#/components/responses/BadRequest' },
       },
     },
   },

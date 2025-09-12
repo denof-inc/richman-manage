@@ -1,42 +1,36 @@
 /**
  * @jest-environment node
  */
-import { getApiDocs } from '@/lib/swagger';
+import { generateOpenAPIDoc } from '@/lib/api/openapi/document';
 
-interface AnySpec {
-  openapi?: string;
-  components?: Record<string, unknown>;
-  tags?: Array<{ name: string }>;
-  paths?: Record<string, unknown>;
-}
+describe('OpenAPI (Zod-first) - legacy test migrated', () => {
+  it('has 3.1.0 openapi and basic tags/paths', () => {
+    const spec = generateOpenAPIDoc() as unknown as {
+      openapi?: string;
+      components?: {
+        securitySchemes?: Record<string, unknown>;
+        parameters?: Record<string, unknown>;
+        responses?: Record<string, unknown>;
+      };
+      tags?: Array<{ name: string }>;
+      paths?: Record<string, unknown>;
+    };
+    expect(spec.openapi).toBe('3.1.0');
+    expect(spec.paths).toBeTruthy();
 
-describe('Swagger spec', () => {
-  it('includes standard components and tags', async () => {
-    const spec = (await getApiDocs()) as AnySpec;
-
-    // basic
-    expect(spec).toHaveProperty('openapi', '3.0.0');
-    expect(spec).toHaveProperty('paths');
-
-    // security schemes
-    expect(spec.components?.securitySchemes).toHaveProperty('bearerAuth');
-
-    // common schemas / responses / parameters (will be added in swagger.ts)
-    expect(spec.components?.schemas).toHaveProperty('ErrorResponse');
-    expect(spec.components?.schemas).toHaveProperty('ApiError');
-    expect(spec.components?.schemas).toHaveProperty('Meta');
+    // security schemes (BearerAuth) and common components exist
+    expect(spec.components?.securitySchemes).toHaveProperty('BearerAuth');
     expect(spec.components?.responses).toHaveProperty('Unauthorized');
     expect(spec.components?.responses).toHaveProperty('ValidationError');
     expect(spec.components?.parameters).toHaveProperty('PageParam');
     expect(spec.components?.parameters).toHaveProperty('LimitParam');
 
-    // tags
+    // tags include Owners/Loans
     const tagNames = (spec.tags || []).map((t) => t.name);
-    expect(tagNames).toEqual(expect.arrayContaining(['Loans', 'Properties', 'Owners']));
+    expect(tagNames).toEqual(expect.arrayContaining(['Loans', 'Owners']));
 
-    // at least key API paths exist
+    // key path exists
     const pathKeys = Object.keys(spec.paths || {});
-    expect(pathKeys.length).toBeGreaterThan(0);
-    expect(pathKeys).toEqual(expect.arrayContaining(['/api/owners']));
+    expect(pathKeys).toEqual(expect.arrayContaining(['/api/owners', '/api/loans']));
   });
 });

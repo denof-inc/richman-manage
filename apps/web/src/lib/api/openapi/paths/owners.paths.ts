@@ -31,6 +31,7 @@ export const ownersPaths = {
         },
         401: { $ref: '#/components/responses/Unauthorized' },
         422: { $ref: '#/components/responses/ValidationError' },
+        400: { $ref: '#/components/responses/BadRequest' },
       },
     },
   },
