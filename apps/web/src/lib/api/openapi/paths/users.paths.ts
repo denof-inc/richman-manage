@@ -16,7 +16,27 @@ export const usersPaths = {
       responses: {
         200: {
           description: '成功',
-          content: { 'application/json': { schema: z.array(UserResponseSchema) } },
+          content: {
+            'application/json': {
+              schema: z.array(UserResponseSchema),
+              examples: {
+                sample: {
+                  value: [
+                    {
+                      id: '550e8400-e29b-41d4-a716-446655443300',
+                      email: 'user@example.com',
+                      name: '一般ユーザー',
+                      role: 'viewer',
+                      timezone: 'Asia/Tokyo',
+                      language: 'ja',
+                      created_at: '2024-01-01T00:00:00Z',
+                      updated_at: '2024-05-01T00:00:00Z',
+                    },
+                  ],
+                },
+              },
+            },
+          },
         },
         401: { $ref: '#/components/responses/Unauthorized' },
         400: { $ref: '#/components/responses/BadRequest' },
@@ -33,7 +53,25 @@ export const usersPaths = {
       responses: {
         201: {
           description: '作成成功',
-          content: { 'application/json': { schema: UserResponseSchema } },
+          content: {
+            'application/json': {
+              schema: UserResponseSchema,
+              examples: {
+                created: {
+                  value: {
+                    id: '550e8400-e29b-41d4-a716-446655443301',
+                    email: 'newuser@example.com',
+                    name: '新規ユーザー',
+                    role: 'viewer',
+                    timezone: 'Asia/Tokyo',
+                    language: 'ja',
+                    created_at: '2024-06-01T00:00:00Z',
+                    updated_at: '2024-06-01T00:00:00Z',
+                  },
+                },
+              },
+            },
+          },
         },
         401: { $ref: '#/components/responses/Unauthorized' },
         422: { $ref: '#/components/responses/ValidationError' },

@@ -24,7 +24,32 @@ export const expensesPaths = {
       responses: {
         200: {
           description: '成功',
-          content: { 'application/json': { schema: z.array(ExpenseResponseSchema) } },
+          content: {
+            'application/json': {
+              schema: z.array(ExpenseResponseSchema),
+              examples: {
+                sample: {
+                  value: [
+                    {
+                      id: '550e8400-e29b-41d4-a716-446655441100',
+                      property_id: '550e8400-e29b-41d4-a716-446655440000',
+                      expense_date: '2024-05-01T00:00:00Z',
+                      category: 'management_fee',
+                      amount: 12000,
+                      vendor: '管理会社A',
+                      description: '管理費',
+                      receipt_url: null,
+                      is_recurring: true,
+                      recurring_frequency: 'monthly',
+                      created_at: '2024-05-01T00:00:00Z',
+                      updated_at: '2024-05-01T00:00:00Z',
+                      deleted_at: null,
+                    },
+                  ],
+                },
+              },
+            },
+          },
         },
         401: { $ref: '#/components/responses/Unauthorized' },
         400: { $ref: '#/components/responses/BadRequest' },
@@ -41,7 +66,30 @@ export const expensesPaths = {
       responses: {
         201: {
           description: '作成成功',
-          content: { 'application/json': { schema: ExpenseResponseSchema } },
+          content: {
+            'application/json': {
+              schema: ExpenseResponseSchema,
+              examples: {
+                created: {
+                  value: {
+                    id: '550e8400-e29b-41d4-a716-446655441101',
+                    property_id: '550e8400-e29b-41d4-a716-446655440000',
+                    expense_date: '2024-05-01T00:00:00Z',
+                    category: 'management_fee',
+                    amount: 12000,
+                    vendor: '管理会社A',
+                    description: '管理費',
+                    receipt_url: null,
+                    is_recurring: true,
+                    recurring_frequency: 'monthly',
+                    created_at: '2024-05-01T00:00:00Z',
+                    updated_at: '2024-05-01T00:00:00Z',
+                    deleted_at: null,
+                  },
+                },
+              },
+            },
+          },
         },
         401: { $ref: '#/components/responses/Unauthorized' },
         400: { $ref: '#/components/responses/BadRequest' },

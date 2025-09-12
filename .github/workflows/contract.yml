@@ -25,6 +25,8 @@ jobs:
         run: npm run openapi:types
       - name: Generate Client
         run: npm run client:gen
+      - name: Typecheck with generated types
+        run: npx tsc --noEmit apps/web/scripts/openapi-types-check.ts
       - name: Upload OpenAPI artifact
         uses: actions/upload-artifact@v4
         with:
