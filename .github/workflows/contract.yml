@@ -15,19 +15,8 @@ jobs:
           node-version: 20
       - name: Install dependencies (root)
         run: npm ci
-      - name: Start Next dev (apps/web)
-        run: |
-          export PORT=3000
-          npm --workspace apps/web run dev &
-      - name: Wait for /api/openapi endpoint
-        run: | 
-          for i in {1..60}; do 
-            curl -sf http://localhost:3000/api/openapi >/dev/null 2>&1 && exit 0; 
-            sleep 1; 
-          done; 
-          echo "OpenAPI endpoint did not respond in time"; exit 1
-      - name: Emit OpenAPI
-        run: npm run openapi:emit
+      - name: Emit OpenAPI (node)
+        run: npm run openapi:emit:node
       - name: Lint OpenAPI
         run: npm run openapi:lint
       - name: Diff OpenAPI
