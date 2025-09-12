@@ -4,6 +4,14 @@ import { loansPaths } from '@/lib/api/openapi/paths/loans.paths';
 import { ApiErrorSchema, ErrorResponseSchema, ApiMetaSchema } from '@/lib/api/schemas/common';
 import { OwnerResponseSchema } from '@/lib/api/schemas/owner';
 import { LoanResponseSchema } from '@/lib/api/schemas/loan';
+import { PropertyResponseSchema } from '@/lib/api/schemas/property';
+import { ExpenseResponseSchema } from '@/lib/api/schemas/expense';
+import { RentRollResponseSchema } from '@/lib/api/schemas/rent-roll';
+import { UserResponseSchema } from '@/lib/api/schemas/user';
+import { propertiesPaths } from '@/lib/api/openapi/paths/properties.paths';
+import { expensesPaths } from '@/lib/api/openapi/paths/expenses.paths';
+import { rentRollsPaths } from '@/lib/api/openapi/paths/rent-rolls.paths';
+import { usersPaths } from '@/lib/api/openapi/paths/users.paths';
 
 export function generateOpenAPIDoc() {
   return createDocument({
@@ -35,6 +43,27 @@ export function generateOpenAPIDoc() {
           schema: { type: 'integer', minimum: 1, maximum: 100, default: 20 },
           description: '1ページあたり件数',
         },
+        SearchParam: {
+          name: 'search',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: '検索キーワード（リソースにより適用対象は異なる）',
+        },
+        SortParam: {
+          name: 'sort',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'ソートキー（リソースに依存）',
+        },
+        OrderParam: {
+          name: 'order',
+          in: 'query',
+          required: false,
+          schema: { type: 'string', enum: ['asc', 'desc'], default: 'desc' },
+          description: 'ソート順（asc/desc）',
+        },
       },
       responses: {
         Unauthorized: {
@@ -60,16 +89,28 @@ export function generateOpenAPIDoc() {
         ApiMeta: ApiMetaSchema,
         Owner: OwnerResponseSchema,
         Loan: LoanResponseSchema,
+        Property: PropertyResponseSchema,
+        Expense: ExpenseResponseSchema,
+        RentRoll: RentRollResponseSchema,
+        User: UserResponseSchema,
       },
     },
     security: [{ BearerAuth: [] }],
     paths: {
       ...ownersPaths,
       ...loansPaths,
+      ...propertiesPaths,
+      ...expensesPaths,
+      ...rentRollsPaths,
+      ...usersPaths,
     },
     tags: [
       { name: 'Owners', description: '所有者管理API' },
       { name: 'Loans', description: '借入管理API' },
+      { name: 'Properties', description: '物件管理API' },
+      { name: 'Expenses', description: '支出管理API' },
+      { name: 'RentRolls', description: 'レントロール管理API' },
+      { name: 'Users', description: 'ユーザー管理API' },
     ],
   });
 }

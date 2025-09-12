@@ -18,9 +18,20 @@ describe('OpenAPI (Zod-first)', () => {
     expect(spec.openapi).toBe('3.1.0');
     expect(spec.components?.securitySchemes).toHaveProperty('BearerAuth');
     const tagNames = (spec.tags ?? []).map((t) => t.name);
-    expect(tagNames).toEqual(expect.arrayContaining(['Owners', 'Loans']));
+    expect(tagNames).toEqual(
+      expect.arrayContaining(['Owners', 'Loans', 'Properties', 'Expenses', 'RentRolls', 'Users'])
+    );
     const paths = Object.keys(spec.paths ?? {});
-    expect(paths).toEqual(expect.arrayContaining(['/api/owners', '/api/loans']));
+    expect(paths).toEqual(
+      expect.arrayContaining([
+        '/api/owners',
+        '/api/loans',
+        '/api/properties',
+        '/api/expenses',
+        '/api/rent-rolls',
+        '/api/users',
+      ])
+    );
 
     // $refでの共通化（responses/parameters）が存在すること
     expect(spec.components?.responses).toHaveProperty('Unauthorized');
