@@ -16,15 +16,15 @@ jobs:
       - name: Install dependencies (root)
         run: npm ci
       - name: Emit OpenAPI (node)
-        run: npm run openapi:emit:node
+        run: npm --workspaces=false run openapi:emit:node
       - name: Lint OpenAPI
-        run: npm run openapi:lint
+        run: npm --workspaces=false run openapi:lint
       - name: Diff OpenAPI
-        run: npm run openapi:diff
+        run: npm --workspaces=false run openapi:diff
       - name: Generate Types
-        run: npm run openapi:types
+        run: npm --workspaces=false run openapi:types
       - name: Generate Client
-        run: npm run client:gen
+        run: npm --workspaces=false run client:gen
       - name: Typecheck with generated types
         run: npx tsc --noEmit apps/web/scripts/openapi-types-check.ts
       - name: Upload OpenAPI artifact
