@@ -19,7 +19,7 @@
     "test": "turbo run test",
     "quality:check": "npm --workspaces=false run format:check && npm --workspaces=false run lint:check && npm --workspaces=false run typecheck && npm --workspaces=false run test",
     "openapi:emit": "curl -sS http://localhost:3000/api/openapi -o packages/generated/openapi.json",
-    "openapi:emit:node": "npm --workspace apps/web exec -- tsx -r tsconfig-paths/register scripts/openapi-emit.ts",
+    "openapi:emit:node": "npm --workspace apps/web exec -- tsx scripts/openapi-emit.ts",
     "openapi:types": "openapi-typescript packages/generated/openapi.json -o packages/generated/schema.d.ts",
     "openapi:lint": "redocly lint packages/generated/openapi.json || spectral lint packages/generated/openapi.json",
     "openapi:diff": "redocly diff packages/generated/prev.json packages/generated/openapi.json || true",
@@ -64,6 +64,7 @@
   },
   "homepage": "https://github.com/denof-inc/richman-manage#readme",
   "devDependencies": {
+    "tsx": "^4.7.0",
     "@eslint/js": "^9.25.1",
     "@supabase/ssr": "^0.6.1",
     "@tailwindcss/forms": "^0.5.10",

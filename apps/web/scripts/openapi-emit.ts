@@ -1,7 +1,7 @@
 import { writeFileSync, existsSync, mkdirSync, copyFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { generateOpenAPIDoc } from '@/lib/api/openapi/document';
+import { generateOpenAPIDoc } from '../src/lib/api/openapi/document';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
