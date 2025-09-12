@@ -5,7 +5,6 @@ export const dynamic = 'force-dynamic';
 export const GET = ApiReference({
   theme: 'default',
   layout: 'modern',
-  spec: { url: '/api/openapi' },
-  hideDownloadButton: false,
-  withFonts: true,
+  url: '/api/openapi',
+  pageTitle: 'RichmanManage API Docs',
 });
