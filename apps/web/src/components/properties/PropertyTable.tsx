@@ -60,7 +60,7 @@ export default function PropertyTable({
             properties.map((property) => (
               <Card key={property.id} className="p-4">
                 <div className="space-y-2">
-                  <h3 className="font-semibold text-lg">{property.name}</h3>
+                  <h3 className="text-lg font-semibold">{property.name}</h3>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
                       <span className="text-text-muted">満室想定家賃</span>
@@ -76,15 +76,17 @@ export default function PropertyTable({
                     </div>
                     <div>
                       <span className="text-text-muted">ネットCF</span>
-                      <p className={`font-medium ${property.net_cf >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <p
+                        className={`font-medium ${property.net_cf >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                      >
                         {formatCurrency(property.net_cf)}
                       </p>
                     </div>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full mt-2 min-h-[36px]"
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-2 min-h-[36px] w-full"
                     onClick={() => handlePropertyClick(property.id)}
                   >
                     詳細を見る
@@ -93,9 +95,7 @@ export default function PropertyTable({
               </Card>
             ))
           ) : (
-            <div className="p-8 text-center text-text-muted">
-              物件データがありません
-            </div>
+            <div className="p-8 text-center text-text-muted">物件データがありません</div>
           )}
         </div>
       </div>
@@ -152,7 +152,9 @@ export default function PropertyTable({
                     </td>
                     <td className="p-3 text-right">{formatCurrency(property.actual_rent)}</td>
                     <td className="p-3 text-right">{formatCurrency(property.monthly_repayment)}</td>
-                    <td className="p-3 text-right font-semibold">{formatCurrency(property.net_cf)}</td>
+                    <td className="p-3 text-right font-semibold">
+                      {formatCurrency(property.net_cf)}
+                    </td>
                   </tr>
                 ))
               ) : (

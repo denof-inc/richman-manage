@@ -34,7 +34,7 @@ erDiagram
         timestamp updated_at
         timestamp deleted_at
     }
-    
+
     owners {
         uuid id PK
         uuid user_id FK
@@ -44,7 +44,7 @@ erDiagram
         timestamp updated_at
         timestamp deleted_at
     }
-    
+
     users ||--o{ owners : "1:N"
 ```
 
@@ -74,7 +74,7 @@ erDiagram
         timestamp updated_at
         timestamp deleted_at
     }
-    
+
     units {
         uuid id PK
         uuid property_id FK
@@ -96,7 +96,7 @@ erDiagram
         timestamp updated_at
         timestamp deleted_at
     }
-    
+
     properties ||--o{ units : "1:N"
 ```
 
@@ -121,7 +121,7 @@ erDiagram
         timestamp updated_at
         timestamp deleted_at
     }
-    
+
     loan_repayments {
         uuid id PK
         uuid loan_id FK
@@ -136,7 +136,7 @@ erDiagram
         text notes
         timestamp created_at
     }
-    
+
     loan_interest_changes {
         uuid id PK
         uuid loan_id FK
@@ -146,7 +146,7 @@ erDiagram
         text reason
         timestamp created_at
     }
-    
+
     loans ||--o{ loan_repayments : "1:N"
     loans ||--o{ loan_interest_changes : "1:N"
 ```
@@ -169,7 +169,7 @@ erDiagram
         timestamp updated_at
         timestamp deleted_at
     }
-    
+
     property_tax_payments {
         uuid id PK
         uuid property_tax_id FK
@@ -183,7 +183,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     property_taxes ||--o{ property_tax_payments : "1:4"
 ```
 
@@ -205,7 +205,7 @@ erDiagram
         timestamp updated_at
         timestamp deleted_at
     }
-    
+
     expense_categories {
         uuid id PK
         string name
@@ -215,7 +215,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     expenses }o--|| expense_categories : "N:1"
 ```
 
@@ -255,15 +255,15 @@ Loan Interest Changes:
 
 ```sql
 CREATE VIEW property_summary AS
-SELECT 
+SELECT
     p.id,
     p.name,
     p.owner_id,
     -- 収入
     COALESCE(SUM(u.rent_amount + u.common_fee), 0) as potential_rent,
     COALESCE(SUM(
-        CASE WHEN u.status = 'occupied' 
-        THEN u.rent_amount + u.common_fee 
+        CASE WHEN u.status = 'occupied'
+        THEN u.rent_amount + u.common_fee
         ELSE 0 END
     ), 0) as actual_rent,
     -- 支出
@@ -280,15 +280,15 @@ GROUP BY p.id;
 
 ```sql
 CREATE VIEW occupancy_stats AS
-SELECT 
+SELECT
     p.id as property_id,
     p.name as property_name,
     COUNT(u.id) as total_units,
     COUNT(CASE WHEN u.status = 'occupied' THEN 1 END) as occupied_units,
     COUNT(CASE WHEN u.status = 'vacant' THEN 1 END) as vacant_units,
     ROUND(
-        COUNT(CASE WHEN u.status = 'occupied' THEN 1 END)::numeric / 
-        COUNT(u.id) * 100, 
+        COUNT(CASE WHEN u.status = 'occupied' THEN 1 END)::numeric /
+        COUNT(u.id) * 100,
         1
     ) as occupancy_rate
 FROM properties p
@@ -324,18 +324,18 @@ CREATE INDEX idx_expenses_property_date ON expenses(property_id, expense_date);
 
 ```sql
 -- 金額の妥当性
-ALTER TABLE properties 
-ADD CONSTRAINT chk_rent_positive 
+ALTER TABLE properties
+ADD CONSTRAINT chk_rent_positive
 CHECK (potential_rent >= 0 AND actual_rent >= 0);
 
 -- 日付の整合性
-ALTER TABLE units 
-ADD CONSTRAINT chk_lease_dates 
+ALTER TABLE units
+ADD CONSTRAINT chk_lease_dates
 CHECK (lease_start_date < lease_end_date);
 
 -- ステータスの整合性
-ALTER TABLE property_tax_payments 
-ADD CONSTRAINT chk_payment_status 
+ALTER TABLE property_tax_payments
+ADD CONSTRAINT chk_payment_status
 CHECK (
     (status = 'paid' AND paid_date IS NOT NULL) OR
     (status IN ('pending', 'overdue') AND paid_date IS NULL)
@@ -359,7 +359,7 @@ BEGIN
         ),
         updated_at = NOW()
     WHERE id = NEW.property_id;
-    
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -393,7 +393,7 @@ BEGIN
     start_date := date_trunc('month', CURRENT_DATE);
     end_date := start_date + interval '1 month';
     partition_name := 'expenses_' || to_char(start_date, 'YYYY_MM');
-    
+
     EXECUTE format(
         'CREATE TABLE IF NOT EXISTS %I PARTITION OF expenses
         FOR VALUES FROM (%L) TO (%L)',
@@ -407,12 +407,12 @@ $$ LANGUAGE plpgsql;
 
 ### 8.1 バックアップ対象
 
-| データ種別 | バックアップ頻度 | 保持期間 |
-|------------|------------------|----------|
-| トランザクションデータ | 毎時 | 7日間 |
-| マスタデータ | 日次 | 30日間 |
-| 設定データ | 変更時 | 永久 |
-| ログデータ | 日次 | 90日間 |
+| データ種別             | バックアップ頻度 | 保持期間 |
+| ---------------------- | ---------------- | -------- |
+| トランザクションデータ | 毎時             | 7日間    |
+| マスタデータ           | 日次             | 30日間   |
+| 設定データ             | 変更時           | 永久     |
+| ログデータ             | 日次             | 90日間   |
 
 ### 8.2 Point-in-Time Recovery
 
@@ -432,13 +432,13 @@ pg_basebackup -D /backup/base -Ft -z -P
 
 ```sql
 -- CSVからの一括投入
-COPY properties (name, address, type, owner_id) 
-FROM '/data/properties.csv' 
+COPY properties (name, address, type, owner_id)
+FROM '/data/properties.csv'
 WITH CSV HEADER;
 
 -- 既存システムからの移行
 INSERT INTO properties (id, name, address, ...)
-SELECT 
+SELECT
     gen_random_uuid(),
     property_name,
     property_address,
@@ -466,7 +466,7 @@ VACUUM FULL expenses;
 
 ```sql
 -- スロークエリ監視
-SELECT 
+SELECT
     query,
     calls,
     total_time,

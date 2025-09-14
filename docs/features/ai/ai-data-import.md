@@ -3,9 +3,11 @@
 ## 1. 機能概要
 
 ### 1.1 目的
+
 紙の書類（固定資産税納税通知書、レントロール表など）をスマートフォンで撮影またはスキャンした画像から、AIが自動的にデータを読み取り、システムに取り込む機能。手動入力の手間を大幅に削減し、転記ミスを防止する。
 
 ### 1.2 対象書類
+
 - 固定資産税納税通知書
 - 管理会社のレントロール表
 - 銀行からの返済予定表
@@ -23,12 +25,14 @@ SO THAT 手動入力の時間を削減し、ミスを防げる
 ## 3. 機能詳細
 
 ### 3.1 画像アップロード
+
 - **対応形式**: JPEG, PNG, PDF
 - **最大サイズ**: 10MB/ファイル
 - **複数アップロード**: 最大10ファイル同時
 - **プレビュー機能**: アップロード前確認
 
 ### 3.2 AI分析プロセス
+
 1. **前処理**
    - 画像の傾き補正
    - コントラスト調整
@@ -45,12 +49,14 @@ SO THAT 手動入力の時間を削減し、ミスを防げる
    - 関連性の推定（物件名から既存物件とのマッチング）
 
 ### 3.3 確認・編集画面
+
 - **並列表示**: 元画像とAI抽出結果
 - **ハイライト機能**: 抽出箇所の視覚的表示
 - **編集機能**: 誤認識の修正
 - **信頼度表示**: AI判定の確度表示（%）
 
 ### 3.4 データ反映
+
 - **確認後反映**: ユーザー承認後のみ保存
 - **変更履歴**: AI取込履歴の保持
 - **ロールバック**: 誤反映時の取り消し機能
@@ -58,36 +64,39 @@ SO THAT 手動入力の時間を削減し、ミスを防げる
 ## 4. 技術仕様
 
 ### 4.1 アーキテクチャ
+
 ```
 [Client] → [Supabase Storage] → [Edge Function] → [AI Service] → [Database]
 ```
 
 ### 4.2 AI Service選定候補
+
 - Google Cloud Vision API
 - Amazon Textract
 - Azure Computer Vision
 
 ### 4.3 Edge Function実装
+
 ```typescript
 // /supabase/functions/ai-import/index.ts
 export async function analyzeDocument(imageUrl: string) {
   // 1. 画像ダウンロード
   const image = await downloadImage(imageUrl);
-  
+
   // 2. AI分析
   const result = await callVisionAPI(image);
-  
+
   // 3. データ構造化
   const structured = structureData(result);
-  
+
   // 4. 既存データとのマッチング
   const matched = await matchExistingData(structured);
-  
+
   return {
     documentType: result.documentType,
     confidence: result.confidence,
     extractedData: matched,
-    rawOcrResult: result.text
+    rawOcrResult: result.text,
   };
 }
 ```
@@ -95,6 +104,7 @@ export async function analyzeDocument(imageUrl: string) {
 ## 5. UI/UXデザイン
 
 ### 5.1 アップロード画面
+
 ```
 ┌─────────────────────────────┐
 │ 📤 書類をアップロード        │
@@ -113,6 +123,7 @@ export async function analyzeDocument(imageUrl: string) {
 ```
 
 ### 5.2 分析結果確認画面
+
 ```
 ┌─────────────────────────────────────────┐
 │ AI分析結果                               │
@@ -131,25 +142,29 @@ export async function analyzeDocument(imageUrl: string) {
 ## 6. エラーハンドリング
 
 ### 6.1 エラーケース
-| エラー | 対応 |
-|--------|------|
-| 画像が不鮮明 | 再撮影を促すメッセージ |
+
+| エラー         | 対応                   |
+| -------------- | ---------------------- |
+| 画像が不鮮明   | 再撮影を促すメッセージ |
 | 書類タイプ不明 | 手動選択オプション提示 |
-| AI分析失敗 | 手動入力画面へ誘導 |
-| タイムアウト | リトライオプション |
+| AI分析失敗     | 手動入力画面へ誘導     |
+| タイムアウト   | リトライオプション     |
 
 ### 6.2 フォールバック
+
 - AI分析が失敗した場合は、従来の手動入力画面を提供
 - 部分的な認識成功の場合は、認識できた部分のみ自動入力
 
 ## 7. セキュリティ考慮事項
 
 ### 7.1 データ保護
+
 - アップロード画像は処理後即削除
 - SSL/TLS暗号化通信
 - 個人情報のマスキング処理
 
 ### 7.2 アクセス制御
+
 - ユーザー認証必須
 - RLSによるデータ分離
 - 処理履歴の監査ログ
@@ -157,27 +172,32 @@ export async function analyzeDocument(imageUrl: string) {
 ## 8. パフォーマンス要件
 
 ### 8.1 処理時間
+
 - 画像アップロード: 3秒以内
 - AI分析: 10秒以内
 - 全体処理: 15秒以内
 
 ### 8.2 同時処理
+
 - 同時アップロード数: 最大10ファイル
 - ユーザー単位の制限: 100回/日
 
 ## 9. 今後の拡張案
 
 ### 9.1 追加対応書類
+
 - 確定申告書
 - 賃貸借契約書
 - 保険証券
 
 ### 9.2 高度な機能
+
 - 定期書類の自動取込（API連携）
 - 複数ページPDFの一括処理
 - 書類間の整合性チェック
 
 ### 9.3 学習機能
+
 - ユーザーの修正パターン学習
 - 物件名の略称対応
 - カスタム項目の認識
@@ -185,13 +205,15 @@ export async function analyzeDocument(imageUrl: string) {
 ## 10. KPI
 
 ### 10.1 利用率
+
 - 目標: アクティブユーザーの80%が月1回以上利用
 
 ### 10.2 精度
+
 - OCR認識率: 95%以上
 - データマッチング成功率: 90%以上
 
 ### 10.3 効率化
+
 - 入力時間削減: 90%（手動入力比）
 - エラー率: 1%以下
-

@@ -18,6 +18,7 @@
 ## 📊 実装状況
 
 ### ✅ 実装済み機能
+
 - **認証機能**: Supabase Authによるメール認証、ログイン/ログアウト
 - **ダッシュボード**: 物件一覧表示、基本的なKPI表示
 - **物件管理**: CRUD操作、物件一覧・詳細表示
@@ -28,11 +29,13 @@
 - **基本的なUI/UX**: レスポンシブデザイン、モバイル対応
 
 ### 🚧 開発中機能
+
 - **高度な分析機能**: 詳細なキャッシュフロー分析
 - **PDF出力**: 銀行提出用フォーマット
 - **AIデータインポート**: 画像からの自動データ抽出
 
 ### 📅 今後の予定
+
 - **外部API連携**: 銀行API、不動産情報API
 - **モバイルアプリ**: React Native版の開発
 - **多言語対応**: 英語・中国語対応
@@ -119,18 +122,21 @@ richman-manage/                 # モノレポルート
 ## 🎯 開発方針
 
 ### 基本方針
+
 - **実装を「Single Source of Truth」とする**: ドキュメントは実装から自動生成を基本とし、二重管理を避ける
 - **TDD（Test Driven Development）**: t-wada流TDDを実践し、品質を確保
 - **モバイルファースト**: スマートフォンでの操作性を最優先に設計
 - **段階的リリース**: MVP → 機能拡張 → エンタープライズ版の順で開発
 
 ### コード品質基準
+
 - **テストカバレッジ**: 80%以上を維持
 - **TypeScript**: any型の使用は原則禁止
 - **ESLint/Prettier**: 0エラー・0警告を維持
 - **コミット前チェック**: `npm run lint:check` を実行
 
 ### 開発ワークフロー
+
 1. Issueの作成・アサイン
 2. feature/fix ブランチの作成
 3. TDDサイクルでの実装
@@ -172,18 +178,19 @@ DEV_SEED_PASSWORD="DevUser#12345"           # 記号(#)を含む場合は必ず�
 
 ## 💻 ローカル開発手順（最新）
 
-1) 開発サーバ起動
+1. 開発サーバ起動
 
 ```bash
 npm --workspace apps/web run dev
 # ローカルURLはターミナルの Local: を参照（例: http://localhost:3001）
 ```
 
-2) 認証（SSR Cookie運用）
+2. 認証（SSR Cookie運用）
+
 - ログインUI: `/login`（サーバ側API `/api/auth/login` 経由でCookieにセッション設定）
 - ログアウト: ブラウザのコンソールで `await fetch('/api/auth/logout',{method:'POST'}); location.reload();`
 
-3) 開発用Seed（固定アカウントに投入）
+3. 開発用Seed（固定アカウントに投入）
 
 ```bash
 # 追加投入
@@ -193,13 +200,15 @@ curl -X POST -H "x-seed-token: $DEV_SEED_TOKEN" "http://localhost:<port>/api/dev
 curl -X POST -H "x-seed-token: $DEV_SEED_TOKEN" "http://localhost:<port>/api/dev/seed?reset=1"
 ```
 
-4) 主要ページ
+4. 主要ページ
+
 - `/properties`（物件一覧: 青山マンション）
 - `/loans`（借入2件）
 - `/rent-roll`（101/102）
 - `/expenses`（管理費/修繕）
 
-5) APIドキュメント
+5. APIドキュメント
+
 - JSON: `/api-docs`
 - UI: `/docs/api`（CDN版Swagger UIをiframeで表示）
 
@@ -214,6 +223,7 @@ curl -X POST -H "x-seed-token: $DEV_SEED_TOKEN" "http://localhost:<port>/api/dev
 ### よくある問題と解決方法
 
 #### 1. 依存関係の不整合
+
 ```bash
 # クリーンインストール（原則、モノレポ直下で実行）
 rm -rf node_modules package-lock.json
@@ -225,7 +235,7 @@ Cmd/Ctrl + Shift + P → "TypeScript: Restart TS Server"
 
 ## 📦 パッケージ管理ポリシー（統一）
 
-- 依存導入は必ずモノレポ直下で行う（npm workspaces）。apps/* 直下での `npm install` は原則禁止。
+- 依存導入は必ずモノレポ直下で行う（npm workspaces）。apps/\* 直下での `npm install` は原則禁止。
 - Lockfile はルートの `package-lock.json` を唯一のSSOTとする。各ワークスペース下の lockfile はコミット禁止（.gitignore で拒否）。
 - Node/NPM バージョン: `node >= 18.18`, `npm >= 10`（enginesに準拠）。
 - peer競合の暫定回避は不要です（@scalar/nextjs-api-reference が Next 15 をサポート済み）。
@@ -237,11 +247,13 @@ Cmd/Ctrl + Shift + P → "TypeScript: Restart TS Server"
 詳細は `docs/dev/package-management.md` 参照。
 
 #### 3. Supabase接続エラー
+
 - `.env.local`の設定値を再確認
 - Supabaseプロジェクトの状態を確認（一時停止されていないか）
 - ネットワーク接続を確認
 
 #### 4. テストが失敗する
+
 ```bash
 # キャッシュのクリア
 npm run test --workspaces -- --clearCache

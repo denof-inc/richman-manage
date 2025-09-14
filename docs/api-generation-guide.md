@@ -145,8 +145,14 @@ export default function ApiDocsPage() {
     <title>RichmanManage API Docs</title>
     <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css" />
     <style>
-      html, body { height: 100%; margin: 0; }
-      #swagger-ui { height: 100vh; }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+      #swagger-ui {
+        height: 100vh;
+      }
     </style>
   </head>
   <body>
@@ -163,7 +169,7 @@ export default function ApiDocsPage() {
       };
     </script>
   </body>
-  </html>
+</html>
 ```
 
 ## 2. DBドキュメントの自動生成
@@ -188,13 +194,13 @@ import path from 'path';
 async function generateERDiagram() {
   // schema.sqlを解析
   const schema = fs.readFileSync('db/schema.sql', 'utf-8');
-  
+
   // テーブル定義を抽出
   const tables = extractTables(schema);
-  
+
   // Mermaid形式のER図を生成
   const mermaidDiagram = generateMermaidERD(tables);
-  
+
   // ドキュメントに書き出し
   const output = `# データベーススキーマ（自動生成）
 
@@ -232,21 +238,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Generate API docs
         run: npm run generate:api-docs
-        
+
       - name: Generate DB docs
         run: npm run generate:db-docs
-        
+
       - name: Commit changes
         uses: EndBug/add-and-commit@v9
         with:

@@ -1,25 +1,27 @@
 # 借入管理機能 詳細設計書
 
 ## 1. 機能概要
+
 物件に紐づく借入（ローン）情報を管理し、金利変更履歴や返済スケジュールを追跡する機能。残債の自動計算と返済シミュレーション機能を提供。
 
 ## 2. データモデル
 
 ### loans テーブル（最新版）
+
 ```typescript
 interface Loan {
-  id: string;                     // UUID
-  property_id?: string | null;    // 物件ID（任意: 運転資金など非紐付け可）
-  owner_id?: string | null;       // 借入主体（所有者）
-  lender_name: string;            // 借入先（金融機関名）
-  branch_name?: string | null;    // 支店名
-  loan_type: LoanType;            // ローン種別
-  principal_amount: number;       // 借入元本
-  current_balance: number;        // 現在残高
-  interest_rate: number;          // 現在金利(%)
-  loan_term_months: number;       // 借入期間（月数）
-  monthly_payment: number;        // 支払月額（元金+利息）
-  notes?: string | null;          // 備考
+  id: string; // UUID
+  property_id?: string | null; // 物件ID（任意: 運転資金など非紐付け可）
+  owner_id?: string | null; // 借入主体（所有者）
+  lender_name: string; // 借入先（金融機関名）
+  branch_name?: string | null; // 支店名
+  loan_type: LoanType; // ローン種別
+  principal_amount: number; // 借入元本
+  current_balance: number; // 現在残高
+  interest_rate: number; // 現在金利(%)
+  loan_term_months: number; // 借入期間（月数）
+  monthly_payment: number; // 支払月額（元金+利息）
+  notes?: string | null; // 備考
   created_at: Date;
   updated_at: Date;
   deleted_at?: Date;
@@ -29,32 +31,34 @@ type LoanType = 'mortgage' | 'business' | 'personal' | 'other';
 ```
 
 ### loan_interest_changes テーブル
+
 ```typescript
 interface LoanInterestChange {
-  id: string;                    // UUID
-  loan_id: string;              // ローンID
-  change_date: Date;            // 変更日
-  old_rate: number;             // 変更前金利(%)
-  new_rate: number;             // 変更後金利(%)
-  reason?: string;              // 変更理由
+  id: string; // UUID
+  loan_id: string; // ローンID
+  change_date: Date; // 変更日
+  old_rate: number; // 変更前金利(%)
+  new_rate: number; // 変更後金利(%)
+  reason?: string; // 変更理由
   created_at: Date;
 }
 ```
 
 ### loan_repayments テーブル
+
 ```typescript
 interface LoanRepayment {
-  id: string;                    // UUID
-  loan_id: string;              // ローンID
-  payment_date: Date;           // 返済日
-  scheduled_amount: number;     // 予定返済額
-  principal_amount: number;     // 元本返済額
-  interest_amount: number;      // 利息返済額
-  prepayment_amount?: number;   // 繰上返済額
-  actual_amount: number;        // 実際返済額
-  balance_after: number;        // 返済後残高
-  status: RepaymentStatus;      // ステータス
-  notes?: string;               // 備考
+  id: string; // UUID
+  loan_id: string; // ローンID
+  payment_date: Date; // 返済日
+  scheduled_amount: number; // 予定返済額
+  principal_amount: number; // 元本返済額
+  interest_amount: number; // 利息返済額
+  prepayment_amount?: number; // 繰上返済額
+  actual_amount: number; // 実際返済額
+  balance_after: number; // 返済後残高
+  status: RepaymentStatus; // ステータス
+  notes?: string; // 備考
   created_at: Date;
 }
 
@@ -64,6 +68,7 @@ type RepaymentStatus = 'scheduled' | 'paid' | 'delayed' | 'skipped';
 ## 3. API仕様
 
 ### 3.1 借入一覧取得
+
 ```
 GET /api/loans
 Query Parameters:
@@ -79,6 +84,7 @@ Response:
 ```
 
 ### 3.2 借入詳細取得
+
 ```
 GET /api/loans/:id
 
@@ -101,6 +107,7 @@ Response:
 ```
 
 ### 3.3 借入作成
+
 ```
 POST /api/loans
 Body: {
@@ -127,6 +134,7 @@ Response:
 ```
 
 ### 3.4 金利変更登録
+
 ```
 POST /api/loans/:id/interest-changes
 Body: {
@@ -147,6 +155,7 @@ Response:
 ```
 
 ### 3.5 返済登録
+
 ```
 POST /api/loans/:id/repayments
 Body: {
@@ -167,6 +176,7 @@ Response:
 ```
 
 ### 3.6 返済シミュレーション
+
 ```
 POST /api/loans/:id/simulate
 Body: {
@@ -197,21 +207,24 @@ Response:
 ### 4.1 借入一覧画面（/loans）
 
 #### レイアウト
+
 - ヘッダー: タイトル + 新規追加ボタン
 - サマリーカード: 総残高、月次返済額合計、平均金利
 - フィルター: 物件、ローン種別
 - 一覧表示
 
 #### 表示項目
-| 借入先 | 物件 | 借入額 | 金利 | 期間 | 開始日 | 元金返済額 | 利息月額 | 支払月額 |
-|--------|------|--------|------|------|--------|------------|----------|----------|
-| ○○銀行 | 青山マンション | ¥80,000,000 | 1.5% | 35年 | 2024/01/01 | ¥xx | ¥yy | ¥210,000 |
+
+| 借入先 | 物件           | 借入額      | 金利 | 期間 | 開始日     | 元金返済額 | 利息月額 | 支払月額 |
+| ------ | -------------- | ----------- | ---- | ---- | ---------- | ---------- | -------- | -------- |
+| ○○銀行 | 青山マンション | ¥80,000,000 | 1.5% | 35年 | 2024/01/01 | ¥xx        | ¥yy      | ¥210,000 |
 
 補足: 内訳は当面の表示ロジックとして「利息=残高×年利/12、元金=支払−利息」を使用（将来は返済予定表から厳密算出に置換）。
 
 ### 4.2 借入詳細画面（/loans/[id]）
 
 #### レイアウト
+
 - ヘッダー: ローン名 + 編集ボタン
 - 基本情報カード
 - 返済状況カード
@@ -220,6 +233,7 @@ Response:
 - アクションボタン: 返済登録、金利変更、シミュレーション
 
 #### 基本情報
+
 - ローン名、物件名（リンク）
 - 借入先、ローン種別
 - 借入元本、現在残高
@@ -228,16 +242,19 @@ Response:
 - 月次返済額、返済日
 
 #### 返済状況
+
 - 返済進捗バー
 - 総返済額/元本/利息の内訳
 - 残り返済回数
 - 完済予定日
 
 #### 金利変更履歴
+
 - 折れ線グラフで金利推移を表示
 - 変更日、変更前後の金利、理由
 
 #### 返済履歴
+
 - 直近12ヶ月の返済履歴
 - 返済日、元本、利息、残高
 - ステータス（済/遅延等）
@@ -245,18 +262,19 @@ Response:
 ### 4.3 借入新規/編集画面（/loans/new, /loans/[id]/edit）
 
 #### フォーム項目
+
 - 基本情報セクション
-  - ローン名*
-  - 物件選択*
-  - 借入先*
-  - ローン種別*
+  - ローン名\*
+  - 物件選択\*
+  - 借入先\*
+  - ローン種別\*
 - 借入条件セクション
-  - 借入元本*
-  - 金利*
-  - 金利タイプ*
-  - 借入期間*（年数で入力→月数変換）
-  - 借入開始日*
-  - 返済日*（1-31）
+  - 借入元本\*
+  - 金利\*
+  - 金利タイプ\*
+  - 借入期間\*（年数で入力→月数変換）
+  - 借入開始日\*
+  - 返済日\*（1-31）
 - 返済シミュレーション表示
   - 月次返済額（自動計算）
   - 総返済額
@@ -265,11 +283,13 @@ Response:
 ### 4.4 返済シミュレーション画面（モーダル）
 
 #### 入力項目
+
 - 繰上返済額
 - 繰上返済予定日
 - 返済方式（期間短縮/返済額軽減）
 
 #### シミュレーション結果
+
 - 現在の返済プラン
   - 完済予定日
   - 利息総額
@@ -281,61 +301,67 @@ Response:
 ## 5. ビジネスロジック
 
 ### 5.1 返済額計算（元利均等返済）
+
 ```typescript
-function calculateMonthlyPayment(principal: number, annualRate: number, termMonths: number): number {
+function calculateMonthlyPayment(
+  principal: number,
+  annualRate: number,
+  termMonths: number
+): number {
   const monthlyRate = annualRate / 100 / 12;
   if (monthlyRate === 0) return principal / termMonths;
-  
-  return principal * monthlyRate * Math.pow(1 + monthlyRate, termMonths) / 
-    (Math.pow(1 + monthlyRate, termMonths) - 1);
+
+  return (
+    (principal * monthlyRate * Math.pow(1 + monthlyRate, termMonths)) /
+    (Math.pow(1 + monthlyRate, termMonths) - 1)
+  );
 }
 ```
 
 ### 5.2 返済スケジュール生成
+
 ```typescript
 function generateRepaymentSchedule(loan: Loan): LoanRepayment[] {
   const schedule: LoanRepayment[] = [];
   let balance = loan.principal;
   const monthlyRate = loan.interest_rate / 100 / 12;
-  
+
   for (let i = 0; i < loan.loan_term; i++) {
     const interestAmount = balance * monthlyRate;
     const principalAmount = loan.monthly_payment - interestAmount;
     balance -= principalAmount;
-    
+
     schedule.push({
       payment_date: addMonths(loan.start_date, i + 1),
       scheduled_amount: loan.monthly_payment,
       principal_amount: principalAmount,
       interest_amount: interestAmount,
       balance_after: balance,
-      status: 'scheduled'
+      status: 'scheduled',
     });
   }
-  
+
   return schedule;
 }
 ```
 
 ### 5.3 金利変更時の再計算
+
 ```typescript
 async function recalculateAfterRateChange(loan: Loan, newRate: number, changeDate: Date) {
   // 残り期間を計算
   const remainingMonths = differenceInMonths(loan.end_date, changeDate);
-  
+
   // 新しい月次返済額を計算
-  const newMonthlyPayment = calculateMonthlyPayment(
-    loan.balance,
-    newRate,
-    remainingMonths
-  );
-  
+  const newMonthlyPayment = calculateMonthlyPayment(loan.balance, newRate, remainingMonths);
+
   // 将来の返済スケジュールを更新
   await updateFutureRepayments(loan.id, changeDate, newMonthlyPayment);
 }
 ```
 
 ### 5.4 返済遅延チェック
+
 ```typescript
 // 日次バッチで実行
 async function checkRepaymentDelays() {
@@ -343,10 +369,10 @@ async function checkRepaymentDelays() {
   const overdueRepayments = await db.loanRepayments.findMany({
     where: {
       payment_date: { lte: today },
-      status: 'scheduled'
-    }
+      status: 'scheduled',
+    },
   });
-  
+
   // 遅延ステータスに更新 & 通知
   for (const repayment of overdueRepayments) {
     await updateRepaymentStatus(repayment.id, 'delayed');
@@ -358,6 +384,7 @@ async function checkRepaymentDelays() {
 ## 6. バリデーション
 
 ### 6.1 必須項目
+
 - ローン名: 1-100文字
 - 借入元本: 1万円以上
 - 金利: 0-99.9%
@@ -365,6 +392,7 @@ async function checkRepaymentDelays() {
 - 返済日: 1-31
 
 ### 6.2 ビジネスルール
+
 - 借入開始日 < 借入終了日
 - 月次返済額 > 月次利息額
 - 繰上返済額 <= 現在残高
@@ -372,26 +400,31 @@ async function checkRepaymentDelays() {
 ## 7. 通知機能
 
 ### 7.1 返済日リマインダー
+
 - 3日前: 返済予定通知
 - 当日: 返済日通知
 - 翌日: 未返済の場合アラート
 
 ### 7.2 金利見直し通知
+
 - 固定期間終了3ヶ月前
 - 変動金利の定期見直し時期
 
 ## 8. 権限管理
+
 - 表示: 関連物件の所有者のみ
 - 作成/編集: 関連物件の所有者のみ
 - 返済登録: 関連物件の所有者のみ
 
 ## 9. エラーハンドリング
+
 - 404: ローンが見つからない
 - 403: 権限がない
 - 400: バリデーションエラー
 - 422: 計算エラー（金利が高すぎる等）
 
 ## 10. テスト観点
+
 - 返済額計算の正確性（様々な金利・期間）
 - 返済スケジュール生成
 - 金利変更時の再計算

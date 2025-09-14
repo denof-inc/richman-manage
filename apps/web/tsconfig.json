@@ -32,5 +32,9 @@
     "src/app/**/*.ts",
     "src/app/**/*.tsx"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    // Exclude contract-only typecheck file from regular builds
+    "scripts/openapi-types-check.ts"
+  ]
 }

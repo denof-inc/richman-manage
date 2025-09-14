@@ -291,16 +291,30 @@ export default function RentRollTable({ units }: RentRollTableProps) {
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="border-b border-border-default">
-                    <th className="p-2 md:p-3 text-left text-base md:text-sm font-medium text-text-muted min-w-[160px]">
+                    <th className="min-w-[160px] p-2 text-left text-base font-medium text-text-muted md:p-3 md:text-sm">
                       物件・部屋
                     </th>
-                    <th className="p-2 md:p-3 text-left text-base md:text-sm font-medium text-text-muted min-w-[80px]">タイプ</th>
-                    <th className="p-2 md:p-3 text-left text-base md:text-sm font-medium text-text-muted min-w-[80px]">状況</th>
-                    <th className="p-2 md:p-3 text-left text-base md:text-sm font-medium text-text-muted min-w-[70px]">面積</th>
-                    <th className="p-2 md:p-3 text-left text-base md:text-sm font-medium text-text-muted min-w-[100px]">家賃</th>
-                    <th className="p-2 md:p-3 text-left text-base md:text-sm font-medium text-text-muted min-w-[90px]">入居者</th>
-                    <th className="p-2 md:p-3 text-left text-base md:text-sm font-medium text-text-muted min-w-[120px]">契約期間</th>
-                    <th className="p-2 md:p-3 text-left text-base md:text-sm font-medium text-text-muted min-w-[70px]">操作</th>
+                    <th className="min-w-[80px] p-2 text-left text-base font-medium text-text-muted md:p-3 md:text-sm">
+                      タイプ
+                    </th>
+                    <th className="min-w-[80px] p-2 text-left text-base font-medium text-text-muted md:p-3 md:text-sm">
+                      状況
+                    </th>
+                    <th className="min-w-[70px] p-2 text-left text-base font-medium text-text-muted md:p-3 md:text-sm">
+                      面積
+                    </th>
+                    <th className="min-w-[100px] p-2 text-left text-base font-medium text-text-muted md:p-3 md:text-sm">
+                      家賃
+                    </th>
+                    <th className="min-w-[90px] p-2 text-left text-base font-medium text-text-muted md:p-3 md:text-sm">
+                      入居者
+                    </th>
+                    <th className="min-w-[120px] p-2 text-left text-base font-medium text-text-muted md:p-3 md:text-sm">
+                      契約期間
+                    </th>
+                    <th className="min-w-[70px] p-2 text-left text-base font-medium text-text-muted md:p-3 md:text-sm">
+                      操作
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -311,14 +325,20 @@ export default function RentRollTable({ units }: RentRollTableProps) {
                     >
                       <td className="p-2 md:p-3">
                         <div>
-                          <div className="font-medium text-primary text-sm md:text-base">{unit.property_name}</div>
-                          <div className="text-xs md:text-sm text-text-muted">{unit.unit_number}</div>
+                          <div className="text-sm font-medium text-primary md:text-base">
+                            {unit.property_name}
+                          </div>
+                          <div className="text-xs text-text-muted md:text-sm">
+                            {unit.unit_number}
+                          </div>
                         </div>
                       </td>
                       <td className="p-2 md:p-3">
                         <div className="flex items-center space-x-1 md:space-x-2">
                           {getUnitTypeIcon(unit.unit_type)}
-                          <span className="text-xs md:text-sm">{getUnitTypeLabel(unit.unit_type)}</span>
+                          <span className="text-xs md:text-sm">
+                            {getUnitTypeLabel(unit.unit_type)}
+                          </span>
                         </div>
                       </td>
                       <td className="p-2 md:p-3">
@@ -342,7 +362,7 @@ export default function RentRollTable({ units }: RentRollTableProps) {
                       </td>
                       <td className="p-2 md:p-3">
                         <div
-                          className={`font-medium text-xs md:text-sm ${
+                          className={`text-xs font-medium md:text-sm ${
                             unit.status === 'occupied' ? 'text-accent' : 'text-red-500'
                           }`}
                         >
@@ -368,7 +388,11 @@ export default function RentRollTable({ units }: RentRollTableProps) {
                       </td>
                       <td className="p-2 md:p-3">
                         <Link href={`/properties/${unit.property_id}/${unit.id}`}>
-                          <Button variant="outline" size="sm" className="min-h-[36px] text-xs md:text-sm">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="min-h-[36px] text-xs md:text-sm"
+                          >
                             詳細
                           </Button>
                         </Link>
