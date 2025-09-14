@@ -20,6 +20,15 @@ export function generateOpenAPIDoc() {
       title: 'RichmanManage API',
       version: '1.0.0',
       description: '不動産投資管理システムのAPI仕様（Zod由来）',
+      contact: {
+        name: 'RichmanManage Team',
+        url: 'https://github.com/denof-inc/richman-manage',
+        email: 'support@example.com',
+      },
+      license: {
+        name: 'MIT',
+        url: 'https://opensource.org/licenses/MIT',
+      },
     },
     servers: [
       { url: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000', description: 'Local' },
