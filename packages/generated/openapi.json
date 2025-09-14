@@ -2025,6 +2025,34 @@
           }
         }
       },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "instance": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "status"
+        ]
+      },
       "Owner": {
         "type": "object",
         "properties": {
@@ -2505,9 +2533,9 @@
       "Unauthorized": {
         "description": "認証エラー",
         "content": {
-          "application/json": {
+          "application/problem+json": {
             "schema": {
-              "$ref": "#/components/schemas/ErrorResponse"
+              "$ref": "#/components/schemas/ProblemDetails"
             }
           }
         }
@@ -2515,9 +2543,9 @@
       "ValidationError": {
         "description": "バリデーションエラー",
         "content": {
-          "application/json": {
+          "application/problem+json": {
             "schema": {
-              "$ref": "#/components/schemas/ErrorResponse"
+              "$ref": "#/components/schemas/ProblemDetails"
             }
           }
         }
@@ -2525,9 +2553,9 @@
       "NotFound": {
         "description": "対象が見つかりません",
         "content": {
-          "application/json": {
+          "application/problem+json": {
             "schema": {
-              "$ref": "#/components/schemas/ErrorResponse"
+              "$ref": "#/components/schemas/ProblemDetails"
             }
           }
         }
@@ -2535,9 +2563,19 @@
       "BadRequest": {
         "description": "不正なリクエスト",
         "content": {
-          "application/json": {
+          "application/problem+json": {
             "schema": {
-              "$ref": "#/components/schemas/ErrorResponse"
+              "$ref": "#/components/schemas/ProblemDetails"
+            }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "サーバ内部エラー",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProblemDetails"
             }
           }
         }

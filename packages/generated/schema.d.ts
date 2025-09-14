@@ -228,6 +228,15 @@ export interface components {
             total?: number;
             totalPages?: number;
         };
+        ProblemDetails: {
+            /** Format: uri */
+            type?: string;
+            title: string;
+            status: number;
+            detail?: string;
+            instance?: string;
+            code?: string;
+        };
         Owner: {
             /** Format: uuid */
             id: string;
@@ -335,7 +344,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorResponse"];
+                "application/problem+json": components["schemas"]["ProblemDetails"];
             };
         };
         /** @description バリデーションエラー */
@@ -344,7 +353,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorResponse"];
+                "application/problem+json": components["schemas"]["ProblemDetails"];
             };
         };
         /** @description 対象が見つかりません */
@@ -353,7 +362,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorResponse"];
+                "application/problem+json": components["schemas"]["ProblemDetails"];
             };
         };
         /** @description 不正なリクエスト */
@@ -362,7 +371,16 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorResponse"];
+                "application/problem+json": components["schemas"]["ProblemDetails"];
+            };
+        };
+        /** @description サーバ内部エラー */
+        InternalError: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["ProblemDetails"];
             };
         };
     };

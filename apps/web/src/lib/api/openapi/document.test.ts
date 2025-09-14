@@ -38,6 +38,12 @@ describe('OpenAPI (Zod-first)', () => {
     expect(spec.components?.responses).toHaveProperty('ValidationError');
     expect(spec.components?.parameters).toHaveProperty('PageParam');
     expect(spec.components?.parameters).toHaveProperty('LimitParam');
+    // responses use problem+json for 4xx/5xx
+    const responses = spec.components?.responses as
+      | Record<string, { content?: Record<string, unknown> }>
+      | undefined;
+    const una = responses?.['Unauthorized'];
+    expect(una?.content).toHaveProperty('application/problem+json');
 
     // loans detail endpoints
     const loanDetail = (spec.paths as Record<string, unknown>)['/api/loans/{id}'] as

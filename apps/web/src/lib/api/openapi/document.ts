@@ -1,7 +1,12 @@
 import { createDocument } from 'zod-openapi';
 import { ownersPaths } from './paths/owners.paths';
 import { loansPaths } from './paths/loans.paths';
-import { ApiErrorSchema, ErrorResponseSchema, ApiMetaSchema } from '../schemas/common';
+import {
+  ApiErrorSchema,
+  ErrorResponseSchema,
+  ApiMetaSchema,
+  ProblemDetailsSchema,
+} from '../schemas/common';
 import { OwnerResponseSchema } from '../schemas/owner';
 import { LoanResponseSchema } from '../schemas/loan';
 import { PropertyResponseSchema } from '../schemas/property';
@@ -77,25 +82,30 @@ export function generateOpenAPIDoc() {
       responses: {
         Unauthorized: {
           description: '認証エラー',
-          content: { 'application/json': { schema: ErrorResponseSchema } },
+          content: { 'application/problem+json': { schema: ProblemDetailsSchema } },
         },
         ValidationError: {
           description: 'バリデーションエラー',
-          content: { 'application/json': { schema: ErrorResponseSchema } },
+          content: { 'application/problem+json': { schema: ProblemDetailsSchema } },
         },
         NotFound: {
           description: '対象が見つかりません',
-          content: { 'application/json': { schema: ErrorResponseSchema } },
+          content: { 'application/problem+json': { schema: ProblemDetailsSchema } },
         },
         BadRequest: {
           description: '不正なリクエスト',
-          content: { 'application/json': { schema: ErrorResponseSchema } },
+          content: { 'application/problem+json': { schema: ProblemDetailsSchema } },
+        },
+        InternalError: {
+          description: 'サーバ内部エラー',
+          content: { 'application/problem+json': { schema: ProblemDetailsSchema } },
         },
       },
       schemas: {
         ApiError: ApiErrorSchema,
         ErrorResponse: ErrorResponseSchema,
         ApiMeta: ApiMetaSchema,
+        ProblemDetails: ProblemDetailsSchema,
         Owner: OwnerResponseSchema,
         Loan: LoanResponseSchema,
         Property: PropertyResponseSchema,
