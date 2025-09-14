@@ -3,6 +3,7 @@
 ## 1. アーキテクチャ原則
 
 ### 1.1 レイヤード・アーキテクチャ
+
 ```
 ┌─────────────────────────────────┐
 │   Presentation Layer (UI)        │  ← React Components
@@ -16,12 +17,14 @@
 ```
 
 ### 1.2 基本原則
+
 1. **単一責任の原則**: 各モジュールは1つの責任のみを持つ
 2. **依存性逆転の原則**: 上位層は下位層に依存しない
 3. **DRY原則**: 同じロジックを繰り返さない
 4. **YAGNI原則**: 必要になるまで実装しない
 
 ### 1.3 データフロー
+
 ```
 User Action → Component → Hook → API → Database
      ↑                                      ↓
@@ -31,10 +34,11 @@ User Action → Component → Hook → API → Database
 ## 2. コーディング規約
 
 ### 2.1 命名規則
+
 ```typescript
 // ファイル名: kebab-case
-property-management.tsx
-use-property-data.ts
+property - management.tsx;
+use - property - data.ts;
 
 // コンポーネント: PascalCase
 function PropertyList() {}
@@ -51,6 +55,7 @@ type PropertyStatus = 'active' | 'inactive';
 ```
 
 ### 2.2 ディレクトリ構造
+
 ```
 src/
 ├── app/                    # Next.js App Router
@@ -69,6 +74,7 @@ src/
 ```
 
 ### 2.3 コンポーネント設計
+
 ```typescript
 // ✅ Good: 単一責任、明確なprops
 interface PropertyCardProps {
@@ -100,23 +106,24 @@ function PropertyManager({ data, mode, callback }) {
 ## 3. UI/UXガイドライン
 
 ### 3.1 デザイントークン
+
 ```css
 /* カラーパレット */
---color-primary: #3B82F6;      /* Blue-500 */
---color-secondary: #10B981;    /* Green-500 */
---color-danger: #EF4444;       /* Red-500 */
---color-warning: #F59E0B;      /* Amber-500 */
---color-background: #FFFFFF;
---color-surface: #F9FAFB;
+--color-primary: #3b82f6; /* Blue-500 */
+--color-secondary: #10b981; /* Green-500 */
+--color-danger: #ef4444; /* Red-500 */
+--color-warning: #f59e0b; /* Amber-500 */
+--color-background: #ffffff;
+--color-surface: #f9fafb;
 --color-text-primary: #111827;
---color-text-secondary: #6B7280;
+--color-text-secondary: #6b7280;
 
 /* スペーシング */
---spacing-xs: 0.25rem;  /* 4px */
---spacing-sm: 0.5rem;   /* 8px */
---spacing-md: 1rem;     /* 16px */
---spacing-lg: 1.5rem;   /* 24px */
---spacing-xl: 2rem;     /* 32px */
+--spacing-xs: 0.25rem; /* 4px */
+--spacing-sm: 0.5rem; /* 8px */
+--spacing-md: 1rem; /* 16px */
+--spacing-lg: 1.5rem; /* 24px */
+--spacing-xl: 2rem; /* 32px */
 
 /* ブレークポイント */
 --breakpoint-sm: 640px;
@@ -126,6 +133,7 @@ function PropertyManager({ data, mode, callback }) {
 ```
 
 ### 3.2 コンポーネントパターン
+
 ```typescript
 // カード表示パターン
 <Card>
@@ -159,6 +167,7 @@ function PropertyManager({ data, mode, callback }) {
 ```
 
 ### 3.3 レスポンシブデザイン
+
 ```css
 /* モバイルファースト */
 .container {
@@ -184,6 +193,7 @@ function PropertyManager({ data, mode, callback }) {
 ## 4. API設計ガイド
 
 ### 4.1 RESTful設計
+
 ```
 GET    /api/properties          # 一覧取得
 POST   /api/properties          # 新規作成
@@ -193,6 +203,7 @@ DELETE /api/properties/:id      # 削除
 ```
 
 ### 4.2 レスポンス形式
+
 ```typescript
 // 成功時
 {
@@ -221,20 +232,21 @@ DELETE /api/properties/:id      # 削除
 ```
 
 ### 4.3 エラーコード体系
+
 ```typescript
 enum ErrorCode {
   // 認証系 (1xxx)
   UNAUTHORIZED = 1001,
   FORBIDDEN = 1003,
-  
+
   // バリデーション系 (2xxx)
   VALIDATION_ERROR = 2001,
   DUPLICATE_ERROR = 2002,
-  
+
   // ビジネスロジック系 (3xxx)
   INSUFFICIENT_BALANCE = 3001,
   PROPERTY_LIMIT_EXCEEDED = 3002,
-  
+
   // システム系 (5xxx)
   INTERNAL_ERROR = 5000,
   DATABASE_ERROR = 5001,
@@ -244,6 +256,7 @@ enum ErrorCode {
 ## 5. データベース設計原則
 
 ### 5.1 命名規則
+
 ```sql
 -- テーブル名: 複数形、スネークケース
 CREATE TABLE properties (...);
@@ -258,6 +271,7 @@ CREATE INDEX idx_properties_owner_id ON properties(owner_id);
 ```
 
 ### 5.2 共通カラム
+
 ```sql
 -- すべてのテーブルに必須
 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -269,6 +283,7 @@ deleted_at TIMESTAMP NULL
 ```
 
 ### 5.3 制約の活用
+
 ```sql
 -- 外部キー制約
 FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE,
@@ -283,27 +298,29 @@ UNIQUE (property_id, unit_number)
 ## 6. セキュリティガイドライン
 
 ### 6.1 認証・認可
+
 ```typescript
 // ミドルウェアでの認証チェック
 export async function middleware(request: NextRequest) {
   const session = await getSession(request);
-  
+
   if (!session) {
     return NextResponse.redirect('/login');
   }
-  
+
   // RLSでさらに権限チェック
 }
 ```
 
 ### 6.2 入力検証
+
 ```typescript
 // Zodによるスキーマ定義
 const propertySchema = z.object({
   name: z.string().min(1).max(100),
   address: z.string().min(1).max(200),
   acquisitionPrice: z.number().positive(),
-  acquisitionDate: z.date().max(new Date())
+  acquisitionDate: z.date().max(new Date()),
 });
 
 // 使用例
@@ -315,6 +332,7 @@ try {
 ```
 
 ### 6.3 機密情報の扱い
+
 ```typescript
 // ❌ Bad: ログに機密情報
 console.log(`User ${email} logged in with password ${password}`);
@@ -330,6 +348,7 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 ## 7. パフォーマンス最適化
 
 ### 7.1 データ取得の最適化
+
 ```typescript
 // ❌ Bad: N+1問題
 const properties = await getProperties();
@@ -342,6 +361,7 @@ const properties = await getPropertiesWithUnits();
 ```
 
 ### 7.2 コンポーネントの最適化
+
 ```typescript
 // メモ化
 const MemoizedComponent = React.memo(ExpensiveComponent);
@@ -358,6 +378,7 @@ const calculatedValue = useMemo(() => {
 ```
 
 ### 7.3 画像最適化
+
 ```typescript
 import Image from 'next/image';
 
@@ -375,6 +396,7 @@ import Image from 'next/image';
 ## 8. テスト戦略
 
 ### 8.1 テストピラミッド
+
 ```
          /\
         /E2E\      ← 少数の重要シナリオ
@@ -386,6 +408,7 @@ import Image from 'next/image';
 ```
 
 ### 8.2 テストパターン
+
 ```typescript
 // ユニットテスト例
 describe('calculateMonthlyPayment', () => {
@@ -398,10 +421,8 @@ describe('calculateMonthlyPayment', () => {
 // 統合テスト例
 describe('Property API', () => {
   it('物件を作成できる', async () => {
-    const response = await request(app)
-      .post('/api/properties')
-      .send(validPropertyData);
-      
+    const response = await request(app).post('/api/properties').send(validPropertyData);
+
     expect(response.status).toBe(201);
     expect(response.body.data).toHaveProperty('id');
   });
@@ -411,12 +432,13 @@ describe('Property API', () => {
 ## 9. 監視・ロギング
 
 ### 9.1 ログレベル
+
 ```typescript
 enum LogLevel {
-  ERROR = 'error',    // エラー情報
-  WARN = 'warn',      // 警告情報
-  INFO = 'info',      // 一般情報
-  DEBUG = 'debug',    // デバッグ情報
+  ERROR = 'error', // エラー情報
+  WARN = 'warn', // 警告情報
+  INFO = 'info', // 一般情報
+  DEBUG = 'debug', // デバッグ情報
 }
 
 // 使用例
@@ -425,6 +447,7 @@ logger.error('Database connection failed', { error });
 ```
 
 ### 9.2 メトリクス収集
+
 - 応答時間
 - エラー率
 - 同時接続数
@@ -433,6 +456,7 @@ logger.error('Database connection failed', { error });
 ## 10. 継続的改善
 
 ### 10.1 コードレビュー基準
+
 - [ ] 命名規則に従っているか
 - [ ] 適切にテストされているか
 - [ ] セキュリティ考慮されているか
@@ -440,8 +464,8 @@ logger.error('Database connection failed', { error });
 - [ ] ドキュメント更新されているか
 
 ### 10.2 リファクタリング指針
+
 1. 動作するコードを書く
 2. テストを書く
 3. リファクタリングする
 4. テストが通ることを確認
-

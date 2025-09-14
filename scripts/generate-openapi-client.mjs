@@ -1,4 +1,4 @@
-import { writeFileSync } from 'node:fs'
+import { writeFileSync } from 'node:fs';
 
 const content = `import createClient from 'openapi-fetch'
 import type { paths } from './schema'

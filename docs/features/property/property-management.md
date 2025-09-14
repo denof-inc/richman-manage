@@ -1,20 +1,22 @@
 # 物件管理機能 詳細設計書
 
 ## 1. 機能概要
+
 不動産投資物件の基本情報と収支サマリーを管理する機能。物件ごとのレントロール、借入、支出を統合して表示。
 
 ## 2. データモデル
 
 ### properties テーブル（実装準拠）
+
 ```typescript
 interface Property {
-  id: string;                 // UUID
-  user_id: string;            // ユーザーID
-  name: string;               // 物件名
-  address: string;            // 住所
-  property_type: PropertyType;// 物件種別
-  purchase_price: number;     // 取得価格
-  purchase_date: string;      // 取得日（YYYY-MM-DD）
+  id: string; // UUID
+  user_id: string; // ユーザーID
+  name: string; // 物件名
+  address: string; // 住所
+  property_type: PropertyType; // 物件種別
+  purchase_price: number; // 取得価格
+  purchase_date: string; // 取得日（YYYY-MM-DD）
   current_valuation: number | null; // 現在評価額
   created_at: string;
   updated_at: string;
@@ -38,6 +40,7 @@ type PropertyType =
 ## 3. API仕様
 
 ### 3.1 物件一覧取得
+
 ```
 GET /api/properties
 Query Parameters:
@@ -63,6 +66,7 @@ Response:
 ```
 
 ### 3.2 物件詳細取得
+
 ```
 GET /api/properties/:id
 
@@ -79,6 +83,7 @@ Response:
 ```
 
 ### 3.3 物件作成
+
 ```
 POST /api/properties
 Body: Omit<Property, 'id' | 'created_at' | 'updated_at'>
@@ -91,6 +96,7 @@ Response:
 ```
 
 ### 3.4 物件更新
+
 ```
 PUT /api/properties/:id
 Body: Partial<Property>
@@ -103,6 +109,7 @@ Response:
 ```
 
 ### 3.5 物件削除（論理削除）
+
 ```
 DELETE /api/properties/:id
 
@@ -118,17 +125,20 @@ Response:
 ### 4.1 物件一覧画面（/properties）
 
 #### レイアウト
+
 - ヘッダー: タイトル + 新規追加ボタン
 - フィルター: 所有者選択
 - ソート: 物件名、CF、登録日
 - テーブル/カード表示切替
 
 #### 表示項目（テーブル）
-| 物件名 | 住所 | 満室想定 | 実際家賃 | 返済額 | CF | アクション |
-|--------|------|----------|----------|---------|-----|------------|
+
+| 物件名           | 住所     | 満室想定 | 実際家賃 | 返済額   | CF       | アクション |
+| ---------------- | -------- | -------- | -------- | -------- | -------- | ---------- |
 | クリックで詳細へ | 一部表示 | ¥350,000 | ¥320,000 | ¥210,000 | ¥110,000 | 編集・削除 |
 
 #### 表示項目（カード）
+
 - 物件名（大）
 - 住所
 - 収支サマリー（実際家賃 - 返済額 = CF）
@@ -137,12 +147,14 @@ Response:
 ### 4.2 物件詳細画面（/properties/[propertyId]）
 
 #### レイアウト
+
 - ヘッダー: 物件名 + 編集ボタン
 - 基本情報カード
 - 収支サマリーカード
 - 関連情報タブ（レントロール/借入/支出）
 
 #### 基本情報
+
 - 物件名、住所
 - 物件種別、延床面積、部屋数
 - 築年、取得日、取得価格
@@ -150,6 +162,7 @@ Response:
 - 備考
 
 #### 収支サマリー
+
 - 満室想定家賃
 - 実際の家賃（入居率%）
 - 月次返済額
@@ -157,6 +170,7 @@ Response:
 - ネットCF
 
 #### 関連情報
+
 - レントロール: 部屋一覧（リンク付き）
 - 借入: 関連ローン一覧
 - 支出: 最近の支出履歴
@@ -164,13 +178,14 @@ Response:
 ### 4.3 物件新規/編集画面（/properties/new, /properties/[propertyId]/edit）
 
 #### フォーム項目
+
 - 基本情報セクション
-  - 物件名*
-  - 住所*
-- 物件種別*
+  - 物件名\*
+  - 住所\*
+- 物件種別\*
 - 取得情報セクション
-  - 取得日*
-  - 取得価格*
+  - 取得日\*
+  - 取得価格\*
   - 現在価値
 - 収支情報セクション（自動計算・派生指標）
   - 満室想定家賃（レントロールから集計）
@@ -181,13 +196,14 @@ Response:
 ## 5. ビジネスロジック
 
 ### 5.1 収支自動計算
+
 ```typescript
 // 満室想定家賃 = 全部屋の家賃合計
 property.potential_rent = units.reduce((sum, unit) => sum + unit.rent_amount, 0);
 
 // 実際の家賃 = 入居中の部屋の家賃合計
 property.actual_rent = units
-  .filter(unit => unit.status === 'occupied')
+  .filter((unit) => unit.status === 'occupied')
   .reduce((sum, unit) => sum + unit.rent_amount, 0);
 
 // 月次返済額 = 関連借入の月次返済額合計
@@ -198,6 +214,7 @@ property.net_cf = property.actual_rent - property.monthly_repayment - monthlyExp
 ```
 
 ### 5.2 入居率計算
+
 ```typescript
 const occupancyRate = (occupiedUnits / totalUnits) * 100;
 ```
@@ -205,6 +222,7 @@ const occupancyRate = (occupiedUnits / totalUnits) * 100;
 ## 6. バリデーション
 
 ### 6.1 必須項目
+
 - 物件名: 1-100文字
 - 住所: 1-200文字
 - 物件種別: 定義済みの値
@@ -212,26 +230,31 @@ const occupancyRate = (occupiedUnits / totalUnits) * 100;
 - 取得価格: 0以上
 
 ### 6.2 ビジネスルール
-- 取得価格 <= 現在価値 * 2（異常値チェック）
+
+- 取得価格 <= 現在価値 \* 2（異常値チェック）
 - 築年 <= 現在年 - 取得年
 
 ## 7. 権限管理
+
 - 表示: 自分が所有する物件のみ
 - 作成: ログインユーザー
 - 編集/削除: 物件の所有者のみ
 
 ## 8. エラーハンドリング
+
 - 404: 物件が見つからない
 - 403: 権限がない
 - 400: バリデーションエラー
 - 500: サーバーエラー
 
 ## 9. パフォーマンス考慮
+
 - 一覧表示はページネーション（20件/ページ）
 - 収支計算は非同期で実行
 - キャッシュ活用（Redis）
 
 ## 10. テスト観点
+
 - CRUD操作の正常系/異常系
 - 収支自動計算の精度
 - 権限チェック
