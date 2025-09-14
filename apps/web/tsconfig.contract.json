@@ -1,7 +1,10 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "noEmit": true
+    "noEmit": true,
+    "moduleResolution": "node",
+    "module": "esnext",
+    "resolveJsonModule": true
   },
   "files": ["scripts/openapi-types-check.ts"]
 }
