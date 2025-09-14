@@ -1,0 +1,27 @@
+# Dependencies and caches
+node_modules/
+.turbo/
+.next/
+
+# Build outputs
+dist/
+build/
+
+# Coverage and test reports
+apps/web/coverage/
+apps/web/test-results/
+apps/web/playwright-report/
+
+# Tooling and agent memory
+.serena/
+.claude/
+.mcp.json
+
+# IDE/project files
+*.tsbuildinfo
+
+# Generated OpenAPI artifacts
+packages/generated/
+
+# Long-form design memo not formatted by Prettier (kept as-is)
+siji.md

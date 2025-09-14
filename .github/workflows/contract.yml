@@ -3,7 +3,7 @@ name: contract
 on:
   pull_request:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   openapi:
@@ -26,7 +26,7 @@ jobs:
       - name: Generate Client
         run: npm --workspaces=false run client:gen
       - name: Typecheck with generated types
-        run: npx tsc --noEmit apps/web/scripts/openapi-types-check.ts
+        run: npx tsc -p apps/web/tsconfig.contract.json
       - name: Upload OpenAPI artifact
         uses: actions/upload-artifact@v4
         with:
