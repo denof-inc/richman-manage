@@ -2,19 +2,6 @@ import { NextRequest } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { ApiResponse } from '@/lib/api/response';
 import { CreateOwnerSchema, OwnerResponseSchema } from '@/lib/api/schemas/owner';
-
-/**
- * @swagger
- * /api/owners:
- *   get:
- *     tags: [Owners]
- *     summary: 所有者一覧を取得
- *     description: 認証ユーザーに紐づく所有者（個人/法人）を新しい順に返します。
- *     operationId: getOwners
- *     responses:
- *       200:
- *         description: 成功
- */
 export async function GET() {
   const supabase = createClient();
   // 認証
@@ -34,24 +21,6 @@ export async function GET() {
   return ApiResponse.success(owners);
 }
 
-/**
- * @swagger
- * /api/owners:
- *   post:
- *     tags: [Owners]
- *     summary: 所有者を作成
- *     description: 指定された所有者名と種別（individual/corporation）で新規作成します。
- *     operationId: createOwner
- *     requestBody:
- *       required: true
- *     responses:
- *       201:
- *         description: 作成成功
- *       401:
- *         $ref: '#/components/responses/Unauthorized'
- *       422:
- *         $ref: '#/components/responses/ValidationError'
- */
 export async function POST(request: NextRequest) {
   const supabase = createClient();
   const {

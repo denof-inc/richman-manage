@@ -101,29 +101,6 @@ const handleApiError = (error: unknown, context: string) => {
 };
 
 // GET /api/expenses - 支出一覧取得
-/**
- * @swagger
- * /api/expenses:
- *   get:
- *     tags: [Expenses]
- *     summary: 支出一覧を取得
- *     parameters:
- *       - in: query
- *         name: property_id
- *         schema: { type: string, format: uuid }
- *       - in: query
- *         name: category
- *         schema: { type: string }
- *       - in: query
- *         name: start_date
- *         schema: { type: string, format: date-time }
- *       - in: query
- *         name: end_date
- *         schema: { type: string, format: date-time }
- *     responses:
- *       200:
- *         description: 成功
- */
 export async function GET(request: NextRequest) {
   return withPerformanceMonitoring(async () => {
     try {
@@ -234,22 +211,6 @@ export async function GET(request: NextRequest) {
 }
 
 // POST /api/expenses - 支出作成
-/**
- * @swagger
- * /api/expenses:
- *   post:
- *     tags: [Expenses]
- *     summary: 支出を作成
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/CreateExpense'
- *     responses:
- *       201:
- *         description: 作成成功
- */
 export async function POST(request: NextRequest) {
   return withPerformanceMonitoring(async () => {
     try {

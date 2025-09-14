@@ -1,176 +1,47 @@
-# API仕様書・DBドキュメント自動生成ガイド
+# API仕様書・DBドキュメント自動生成ガイド（Zod-first）
 
 ## 概要
 
-「二重管理を避ける」原則に基づき、実装コードから自動的にドキュメントを生成する方法を説明します。
+二重管理を避けるため、ZodスキーマをSSOTとし、OpenAPI 3.1を自動生成してUIに表示します。従来の next-swagger-doc や @swagger コメントは撤去済みです。
 
-## 1. API仕様書の自動生成
+## 1. API仕様書の自動生成（Zod→OpenAPI 3.1）
 
-### 1.1 必要なパッケージのインストール
+- 生成関数: `apps/web/src/lib/api/openapi/document.ts` の `generateOpenAPIDoc()`
+- JSON出力: `GET /api/openapi`（`apps/web/src/app/api/openapi/route.ts`）
+- UI: `GET /docs/api`（Scalar, `apps/web/src/app/docs/api/route.ts`）
 
-```bash
-npm install next-swagger-doc --workspace apps/web
-```
+ルートpackage.jsonには次の契約系スクリプトがあります。
 
-### 1.2 API Routeへのアノテーション追加
-
-```typescript
-// app/api/properties/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-
-/**
- * @swagger
- * /api/properties:
- *   get:
- *     tags:
- *       - Properties
- *     summary: 物件一覧を取得
- *     description: ユーザーが所有する全物件の一覧を取得します
- *     parameters:
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: [active, inactive]
- *         description: 物件のステータスでフィルタリング
- *     responses:
- *       200:
- *         description: 成功
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Property'
- *       401:
- *         description: 認証エラー
- */
-export async function GET(request: NextRequest) {
-  // 実装
-}
-
-/**
- * @swagger
- * components:
- *   schemas:
- *     Property:
- *       type: object
- *       required:
- *         - id
- *         - name
- *         - address
- *       properties:
- *         id:
- *           type: string
- *           format: uuid
- *         name:
- *           type: string
- *           example: 新宿ビル
- *         address:
- *           type: string
- *           example: 東京都新宿区西新宿1-1-1
- *         acquisitionPrice:
- *           type: number
- *           example: 50000000
- */
-```
-
-### 1.3 Swagger設定ファイル
-
-```typescript
-// apps/web/src/lib/swagger.ts
-import { createSwaggerSpec } from 'next-swagger-doc';
-
-export const getApiDocs = async () => {
-  const spec = createSwaggerSpec({
-    apiFolder: 'src/app/api',
-    definition: {
-      openapi: '3.0.0',
-      info: {
-        title: 'RichmanManage API',
-        version: '1.0.0',
-        description: '不動産投資管理システムのAPI仕様',
-      },
-      servers: [
-        {
-          url: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
-          description: 'Local dev',
-        },
-      ],
-      components: {
-        securitySchemes: {
-          bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
-        },
-      },
-      security: [{ bearerAuth: [] }],
-    },
-  });
-  return spec;
-};
-```
-
-### 1.4 Swagger UIページの作成
-
-実装ではCDN版のSwagger UIを`public`に配置したHTMLで表示し、`/api-docs`（JSON）を読み込みます。Next.jsのページはそのHTMLをiframeで表示します。
-
-```tsx
-// apps/web/src/app/docs/api/page.tsx
-'use client';
-export const dynamic = 'force-dynamic';
-export default function ApiDocsPage() {
-  return (
-    <div style={{ height: '100vh' }}>
-      <iframe
-        src="/swagger/index.html"
-        title="API Docs"
-        style={{ width: '100%', height: '100%', border: 'none' }}
-      />
-    </div>
-  );
+```json
+{
+  "scripts": {
+    "openapi:emit": "curl -sS http://localhost:3000/api/openapi -o packages/generated/openapi.json",
+    "openapi:types": "npx openapi-typescript \"$INIT_CWD/packages/generated/openapi.json\" -o \"$INIT_CWD/packages/generated/schema.d.ts\"",
+    "openapi:lint": "npx redocly lint \"$INIT_CWD/packages/generated/openapi.json\" || npx spectral lint \"$INIT_CWD/packages/generated/openapi.json\"",
+    "openapi:diff": "npx redocly diff \"$INIT_CWD/packages/generated/prev.json\" \"$INIT_CWD/packages/generated/openapi.json\" || true",
+    "client:gen": "node scripts/generate-openapi-client.mjs"
+  }
 }
 ```
 
-```html
-<!-- apps/web/public/swagger/index.html -->
-<!doctype html>
-<html lang="ja">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>RichmanManage API Docs</title>
-    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css" />
-    <style>
-      html,
-      body {
-        height: 100%;
-        margin: 0;
-      }
-      #swagger-ui {
-        height: 100vh;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="swagger-ui"></div>
-    <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
-    <script>
-      window.onload = () => {
-        window.ui = SwaggerUIBundle({
-          url: '/api-docs',
-          dom_id: '#swagger-ui',
-          presets: [SwaggerUIBundle.presets.apis],
-          layout: 'BaseLayout',
-        });
-      };
-    </script>
-  </body>
-</html>
-```
+開発フロー例:
+
+1) `npm --workspace apps/web run dev` でローカル起動
+
+2) `npm run openapi:emit && npm run openapi:lint && npm run openapi:diff`
+
+3) `npm run openapi:types && npm run client:gen`
+
+4) `http://localhost:<port>/docs/api` でUI確認（Scalar）
+
+## 2. DBドキュメント
+
+DBスキーマはSupabase(Postgres)のマイグレーションを正とし、必要に応じ`db/schema.sql`からER図等を生成します（詳細は別紙）。
+
+## 備考（レガシー撤去）
+
+- next-swagger-doc / Swagger UI iframe / @swagger コメントは使用しません。
+- READMEのAPIドキュメント欄は `/api/openapi` と `/docs/api` を参照します。
 
 ## 2. DBドキュメントの自動生成
 

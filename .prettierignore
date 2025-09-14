@@ -11,6 +11,8 @@ build/
 apps/web/coverage/
 apps/web/test-results/
 apps/web/playwright-report/
+test-results/
+playwright-report/
 
 # Tooling and agent memory
 .serena/

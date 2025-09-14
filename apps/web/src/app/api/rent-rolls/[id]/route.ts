@@ -94,21 +94,6 @@ const handleApiError = (error: unknown, context: string) => {
 };
 
 // GET /api/rent-rolls/[id] - レントロール詳細取得
-/**
- * @swagger
- * /api/rent-rolls/{id}:
- *   get:
- *     tags: [RentRolls]
- *     summary: レントロール詳細を取得
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema: { type: string, format: uuid }
- *     responses:
- *       200:
- *         description: 成功
- */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   return withPerformanceMonitoring(async () => {
     try {
@@ -154,27 +139,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 // PUT /api/rent-rolls/[id] - レントロール更新
-/**
- * @swagger
- * /api/rent-rolls/{id}:
- *   put:
- *     tags: [RentRolls]
- *     summary: レントロールを更新
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema: { type: string, format: uuid }
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/UpdateRentRoll'
- *     responses:
- *       200:
- *         description: 更新成功
- */
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   return withPerformanceMonitoring(async () => {
     try {
@@ -265,21 +229,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 // DELETE /api/rent-rolls/[id] - レントロール削除（論理削除）
-/**
- * @swagger
- * /api/rent-rolls/{id}:
- *   delete:
- *     tags: [RentRolls]
- *     summary: レントロールを削除（論理削除）
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema: { type: string, format: uuid }
- *     responses:
- *       200:
- *         description: 削除成功
- */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
