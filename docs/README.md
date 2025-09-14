@@ -40,7 +40,7 @@ docs/
 | [設計原則・ガイドライン](./design-principles.md)    | 技術的な判断基準、コーディング規約         | 開発者               |
 | [データモデル図](./data-model.md)                   | ER図、テーブル設計、制約                   | 開発者、DBA          |
 | [業務フロー図](./business-workflow.md)              | ユーザーの業務プロセス、システム利用フロー | 全員                 |
-| [API仕様書（集約）](./api/README.md)                | 実装の@swaggerを基にしたAPI要約            | 開発者               |
+| [API仕様書（集約）](./api/README.md)                | Zod→OpenAPIを基にしたAPI要約               | 開発者               |
 
 ### 機能別詳細設計
 

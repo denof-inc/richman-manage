@@ -100,33 +100,6 @@ const handleApiError = (error: unknown, context: string) => {
 };
 
 // GET /api/properties - 物件一覧取得
-/**
- * @swagger
- * /api/properties:
- *   get:
- *     tags: [Properties]
- *     summary: 物件一覧を取得
- *     description: 認証ユーザーの物件をページネーション付きで返します。
- *     operationId: getProperties
- *     parameters:
- *       - $ref: '#/components/parameters/PageParam'
- *       - $ref: '#/components/parameters/LimitParam'
- *       - in: query
- *         name: search
- *         schema: { type: string }
- *       - in: query
- *         name: property_type
- *         schema:
- *           type: string
- *           enum: [apartment, office, house, land, commercial, industrial, mixed_use, other]
- *     responses:
- *       200:
- *         description: 成功
- *       401:
- *         $ref: '#/components/responses/Unauthorized'
- *       422:
- *         $ref: '#/components/responses/ValidationError'
- */
 export async function GET(request: NextRequest) {
   return withPerformanceMonitoring(async () => {
     try {

@@ -6,21 +6,6 @@ import { z } from 'zod';
 import { getCache } from '@/lib/cache/redis-cache';
 
 // GET /api/users/[id] - 特定ユーザー取得
-/**
- * @swagger
- * /api/users/{id}:
- *   get:
- *     tags: [Users]
- *     summary: 特定ユーザーを取得
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema: { type: string, format: uuid }
- *     responses:
- *       200:
- *         description: 成功
- */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const supabase = createClient();
@@ -66,27 +51,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 // PUT /api/users/[id] - ユーザー更新
-/**
- * @swagger
- * /api/users/{id}:
- *   put:
- *     tags: [Users]
- *     summary: ユーザーを更新
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema: { type: string, format: uuid }
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/UpdateUser'
- *     responses:
- *       200:
- *         description: 更新成功
- */
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const supabase = createClient();
@@ -180,21 +144,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 // DELETE /api/users/[id] - ユーザー削除（論理削除）
-/**
- * @swagger
- * /api/users/{id}:
- *   delete:
- *     tags: [Users]
- *     summary: ユーザーを削除（論理削除）
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema: { type: string, format: uuid }
- *     responses:
- *       200:
- *         description: 削除成功
- */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

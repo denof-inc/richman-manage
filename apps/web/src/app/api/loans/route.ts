@@ -97,28 +97,6 @@ const handleApiError = (error: unknown, context: string) => {
 };
 
 // GET /api/loans - 借入一覧取得
-/**
- * @swagger
- * /api/loans:
- *   get:
- *     tags: [Loans]
- *     summary: 借入一覧を取得
- *     description: 認証ユーザーに関連する借入をページネーション付きで返します。
- *     operationId: getLoans
- *     parameters:
- *       - $ref: '#/components/parameters/PageParam'
- *       - $ref: '#/components/parameters/LimitParam'
- *       - in: query
- *         name: property_id
- *         schema: { type: string, format: uuid }
- *     responses:
- *       200:
- *         description: 成功
- *       401:
- *         $ref: '#/components/responses/Unauthorized'
- *       422:
- *         $ref: '#/components/responses/ValidationError'
- */
 export async function GET(request: NextRequest) {
   return withPerformanceMonitoring(async () => {
     try {

@@ -209,8 +209,11 @@ curl -X POST -H "x-seed-token: $DEV_SEED_TOKEN" "http://localhost:<port>/api/dev
 
 5. APIドキュメント
 
-- JSON: `/api-docs`
-- UI: `/docs/api`（CDN版Swagger UIをiframeで表示）
+- JSON: `/api/openapi`（Zod→OpenAPI 3.1 生成）
+- UI: `/docs/api`（Scalar UIで表示）
+
+運用方針
+- API仕様はZodスキーマ→OpenAPI自動生成をSSOTとします（next-swagger-doc/@swaggerは使用しません）。
 
 ### 環境別設定
 
