@@ -19,7 +19,7 @@
     "test": "turbo run test",
     "quality:check": "npm --workspaces=false run format:check && npm --workspaces=false run lint:check && npm --workspaces=false run typecheck && npm --workspaces=false run test",
     "openapi:emit": "curl -sS http://localhost:3000/api/openapi -o packages/generated/openapi.json",
-    "openapi:emit:node": "npx tsx apps/web/scripts/openapi-emit.ts",
+    "openapi:emit:node": "cd apps/web && npx tsx scripts/openapi-emit.ts",
     "openapi:types": "openapi-typescript packages/generated/openapi.json -o packages/generated/schema.d.ts",
     "openapi:lint": "redocly lint packages/generated/openapi.json || spectral lint packages/generated/openapi.json",
     "openapi:diff": "redocly diff packages/generated/prev.json packages/generated/openapi.json || true",
