@@ -26,7 +26,30 @@ export const propertiesPaths = {
       responses: {
         200: {
           description: '成功',
-          content: { 'application/json': { schema: z.array(PropertyResponseSchema) } },
+          content: {
+            'application/json': {
+              schema: z.array(PropertyResponseSchema),
+              examples: {
+                sample: {
+                  value: [
+                    {
+                      id: '550e8400-e29b-41d4-a716-446655440000',
+                      user_id: '550e8400-e29b-41d4-a716-446655440001',
+                      name: '青山マンション',
+                      address: '東京都港区南青山1-1-1',
+                      property_type: 'apartment',
+                      purchase_price: 50000000,
+                      purchase_date: '2023-04-01',
+                      current_valuation: 52000000,
+                      created_at: '2024-01-01T00:00:00Z',
+                      updated_at: '2024-01-10T00:00:00Z',
+                      deleted_at: null,
+                    },
+                  ],
+                },
+              },
+            },
+          },
         },
         401: { $ref: '#/components/responses/Unauthorized' },
         400: { $ref: '#/components/responses/BadRequest' },
@@ -44,7 +67,28 @@ export const propertiesPaths = {
       responses: {
         201: {
           description: '作成成功',
-          content: { 'application/json': { schema: PropertyResponseSchema } },
+          content: {
+            'application/json': {
+              schema: PropertyResponseSchema,
+              examples: {
+                created: {
+                  value: {
+                    id: '550e8400-e29b-41d4-a716-446655440002',
+                    user_id: '550e8400-e29b-41d4-a716-446655440001',
+                    name: '青山マンション',
+                    address: '東京都港区南青山1-1-1',
+                    property_type: 'apartment',
+                    purchase_price: 50000000,
+                    purchase_date: '2023-04-01',
+                    current_valuation: 52000000,
+                    created_at: '2024-01-01T00:00:00Z',
+                    updated_at: '2024-01-01T00:00:00Z',
+                    deleted_at: null,
+                  },
+                },
+              },
+            },
+          },
         },
         401: { $ref: '#/components/responses/Unauthorized' },
         400: { $ref: '#/components/responses/BadRequest' },

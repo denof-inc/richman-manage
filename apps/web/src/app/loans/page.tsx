@@ -11,7 +11,8 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import LoanTable from '../../components/loans/LoanTable';
 import LoadingOverlay from '@/components/ui/LoadingOverlay';
 import { request } from '@/lib/api/client';
-import { LoanResponseSchema } from '@/lib/api/schemas/loan';
+import { getLoansViaSdk } from '@/lib/api/openapi-client';
+// import { LoanResponseSchema } from '@/lib/api/schemas/loan';
 import { PropertyResponseSchema } from '@/lib/api/schemas/property';
 import { toLoanListViewModel, type LoanListViewModel } from '@/lib/mappers/loan';
 
@@ -38,7 +39,7 @@ export default function LoanListPage() {
     setLoading(true);
     try {
       const [loansRes, propsRes] = await Promise.all([
-        request('/api/loans', LoanResponseSchema.array(), { init: { signal } }),
+        getLoansViaSdk(undefined, signal),
         request('/api/properties', PropertyResponseSchema.array(), { init: { signal } }),
       ]);
       const propNameMap = new Map<string, string>(
