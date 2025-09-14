@@ -14,6 +14,7 @@ interface SuccessResponse<T = unknown> {
 }
 
 // エラーレスポンスの型定義
+// 互換エラー（現行envelope）
 interface ErrorResponse {
   success: false;
   data: null;
@@ -22,6 +23,20 @@ interface ErrorResponse {
     message: string;
     details?: unknown;
   };
+}
+
+// RFC 9457 Problem Details（拡張: code）
+interface ProblemDetails {
+  type?: string;
+  title: string;
+  status: number;
+  detail?: string;
+  instance?: string;
+  code?: string; // 拡張メンバ
+  // 互換目的で envelope を同梱（段階移行）
+  success?: false;
+  data?: null;
+  error?: ErrorResponse['error'];
 }
 
 // APIレスポンスのユーティリティクラス
@@ -43,62 +58,69 @@ export class ApiResponse {
     );
   }
 
-  // エラーレスポンス
+  // エラーレスポンス（段階移行: problem+json + 互換envelope同梱）
   static error(
     code: string,
     message: string,
     status: number = 400,
     details?: unknown
-  ): NextResponse<ErrorResponse> {
-    return NextResponse.json(
-      {
-        success: false,
-        data: null,
-        error: {
-          code,
-          message,
-          ...(details ? { details } : {}),
-        },
+  ): NextResponse<ProblemDetails> {
+    const body: ProblemDetails = {
+      type: 'about:blank',
+      title: message || code,
+      status,
+      detail: message,
+      code,
+      // 互換payload（当面維持）
+      success: false,
+      data: null,
+      error: {
+        code,
+        message,
+        ...(details ? { details } : {}),
       },
-      { status }
-    );
+    };
+    return new NextResponse(JSON.stringify(body), {
+      status,
+      headers: { 'content-type': 'application/problem+json; charset=utf-8' },
+    });
   }
 
   // 一般的なエラーレスポンス
   static badRequest(
     message: string = 'Bad Request',
     details?: unknown
-  ): NextResponse<ErrorResponse> {
+  ): NextResponse<ProblemDetails> {
     return this.error('BAD_REQUEST', message, 400, details);
   }
 
-  static unauthorized(message: string = 'Unauthorized'): NextResponse<ErrorResponse> {
+  static unauthorized(message: string = 'Unauthorized'): NextResponse<ProblemDetails> {
     return this.error('UNAUTHORIZED', message, 401);
   }
 
-  static forbidden(message: string = 'Forbidden'): NextResponse<ErrorResponse> {
+  static forbidden(message: string = 'Forbidden'): NextResponse<ProblemDetails> {
     return this.error('FORBIDDEN', message, 403);
   }
 
-  static notFound(message: string = 'Not Found'): NextResponse<ErrorResponse> {
+  static notFound(message: string = 'Not Found'): NextResponse<ProblemDetails> {
     return this.error('NOT_FOUND', message, 404);
   }
 
-  static conflict(message: string = 'Conflict', details?: unknown): NextResponse<ErrorResponse> {
+  static conflict(message: string = 'Conflict', details?: unknown): NextResponse<ProblemDetails> {
     return this.error('CONFLICT', message, 409, details);
   }
 
   static validationError(
     message: string = 'Validation Error',
     details?: unknown
-  ): NextResponse<ErrorResponse> {
+  ): NextResponse<ProblemDetails> {
     return this.error('VALIDATION_ERROR', message, 422, details);
   }
 
   static internalError(
     message: string = 'Internal Server Error',
     details?: unknown
-  ): NextResponse<ErrorResponse> {
+  ): NextResponse<ProblemDetails> {
     console.error('Internal Server Error:', message, details);
     return this.error('INTERNAL_ERROR', message, 500, details);
   }

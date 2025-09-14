@@ -18,3 +18,14 @@ export const ErrorResponseSchema = z.object({
   data: z.null(),
   error: ApiErrorSchema,
 });
+
+// RFC 9457 Problem Details
+export const ProblemDetailsSchema = z.object({
+  type: z.string().url().optional(),
+  title: z.string(),
+  status: z.number().int(),
+  detail: z.string().optional(),
+  instance: z.string().optional(),
+  // extension members for gradual migration / compatibility
+  code: z.string().optional(),
+});
