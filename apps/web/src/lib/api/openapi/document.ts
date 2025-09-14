@@ -1,17 +1,17 @@
 import { createDocument } from 'zod-openapi';
-import { ownersPaths } from '@/lib/api/openapi/paths/owners.paths';
-import { loansPaths } from '@/lib/api/openapi/paths/loans.paths';
-import { ApiErrorSchema, ErrorResponseSchema, ApiMetaSchema } from '@/lib/api/schemas/common';
-import { OwnerResponseSchema } from '@/lib/api/schemas/owner';
-import { LoanResponseSchema } from '@/lib/api/schemas/loan';
-import { PropertyResponseSchema } from '@/lib/api/schemas/property';
-import { ExpenseResponseSchema } from '@/lib/api/schemas/expense';
-import { RentRollResponseSchema } from '@/lib/api/schemas/rent-roll';
-import { UserResponseSchema } from '@/lib/api/schemas/user';
-import { propertiesPaths } from '@/lib/api/openapi/paths/properties.paths';
-import { expensesPaths } from '@/lib/api/openapi/paths/expenses.paths';
-import { rentRollsPaths } from '@/lib/api/openapi/paths/rent-rolls.paths';
-import { usersPaths } from '@/lib/api/openapi/paths/users.paths';
+import { ownersPaths } from './paths/owners.paths';
+import { loansPaths } from './paths/loans.paths';
+import { ApiErrorSchema, ErrorResponseSchema, ApiMetaSchema } from '../schemas/common';
+import { OwnerResponseSchema } from '../schemas/owner';
+import { LoanResponseSchema } from '../schemas/loan';
+import { PropertyResponseSchema } from '../schemas/property';
+import { ExpenseResponseSchema } from '../schemas/expense';
+import { RentRollResponseSchema } from '../schemas/rent-roll';
+import { UserResponseSchema } from '../schemas/user';
+import { propertiesPaths } from './paths/properties.paths';
+import { expensesPaths } from './paths/expenses.paths';
+import { rentRollsPaths } from './paths/rent-rolls.paths';
+import { usersPaths } from './paths/users.paths';
 
 export function generateOpenAPIDoc() {
   return createDocument({
